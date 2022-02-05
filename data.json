@@ -1,0 +1,99 @@
+{
+    "singleRedeemTitle": "",
+    "barrageRedeemTitle": "",
+    "subEnabled": true,
+    "subGiftEnabled": true,
+    "subIsBarrage": true,
+    "bitsEnabled": true,
+    "maxBitsBarrageCount": 125,
+    "barrageCount": 30,
+    "barrageFrequency": 0.05,
+    "returnSpeed": 0.05,
+    "delay": 0,
+    "volume": 0.1,
+    "parametersHorizontal": [
+        "FaceAngleX",
+        "FaceAngleZ",
+        "FacePositionX"
+    ],
+    "parametersVertical": [
+        "FaceAngleY"
+    ],
+    "portThrower": 8080,
+    "portVTubeStudio": 8001,
+    "accessToken": "709b3174to585q2mm2tcbwrks3wh2z ",
+    "throws": [
+        [
+            "throws/gnome.png",
+            1,
+            "impacts/gnome.mp3"
+        ],
+        [
+            "throws/logo256.png",
+            0.75
+        ],
+        [
+            "throws/lien.png",
+            0.25
+        ],
+        [
+            "throws/b00logo.png",
+            0.75
+        ],
+        [
+            "throws/miraiemblem.png",
+            0.75
+        ],
+        [
+            "throws/me.png",
+            0.1
+        ],
+        [
+            "throws/walk.png",
+            0.5
+        ],
+        [
+            "throws/pixel.png",
+            0.5
+        ],
+        [
+            "throws/twitch.png",
+            0.75
+        ],
+        [
+            "throws/github.png",
+            0.75
+        ]
+    ],
+    "impacts": [
+        "impacts/body_medium_impact_hard1.wav",
+        "impacts/body_medium_impact_hard2.wav",
+        "impacts/body_medium_impact_hard3.wav",
+        "impacts/body_medium_impact_hard4.wav",
+        "impacts/body_medium_impact_hard5.wav",
+        "impacts/body_medium_impact_hard6.wav",
+        "impacts/body_medium_impact_soft1.wav",
+        "impacts/body_medium_impact_soft2.wav",
+        "impacts/body_medium_impact_soft3.wav",
+        "impacts/body_medium_impact_soft4.wav",
+        "impacts/body_medium_impact_soft5.wav",
+        "impacts/body_medium_impact_soft6.wav",
+        "impacts/body_medium_impact_soft7.wav"
+    ],
+    "b9f36ad9b1c54d6bbc7457a819c67559Min": [
+        0.0020835399627685547,
+        -0.10740858316421509
+    ],
+    "b9f36ad9b1c54d6bbc7457a819c67559Max": [
+        -0.006425321102142334,
+        -3.66920804977417
+    ],
+    "4b55651e13ed4a77819c5c8585ff323aMin": [
+        0.0010416507720947266,
+        -0.08333325386047363
+    ],
+    "4b55651e13ed4a77819c5c8585ff323aMax": [
+        0.2958333492279053,
+        -0.07962989807128906
+    ]
+}

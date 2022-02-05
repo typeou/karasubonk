@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <title>Karasubonk</title>
+    <link rel="stylesheet" type="text/css" href="style.css"></style>
+  </head>
+  <body>
+    <p id="status"></p>
+    <p id="statusDesc"></p>
+
+    <button id="startCalibrate">calibrate</button>
+    <button id="nextCalibrate">next calibrate</button>
+
+    <button id="single">bonk</button>
+    <button id="barrage">bonkalot</button>
+    <button id="bits">bits</button>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

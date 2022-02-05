@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script>
+            // Karasubot Websocket Scripts
+
+            var socketKarasu;
+            var isCalibrating = false;
+
+            function connectKarasu()
+            {
+                socketKarasu = new WebSocket("ws://localhost:8080");
+                socketKarasu.onopen = function()
+                {
+                    console.log("Connected to Karasubot!");
+
+                    // Stop attempting to reconnect unless we lose connection
+                    clearInterval(tryConnectKarasu);
+                    tryConnectKarasu = setInterval(function()
+                    {
+                        if (socketKarasu.readyState != 1)
+                        {
+                            console.log("Lost connection to Karasubot!");
+                            clearInterval(tryConnectKarasu);
+                            tryConnectKarasu = setInterval(retryConnectKarasu, 1000 * 5);
+                        }
+                    }, 1000 * 5);
+                };
+
+                // Process incoming requests
+                socketKarasu.onmessage = function(event)
+                {
+                    var data = JSON.parse(event.data);
+
+                    if (data.type == "calibrating")
+                    {
+                        isCalibrating = true;
+                        document.querySelector("#guide").hidden = false;
+                        switch(data.stage)
+                        {
+                            // Stage 0 is calibrating at smallest size
+                            case 0:
+                                var request = {
+                                    "apiName": "VTubeStudioPublicAPI",
+                                    "apiVersion": "1.0",
+                                    "requestID": "7",
+                                    "messageType": "MoveModelRequest",
+                                    "data": {
+                                        "timeInSeconds": 0.5,
+                                        "valuesAreRelativeToModel": false,
+                                        "positionX": 0.0,
+                                        "positionY": 0.0,
+                                        "rotation": 0,
+                                        "size": -100
+                                    }
+                                }
+                                socketVTube.send(JSON.stringify(request));
+                                break;
+                            // Stage 1 is sending min size position information back
+                            case 1:
+                                var request = {
+                                    "apiName": "VTubeStudioPublicAPI",
+                                    "apiVersion": "1.0",
+                                    "requestID": "4",
+                                    "messageType": "CurrentModelRequest"
+                                }
+                                socketVTube.onmessage = function(event)
+                                {
+                                    request = {
+                                        "type": "calibrating",
+                                        "stage": "min",
+                                        "positionX": JSON.parse(event.data).data.modelPosition.positionX,
+                                        "positionY": JSON.parse(event.data).data.modelPosition.positionY,
+                                        "size": JSON.parse(event.data).data.modelPosition.size,
+                                        "modelID": JSON.parse(event.data).data.modelID
+                                    }
+                                    socketVTube.onmessage = null;
+                                    socketKarasu.send(JSON.stringify(request));
+                                }
+                                socketVTube.send(JSON.stringify(request));
+                                break;
+                            // Stage 2 is calibrating at largest size
+                            case 2:
+                                var request = {
+                                    "apiName": "VTubeStudioPublicAPI",
+                                    "apiVersion": "1.0",
+                                    "requestID": "9",
+                                    "messageType": "MoveModelRequest",
+                                    "data": {
+                                        "timeInSeconds": 0.5,
+                                        "valuesAreRelativeToModel": false,
+                                        "positionX": 0.0,
+                                        "positionY": 0.0,
+                                        "rotation": 0,
+                                        "size": 100
+                                    }
+                                }
+                                socketVTube.send(JSON.stringify(request));
+                                break;
+                            // Stage 3 is sending max size position information back
+                            case 3:
+                                var request = {
+                                    "apiName": "VTubeStudioPublicAPI",
+                                    "apiVersion": "1.0",
+                                    "requestID": "4",
+                                    "messageType": "CurrentModelRequest"
+                                }
+                                socketVTube.onmessage = function(event)
+                                {
+                                    request = {
+                                        "type": "calibrating",
+                                        "stage": "max",
+                                        "positionX": JSON.parse(event.data).data.modelPosition.positionX,
+                                        "positionY": JSON.parse(event.data).data.modelPosition.positionY,
+                                        "size": JSON.parse(event.data).data.modelPosition.size,
+                                        "modelID": JSON.parse(event.data).data.modelID
+                                    }
+                                    socketVTube.onmessage = null;
+                                    socketKarasu.send(JSON.stringify(request));
+                                }
+                                socketVTube.send(JSON.stringify(request));
+                                break;
+                            // Stage 4 is finishing calibration
+                            case 4:
+                                isCalibrating = false;
+                                document.querySelector("#guide").hidden = true;
+                                var request = {
+                                    "apiName": "VTubeStudioPublicAPI",
+                                    "apiVersion": "1.0",
+                                    "requestID": "9",
+                                    "messageType": "MoveModelRequest",
+                                    "data": {
+                                        "timeInSeconds": 0.5,
+                                        "valuesAreRelativeToModel": false,
+                                        "positionX": 0.0,
+                                        "positionY": 0.0,
+                                        "rotation": 0,
+                                        "size": 0
+                                    }
+                                }
+                                socketVTube.send(JSON.stringify(request));
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        var request = {
+                            "apiName": "VTubeStudioPublicAPI",
+                            "apiVersion": "1.0",
+                            "requestID": "3",
+                            "messageType": "InputParameterListRequest"
+                        }
+                        socketVTube.onmessage = function(event)
+                        {
+                            const paramInfo = JSON.parse(event.data).data.defaultParameters;
+                            const modelID = JSON.parse(event.data).data.modelID;
+                            
+                            const faceWidthMin = data.data[modelID + "Min"][0];
+                            const faceHeightMin = data.data[modelID + "Min"][1];
+                            const faceWidthMax = data.data[modelID + "Max"][0];
+                            const faceHeightMax = data.data[modelID + "Max"][1];
+
+                            for (var i = 0; i < data.data.parametersHorizontal.length; i++)
+                            {
+                                var value = 0, min = -30, max = 30;
+                                for (var j = 0; j < paramInfo.length; j++)
+                                {
+                                    if (paramInfo[j].name == data.data.parametersHorizontal[i])
+                                    {
+                                        value = paramInfo[j].value;
+                                        min = paramInfo[j].min;
+                                        max = paramInfo[j].max;
+                                        break;
+                                    }
+                                }
+                                data.data.parametersHorizontal[i] = [ data.data.parametersHorizontal[i], value, min, max ];
+                            }
+
+                            for (var i = 0; i < data.data.parametersVertical.length; i++)
+                            {
+                                var value = 0, min = -30, max = 30;
+                                for (var j = 0; j < paramInfo.length; j++)
+                                {
+                                    if (paramInfo[j].name == data.data.parametersVertical[i])
+                                    {
+                                        value = paramInfo[j].value;
+                                        min = paramInfo[j].min;
+                                        max = paramInfo[j].max;
+                                        break;
+                                    }
+                                }
+                                data.data.parametersVertical[i] = [ data.data.parametersVertical[i], value, min, max ];
+                            }
+
+                            switch(data.type)
+                            {
+                                case "single":
+                                    bonk(data.image, data.magnitude, data.sound, data.data.volume, data.data.parametersHorizontal, data.data.parametersVertical, data.data.delay, data.data.returnSpeed, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
+                                    break;
+                                case "barrage":
+                                    var i = 0;
+                                    const images = data.image;
+                                    const sounds = data.sound;
+                                    const magnitudes = data.magnitude;
+                                    const max = Math.min(images.length, sounds.length, magnitudes.length);
+
+                                    var bonker = setInterval(function()
+                                    {
+                                        bonk(images[i], magnitudes[i], sounds[i], data.data.volume, data.data.parametersHorizontal, data.data.parametersVertical, data.data.delay, data.data.returnSpeed, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
+                                        if (++i >= max)
+                                            clearInterval(bonker);
+                                    }, data.data.barrageFrequency * 1000);
+                                    break;
+                            }
+                        }
+                        socketVTube.send(JSON.stringify(request));
+                    }
+                }
+            }
+
+            connectKarasu();
+            // Retry connection to Karasubot every 5 seconds
+            var tryConnectKarasu = setInterval(retryConnectKarasu, 1000 * 5);
+
+            function retryConnectKarasu()
+            {
+                console.log("Retrying connection to Karasubot...");
+                connectKarasu();
+            }
+        </script>
+        <script>
+            // VTube Studio API Scripts
+
+            var socketVTube;
+            var isOpen = false;
+
+            function connectVTube()
+            {
+                socketVTube = new WebSocket("ws://localhost:8001");
+                socketVTube.onopen = function()
+                {
+                    console.log("Connected to VTube Studio!");
+
+                    // Stop attempting to reconnect unless we lose connection
+                    clearInterval(tryConnectVTube);
+                    tryConnectVTube = setInterval(function()
+                    {
+                        // If we lose connection, attempt to reconnect
+                        if (socketVTube.readyState != 1)
+                        {
+                            isOpen = false;
+                            console.log("Lost connection to VTube Studio!");
+                            clearInterval(tryConnectVTube);
+                            tryConnectVTube = setInterval(retryConnectVTube, 1000 * 5);
+                        }
+                    }, 1000 * 5);
+
+                    var request = {
+                        "apiName": "VTubeStudioPublicAPI",
+                        "apiVersion": "1.0",
+                        "requestID": "0",
+                        "messageType": "AuthenticationTokenRequest",
+                        "data": {
+                            "pluginName": "Karasubonk",
+                            "pluginDeveloper": "typeou.dev"
+                        }
+                    }
+                    socketVTube.onmessage = function(event)
+                    {
+                        socketVTube.onmessage = null;
+                        var response = JSON.parse(event.data);
+                        if (response.data.authenticationToken != null)
+                        {
+                            request = {
+                                "apiName": "VTubeStudioPublicAPI",
+                                "apiVersion": "1.0",
+                                "requestID": "1",
+                                "messageType": "AuthenticationRequest",
+                                "data": {
+                                    "pluginName": "Karasubonk", 
+                                    "pluginDeveloper": "typeou.dev",
+                                    "authenticationToken": response.data.authenticationToken
+                                }
+                            }
+                            socketVTube.onmessage = function(event)
+                            {
+                                socketVTube.onmessage = null;
+                                response = JSON.parse(event.data);
+                                if (response.data.authenticated)
+                                    isOpen = true;
+                            }
+                            socketVTube.send(JSON.stringify(request));
+                        }
+                    }
+                    socketVTube.send(JSON.stringify(request));
+                };
+            }
+
+            connectVTube();
+            // Retry connection to VTube Studio every 5 seconds
+            var tryConnectVTube = setInterval(retryConnectVTube, 1000 * 5);
+
+            function retryConnectVTube()
+            {
+                console.log("Retrying connection to VTube Studio...");
+                connectVTube();
+            }
+
+            // Report status of VTube studio connection
+            setInterval(() => {
+                if (socketKarasu != null)
+                {
+                    var request = {
+                        "type": "status",
+                        "connectedVTube": isOpen
+                    }
+                    socketKarasu.send(JSON.stringify(request));
+                }
+            }, 1000);
+
+            function bonk(image, mag, sound, volume, paramH, paramV, delay, returnSpeed, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax)
+            {
+                if (isOpen && !isCalibrating)
+                {
+                    var request = {
+                        "apiName": "VTubeStudioPublicAPI",
+                        "apiVersion": "1.0",
+                        "requestID": "4",
+                        "messageType": "CurrentModelRequest"
+                    }
+                    socketVTube.onmessage = function(event)
+                    {
+                        const pos = JSON.parse(event.data).data.modelPosition;
+                        if (pos != null)
+                        {
+                            const offsetX = faceWidthMin + (((pos.size + 100) / 200) * (faceWidthMax - faceWidthMin));
+                            const offsetY = faceHeightMin + (((pos.size + 100) / 200) * (faceHeightMax - faceHeightMin));
+                            const xPos = (parseFloat(pos.positionX - offsetX) + 1) / 2, yPos = 1 - ((parseFloat(pos.positionY - offsetY) + 1) / 2);
+                            const fromLeft = Math.random() < xPos;
+                            const multH = fromLeft ? 1 : -1;
+                            const angle = (Math.random() * 90) - 45;
+
+                            var audio = new Audio();
+                            audio.src = sound;
+                            audio.volume = mag * volume;
+                            var canPlayAudio = false;
+                            audio.oncanplaythrough = function() { canPlayAudio = true; }
+
+                            var img = new Image();
+                            img.src = image;
+                            img.onload = function()
+                            {
+                                var pivot = document.createElement("div");
+                                pivot.classList.add("thrown");
+                                pivot.style.left = ((window.innerWidth * xPos) - (img.width / 2)) + "px";
+                                pivot.style.top = ((window.innerHeight * yPos) - (img.height / 2)) + "px";
+                                pivot.style.transform = "rotate(" + angle + "deg)";
+                                var movement = document.createElement("div");
+                                movement.classList.add("animated");
+                                var animName = "throw" + (fromLeft ? "Left" : "Right");
+                                movement.style.animationDelay = (delay / 1000) + "s";
+                                movement.style.animation = animName + " 0.8s";
+                                var thrown = document.createElement("img");
+                                thrown.classList.add("animated");
+                                thrown.src = image;
+                                thrown.style.width = img.width + "px";
+                                thrown.style.height = img.height + "px";
+                                var animName = "spin" + (Math.random() < 0.5 ? "Clockwise " : "CounterClockwise ");
+                                thrown.style.animation = animName + ((Math.random() * 0.4) + 0.1) + "s";
+                                thrown.style.animationIterationCount = "infinite";
+                                
+                                movement.appendChild(thrown);
+                                pivot.appendChild(movement);
+                                document.querySelector("body").appendChild(pivot);
+
+                                // Don't do anything until both image and audio are ready
+                                if (canPlayAudio)
+                                {
+                                    setTimeout(function() { flinch(multH, angle, mag, paramH, paramV, returnSpeed); }, 300 + delay);
+
+                                    setTimeout(function() { audio.play(); }, 300 + delay);
+                                    
+                                    setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + delay);
+                                }
+                                else
+                                {
+                                    audio.oncanplaythrough = function()
+                                    {
+                                        setTimeout(function() { flinch(multH, angle, mag, paramH, paramV, returnSpeed); }, 300 + delay);
+
+                                        setTimeout(function() { audio.play(); }, 300 + delay);
+                                        
+                                        setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + delay);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    socketVTube.send(JSON.stringify(request));
+                }
+            }
+
+            function flinch(multH, angle, mag, paramH, paramV, returnSpeed)
+            {
+                var parameterValues = [];
+                for (var i = 0; i < paramH.length; i++)
+                    parameterValues.push({ "id": paramH[i][0], "value": paramH[i][1] + (multH < 0 ? paramH[i][2] : paramH[i][3]) * mag });
+                for (var i = 0; i < paramV.length; i++)
+                    parameterValues.push({ "id": paramV[i][0], "value": paramV[i][1] + (angle > 0 ? paramV[i][2] : paramV[i][3]) * Math.abs(angle) / 45 * mag });
+
+                var request = {
+                    "apiName": "VTubeStudioPublicAPI",
+                    "apiVersion": "1.0",
+                    "requestID": "5",
+                    "messageType": "InjectParameterDataRequest",
+                    "data": {
+                        "parameterValues": parameterValues
+                    }
+                }
+
+                var weight = 1, done;
+                socketVTube.onmessage = function()
+                {
+                    weight -= returnSpeed;
+                    done = weight <= 0;
+                    if (done)
+                        weight = 0;
+
+                    parameterValues = [];
+                    for (var i = 0; i < paramH.length; i++)
+                        parameterValues.push({ "id": paramH[i][0], "weight": weight, "value": paramH[i][1] + (multH < 0 ? paramH[i][2] : paramH[i][3]) * mag });
+                    for (var i = 0; i < paramV.length; i++)
+                        parameterValues.push({ "id": paramV[i][0], "weight": weight, "value": paramV[i][1] + (multH * angle > 0 ? paramV[i][2] : paramV[i][3]) * Math.abs(angle) / 45 * mag });
+
+                    request = {
+                        "apiName": "VTubeStudioPublicAPI",
+                        "apiVersion": "1.0",
+                        "requestID": "6",
+                        "messageType": "InjectParameterDataRequest",
+                        "data": {
+                            "parameterValues": parameterValues
+                        }
+                    }
+
+                    socketVTube.send(JSON.stringify(request));
+                    if (done)
+                        socketVTube.onmessage = null;
+                };
+                socketVTube.send(JSON.stringify(request));
+            }
+        </script>
+        <style>
+            @-webkit-keyframes throwLeft {
+                0% {
+                    transform: translate(-150vw, 0vh);
+                }
+                25% {
+                    transform: translate(-75vw, 10vh);
+                }
+                50% {
+                    transform: translate(0vw, 0vh);
+                }
+                100% {
+                    transform: translate(-30vw, -150vh);
+                }
+            }
+
+            @keyframes throwLeft {
+                0% {
+                    transform: translate(-150vw, 0vh);
+                }
+                25% {
+                    transform: translate(-75vw, 10vh);
+                }
+                50% {
+                    transform: translate(0vw, 0vh);
+                }
+                100% {
+                    transform: translate(-30vw, -150vh);
+                }
+            }
+
+            @-webkit-keyframes throwRight {
+                0% {
+                    transform: translate(150vw, 0vh);
+                }
+                25% {
+                    transform: translate(75vw, 10vh);
+                }
+                50% {
+                    transform: translate(0vw, 0vh);
+                }
+                100% {
+                    transform: translate(30vw, -150vh);
+                }
+            }
+
+            @keyframes throwRight {
+                0% {
+                    transform: translate(150vw, 0vh);
+                }
+                25% {
+                    transform: translate(75vw, 10vh);
+                }
+                50% {
+                    transform: translate(0vw, 0vh);
+                }
+                100% {
+                    transform: translate(30vw, -150vh);
+                }
+            }
+
+            @-webkit-keyframes spinClockwise {
+                from {
+                    transform: rotate(0);
+                }
+                to {
+                    transform: rotate(360);
+                }
+            }
+
+            @keyframes spinClockwise {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(360deg);
+                }
+            }
+
+            @-webkit-keyframes spinCounterClockwise {
+                from {
+                    transform: rotate(360deg);
+                }
+                to {
+                    transform: rotate(0deg);
+                }
+            }
+
+            @keyframes spinCounterClockwise {
+                from {
+                    transform: rotate(360deg);
+                }
+                to {
+                    transform: rotate(0deg);
+                }
+            }
+
+            .thrown {
+                position: absolute;
+            }
+
+            .animated, .thrown {
+                -webkit-animation-timing-function: linear !important;
+                animation-timing-function: linear !important;
+                -webkit-animation-fill-mode: both !important;
+                animation-fill-mode: both !important;
+            }
+
+            #guide {
+                position: absolute;
+                top: calc(50% - 25px);
+                left: calc(50% - 25px);
+                background-color: #ff3cd7;
+                opacity: 0.5;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+            }
+
+            #guideH, #guideV {
+                position: absolute;
+                background-color: black;
+                opacity: 0.75;
+            }
+
+            #guideH {
+                top: calc(50% - 1px);
+                height: 2px;
+                width: 100%;
+            }
+
+            #guideV {
+                left: calc(50% - 1px);
+                height: 100%;
+                width: 2px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="guide" hidden><div id="guideH"></div><div id="guideV"></div></div>
+    </body>
+</html>
