@@ -9,15 +9,230 @@
     <link rel="stylesheet" type="text/css" href="style.css"></style>
   </head>
   <body>
-    <p id="status"></p>
-    <p id="statusDesc"></p>
+    <div id="header"><h1>Karasubonk</h1></div>
 
-    <button id="startCalibrate">calibrate</button>
-    <button id="nextCalibrate">next calibrate</button>
+    <div class="buttons">
+      <div id="startCalibrate" class="button">Calibrate</div>
+      <div id="single" class="button">Test Bonk</div>
+      <div id="barrage" class="button">Test Manybonk</div>
+      <div id="bits" class="button">Test Bitsbonk</div>
+    </div>
 
-    <button id="single">bonk</button>
-    <button id="barrage">bonkalot</button>
-    <button id="bits">bits</button>
+    <div class="block status">
+      <h2>Status</h2>
+      <hr>
+      <h1 id="status">Loading...</h1>
+      <p id="statusDesc"></p>
+    </div>
+
+    <div class="buttons" id="oAuthButton">
+      <div id="oAuthLink" class="button">Get OAuth Token</div>
+    </div>
+
+    <div class="buttons hide" id="calibrateButtons">
+      <div id="nextCalibrate" class="button">Confirm Calibration</div>
+      <div id="cancelCalibrate" class="button">Cancel</div>
+    </div>
+
+    <div id="panels">
+      <div id="ItemsButton" class="button">Items</div>
+      <div id="SoundsButton" class="button">Sounds</div>
+      <div id="EventsButton" class="button">Events</div>
+      <div id="SettingsButton" class="button">Settings</div>
+    </div>
+
+    <div id="items" class="block config" hidden>
+      <h2>Items</h2>
+      <hr>
+      <label for="load" class="btn">Load New Items:</label>
+      <input id="load" type="file" accept="image/*">
+      <br/>
+      <br/>
+      <table>
+        <tr>
+          <th></th>
+          <th>File</th>
+          <th>Weight</th>
+          <th>Audio Override</th>
+        </tr>
+        <tr id="ItemRow">
+          <td><button>X</button></td>
+          <td><input type="text" disabled></td>
+          <td><input type="number" min="0" max="1" step="0.1"></td>
+          <td><input id="load" type="file" accept="audio/*"></td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="sounds" class="block config" hidden>
+      <h2>Sounds</h2>
+      <hr>
+      <label for="load" class="btn">Load New Sounds:</label>
+      <input id="load" type="file" accept="audio/*">
+      <br/>
+      <br/>
+      <table>
+        <tr>
+          <th></th>
+          <th>File</th>
+          <th>Volume</th>
+        </tr>
+        <tr id="SoundRow">
+          <td><button>X</button></td>
+          <td><input type="text" disabled></td>
+          <td><input type="number" min="0" max="1" step="0.1"></td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="events" class="block config" hidden>
+      <h2>Events</h2>
+      <hr>
+      <table>
+        <tr>
+          <th></th>
+          <th></th>
+          <th>Redeem ID</th>
+          <th>Cooldown</th></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="singleRedeemEnabled"></td>
+          <td>Redeem (Single)</td>
+          <td><button id="singleRedeemID">Listen</button></td>
+          <td><input type="number" id="singleRedeemCooldown" min="0"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="barrageRedeemEnabled"></td>
+          <td>Redeem (Barrage)</td>
+          <td><button id="barrageRedeemID">Listen</button></td>
+          <td><input type="number" id="barrageRedeemCooldown" min="0"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <th></th>
+          <th></th>
+          <th>Command Names</th>
+          <th>Cooldown</th></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="singleCommandEnabled"></td>
+          <td>Command (Single)</td>
+          <td><input type="text" id="singleCommandTitle"></td>
+          <td><input type="number" id="singleCommandCooldown" min="0"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="barrageCommandEnabled"></td>
+          <td>Command (Barrage)</td>
+          <td><input type="text" id="barrageCommandTitle"></td>
+          <td><input type="number" id="barrageCommandCooldown" min="0"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <th></th>
+          <th></th>
+          <th>Bonk Type</th>
+          <th>Cooldown</th></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="subEnabled"></td>
+          <td>Subscription</td>
+          <td>
+            <select id="subType">
+              <option value="single">Single</option>
+              <option value="barrage">Barrage</option>
+            </select>
+          </td>
+          <td><input type="number" id="subCooldown" min="0"></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="subGiftEnabled"></td>
+          <td>Gift Subscription</td>
+          <td>
+            <select id="subGiftType">
+              <option value="single">Single</option>
+              <option value="barrage">Barrage</option>
+            </select>
+          </td>
+          <td><input type="number" id="subGiftCooldown" min="0"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <th></th>
+          <th></th>
+          <th>Max Bonks</th>
+          <th>Cooldown</th></td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" id="bitsEnabled"></td>
+          <td>Bits</td>
+          <td><input type="number" id="bitsMaxBarrageCount"></td>
+          <td><input type="number" id="bitsCooldown" min="0"></td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="settings" class="block config" hidden>
+      <h2>Settings</h2>
+      <hr>
+      <table>
+        <tr>
+          <td>Barrage Count</td>
+          <td><input type="number" id="barrageCount" min="0"></td>
+        </tr>
+        <tr>
+          <td>Barrage Frequency</td>
+          <td><input type="number" id="barrageFrequency" min="0"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Return Speed</td>
+          <td><input type="number" id="returnSpeed" min="0"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Volume</td>
+          <td><input type="number" id="volume" min="0"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Delay</td>
+          <td><input type="number" id="delay" min="0"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>OAuth Token</td>
+          <td><input type="password" id="accessToken"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <th colspan="2"><a class="important">Please refresh the Browser Source in OBS after changing ports!</a></th>
+        </tr>
+        <tr>
+          <td>Browser Source Port</td>
+          <td><input type="number" id="portThrower"></td>
+        </tr>
+        <tr>
+          <td>VTube Studio Port</td>
+          <td><input type="number" id="portVTubeStudio"></td>
+        </tr>
+      </table>
+    </div>
 
     <script src="renderer.js"></script>
   </body>

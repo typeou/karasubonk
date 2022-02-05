@@ -2,17 +2,48 @@
 <html>
     <head>
         <meta charset="UTF-8">
+        <script src="ports.js"></script>
         <script>
             // Karasubot Websocket Scripts
 
-            var socketKarasu;
+            var socketKarasu, karasuIsOpen = false;
             var isCalibrating = false;
+
+            function endCalibration()
+            {
+                if (isCalibrating)
+                {
+                    isCalibrating = false;
+                    document.querySelector("#guide").hidden = true;
+                    document.querySelector("#guideText").hidden = true;
+                    if (vTubeIsOpen)
+                    {
+                        var request = {
+                            "apiName": "VTubeStudioPublicAPI",
+                            "apiVersion": "1.0",
+                            "requestID": "9",
+                            "messageType": "MoveModelRequest",
+                            "data": {
+                                "timeInSeconds": 0.5,
+                                "valuesAreRelativeToModel": false,
+                                "positionX": 0.0,
+                                "positionY": 0.0,
+                                "rotation": 0,
+                                "size": 0
+                            }
+                        }
+                        socketVTube.onmessage = null;
+                        socketVTube.send(JSON.stringify(request));
+                    }
+                }
+            }
 
             function connectKarasu()
             {
                 socketKarasu = new WebSocket("ws://localhost:8080");
                 socketKarasu.onopen = function()
                 {
+                    karasuIsOpen = true;
                     console.log("Connected to Karasubot!");
 
                     // Stop attempting to reconnect unless we lose connection
@@ -21,11 +52,13 @@
                     {
                         if (socketKarasu.readyState != 1)
                         {
+                            karasuIsOpen = false;
                             console.log("Lost connection to Karasubot!");
+                            endCalibration();
                             clearInterval(tryConnectKarasu);
-                            tryConnectKarasu = setInterval(retryConnectKarasu, 1000 * 5);
+                            tryConnectKarasu = setInterval(retryConnectKarasu, 1000 * 3);
                         }
-                    }, 1000 * 5);
+                    }, 1000 * 3);
                 };
 
                 // Process incoming requests
@@ -37,6 +70,7 @@
                     {
                         isCalibrating = true;
                         document.querySelector("#guide").hidden = false;
+                        document.querySelector("#guideText").hidden = false;
                         switch(data.stage)
                         {
                             // Stage 0 is calibrating at smallest size
@@ -55,6 +89,7 @@
                                         "size": -100
                                     }
                                 }
+                                socketVTube.onmessage = null;
                                 socketVTube.send(JSON.stringify(request));
                                 break;
                             // Stage 1 is sending min size position information back
@@ -96,6 +131,7 @@
                                         "size": 100
                                     }
                                 }
+                                socketVTube.onmessage = null;
                                 socketVTube.send(JSON.stringify(request));
                                 break;
                             // Stage 3 is sending max size position information back
@@ -123,27 +159,11 @@
                                 break;
                             // Stage 4 is finishing calibration
                             case 4:
-                                isCalibrating = false;
-                                document.querySelector("#guide").hidden = true;
-                                var request = {
-                                    "apiName": "VTubeStudioPublicAPI",
-                                    "apiVersion": "1.0",
-                                    "requestID": "9",
-                                    "messageType": "MoveModelRequest",
-                                    "data": {
-                                        "timeInSeconds": 0.5,
-                                        "valuesAreRelativeToModel": false,
-                                        "positionX": 0.0,
-                                        "positionY": 0.0,
-                                        "rotation": 0,
-                                        "size": 0
-                                    }
-                                }
-                                socketVTube.send(JSON.stringify(request));
+                                endCalibration();
                                 break;
                         }
                     }
-                    else
+                    else if (!isCalibrating)
                     {
                         var request = {
                             "apiName": "VTubeStudioPublicAPI",
@@ -221,7 +241,7 @@
 
             connectKarasu();
             // Retry connection to Karasubot every 5 seconds
-            var tryConnectKarasu = setInterval(retryConnectKarasu, 1000 * 5);
+            var tryConnectKarasu = setInterval(retryConnectKarasu, 1000 * 3);
 
             function retryConnectKarasu()
             {
@@ -233,7 +253,7 @@
             // VTube Studio API Scripts
 
             var socketVTube;
-            var isOpen = false;
+            var vTubeIsOpen = false;
 
             function connectVTube()
             {
@@ -249,12 +269,12 @@
                         // If we lose connection, attempt to reconnect
                         if (socketVTube.readyState != 1)
                         {
-                            isOpen = false;
+                            vTubeIsOpen = false;
                             console.log("Lost connection to VTube Studio!");
                             clearInterval(tryConnectVTube);
-                            tryConnectVTube = setInterval(retryConnectVTube, 1000 * 5);
+                            tryConnectVTube = setInterval(retryConnectVTube, 1000 * 3);
                         }
-                    }, 1000 * 5);
+                    }, 1000 * 3);
 
                     var request = {
                         "apiName": "VTubeStudioPublicAPI",
@@ -288,7 +308,7 @@
                                 socketVTube.onmessage = null;
                                 response = JSON.parse(event.data);
                                 if (response.data.authenticated)
-                                    isOpen = true;
+                                    vTubeIsOpen = true;
                             }
                             socketVTube.send(JSON.stringify(request));
                         }
@@ -299,7 +319,7 @@
 
             connectVTube();
             // Retry connection to VTube Studio every 5 seconds
-            var tryConnectVTube = setInterval(retryConnectVTube, 1000 * 5);
+            var tryConnectVTube = setInterval(retryConnectVTube, 1000 * 3);
 
             function retryConnectVTube()
             {
@@ -307,13 +327,13 @@
                 connectVTube();
             }
 
-            // Report status of VTube studio connection
+            // Report status of VTube studio connection once a second
             setInterval(() => {
-                if (socketKarasu != null)
+                if (karasuIsOpen)
                 {
                     var request = {
                         "type": "status",
-                        "connectedVTube": isOpen
+                        "connectedVTube": vTubeIsOpen
                     }
                     socketKarasu.send(JSON.stringify(request));
                 }
@@ -321,7 +341,7 @@
 
             function bonk(image, mag, sound, volume, paramH, paramV, delay, returnSpeed, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax)
             {
-                if (isOpen && !isCalibrating)
+                if (vTubeIsOpen)
                 {
                     var request = {
                         "apiName": "VTubeStudioPublicAPI",
@@ -547,6 +567,15 @@
                 }
             }
 
+            body {
+                font-family: Verdana, Geneva, Tahoma, sans-serif;
+                color: white;
+                -webkit-text-stroke: 2px black;
+                font-weight: bold;
+                margin: 0;
+                padding: 0;
+            }
+
             .thrown {
                 position: absolute;
             }
@@ -562,17 +591,17 @@
                 position: absolute;
                 top: calc(50% - 25px);
                 left: calc(50% - 25px);
-                background-color: #ff3cd7;
+                background-color: #FF9EEB;
                 opacity: 0.5;
-                width: 50px;
-                height: 50px;
+                width: 100px;
+                height: 100px;
                 border-radius: 50%;
             }
 
             #guideH, #guideV {
                 position: absolute;
                 background-color: black;
-                opacity: 0.75;
+                transform: rotate(45deg);
             }
 
             #guideH {
@@ -586,9 +615,38 @@
                 height: 100%;
                 width: 2px;
             }
+
+            #guideText {
+                position: absolute;
+                top: calc(50% + 100px);
+                width: 100%;
+                opacity: 0.75;
+            }
+
+            #guideText p {
+                font-size: 32px;
+                text-align: center;
+                animation: glow 3s infinite;
+            }
+
+            @keyframes glow {
+                0% {
+                    color: #FFCEF5;
+                }
+                50% {
+                    color: #FF9EEB;
+                }
+                100% {
+                    color: #FFCEF5;
+                }
+            }
         </style>
     </head>
     <body>
         <div id="guide" hidden><div id="guideH"></div><div id="guideV"></div></div>
+        <div id="guideText" hidden>
+            <p>Position the impact area under the crosshair.</p>
+            <p>Please do not resize the model. The adjusted size is essential for calibration.</p>
+        </div>
     </body>
 </html>

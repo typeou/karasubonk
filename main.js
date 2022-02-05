@@ -1,19 +1,18 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
-const path = require('path')
 
 var mainWindow;
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 720,
+    width: 800,
+    height: 800,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
       contextIsolation: false,
       enableRemoteModule: true
     }
   })
 
+  mainWindow.setResizable(false);
   mainWindow.loadFile('index.html')
 }
 
@@ -25,21 +24,49 @@ app.whenReady().then(() => {
   })
 })
 
+var open = true;
 setInterval(() => {
-  var status = 0;
-  if (socket == null)
-    status = 1;
-  else if (!connectedVTube)
-    status = 2;
-  else if (calibrateStage == 0 || calibrateStage == 1)
-    status = 3;
-  else if (calibrateStage == 2 || calibrateStage == 3)
-    status = 4;
+  if (mainWindow != null)
+  {
+    var status = 0;
+    if (!authenticated)
+      status = 1
+    else if (socket == null)
+      status = 2;
+    else if (calibrateStage == 0 || calibrateStage == 1)
+      status = 3;
+    else if (calibrateStage == 2 || calibrateStage == 3)
+      status = 4;
+    else if (!connectedVTube)
+      status = 5;
+    else if (listeningSingle)
+      status = 6;
+    else if (listeningBarrage)
+      status = 7;
+  
+    if (open)
+      mainWindow.webContents.send("status", status);
+  }
+}, 100);
 
-  mainWindow.webContents.send("status", status);
-}, 1000);
+var listeningSingle = false, listeningBarrage = false;
+ipcMain.on('listenSingle', () => listenSingle());
+ipcMain.on('listenBarrage', () => listenBarrage());
+
+function listenSingle()
+{
+  listeningBarrage = false;
+  listeningSingle = true;
+}
+
+function listenBarrage()
+{
+  listeningSingle = false;
+  listeningBarrage = true;
+}
 
 app.on('window-all-closed', () => {
+  open = false;
   if (process.platform !== 'darwin') app.quit()
 })
 
@@ -50,37 +77,46 @@ var data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
 // PubSub authentication for listening to events
 const { ApiClient } = require('twitch');
 const { StaticAuthProvider } = require('twitch-auth');
-var authProvider;
-var apiClient;
+var authProvider, apiClient, chatClient;
 
 async function pubSub(apiClient) {
   const { PubSubClient } = require('twitch-pubsub-client');
+  const { ChatClient } = require('twitch-chat-client');
 
   const pubSubClient = new PubSubClient();
 
   const userID = await pubSubClient.registerUserListener(apiClient);
+  const user = await apiClient.helix.users.getUserById(userID);
+  chatClient = new ChatClient(authProvider, { channels: [user.name] });
+  await chatClient.connect();
+  chatClient.onMessage(onMessageHandler);
 
   await pubSubClient.onRedemption(userID, onRedeemHandler);
   await pubSubClient.onSubscription(userID, onSubHandler);
   await pubSubClient.onBits(userID, onBitsHandler);
 }
 
-// Acquire token if one doesn't exist yet
-if (data.accessToken == "")
-{
-  //require('electron').shell.openExternal("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=u4rwa52hwkkgyoyow0t3gywxyv54pg&redirect_uri=https://twitchapps.com/tokengen/&scope=channel%3Aread%3Aredemptions%20channel_subscriptions%20bits%3Aread");
-}
-else
-{
-  authenticate();
+var authenticated = false;
+var authenticator = setInterval(() => {
+  if (!authenticated)
+    authenticate();
+  else
+    clearInterval(authenticator);
+}, 3000);
+
+async function authenticate() {
+  data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
+  authProvider = new StaticAuthProvider("u4rwa52hwkkgyoyow0t3gywxyv54pg", data.accessToken);
+  const token = await authProvider.getAccessToken();
+  if (token != null)
+  {
+    authenticated = true;
+    apiClient = new ApiClient({ authProvider });
+    pubSub(apiClient);
+  }
 }
 
-ipcMain.on('authenticate', () => authenticate());
-function authenticate() {
-  authProvider = new StaticAuthProvider("u4rwa52hwkkgyoyow0t3gywxyv54pg", data.accessToken);
-  apiClient = new ApiClient({ authProvider });
-  pubSub(apiClient);
-}
+ipcMain.on('oauth', () => require('electron').shell.openExternal("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=u4rwa52hwkkgyoyow0t3gywxyv54pg&redirect_uri=https://twitchapps.com/tokengen/&scope=chat%3Aread%20chat%3Aedit%20channel%3Aread%3Aredemptions%20channel_subscriptions%20bits%3Aread"));
 
 // Websocket server for browser source
 const WebSocket = require("ws");
@@ -197,6 +233,7 @@ function barrage()
 
 ipcMain.on('startCalibrate', () => startCalibrate());
 ipcMain.on('nextCalibrate', () => nextCalibrate());
+ipcMain.on('cancelCalibrate', () => cancelCalibrate());
 
 var calibrateStage = -1;
 function startCalibrate()
@@ -208,6 +245,12 @@ function startCalibrate()
 function nextCalibrate()
 {
   calibrateStage++;
+  calibrate();
+}
+
+function cancelCalibrate()
+{
+  calibrateStage = 4;
   calibrate();
 }
 
@@ -231,74 +274,111 @@ function setData(field, value)
   fs.writeFileSync(__dirname + "/data.json", JSON.stringify(data));
 }
 
-function resetData()
+var canSingleCommand = true, canBarrageCommand = true;
+function onMessageHandler(_, _, message)
 {
-  data = {
-    "singleRedeemID": "",
-    "barrageRedeemID": "",
-
-    "subEnabled": true,
-    "subGiftEnabled": true,
-    "subIsBarrage": true,
-
-    "singleBitsEnabled": true,
-    "singleBitsCount": 100,
-    "barrageBitsEnabled": true,
-    "barrageBitsCount": 500,
-
-    "barrageCount": 30,
-    "barrageFrequency": 0.1,
-
-    "returnSpeed": 0.05,
-
-    "delay": 150,
-
-    "volume": 0.1,
-
-    "parametersHorizontal": ["FaceAngleX", "FaceAngleZ", "FacePositionX"],
-
-    "parametersVertical": ["FaceAngleY"],
-
-    "faceHeightMin": 0,
-    "faceHeightMax": 0,
-
-    "portThrower": 8080,
-    "portVTubeStudio": 8001,
-
-    "accessToken": ""
+  if (canSingleCommand && data.singleCommandEnabled && message.toLowerCase() == data.singleCommandTitle.toLowerCase())
+  {
+    single();
+    if (data.singleCommandCooldown > 0)
+    {
+      canSingleCommand = false;
+      setTimeout(() => { canSingleCommand = true; }, data.singleCommandCooldown * 1000);
+    }
   }
-  fs.writeFileSync(__dirname + "/data.json", JSON.stringify(data));
-}
-
-function onRedeemHandler(redemptionMessage)
-{
-  switch (redemptionMessage.rewardTitle) {
-    case data.singleRedeemTitle:
-      single();
-      break;
-    case data.barrageRedeemTitle:
-      barrage();
-      break;
+  else if (canBarrageCommand && data.barrageCommandEnabled && message.toLowerCase() == data.barrageCommandTitle.toLowerCase())
+  {
+    barrage();
+    if (data.barrageCommandCooldown > 0)
+    {
+      canBarrageCommand = false;
+      setTimeout(() => { canBarrageCommand = true; }, data.barrageCommandCooldown * 1000);
+    }
   }
 }
 
+var canSingleRedeem = true, canBarrageRedeem = true
+async function onRedeemHandler(redemptionMessage)
+{
+  if (listeningSingle)
+  {
+    setData("singleRedeemID", redemptionMessage.rewardId);
+    listeningSingle = false;
+  }
+  else if (listeningBarrage)
+  {
+    setData("barrageRedeemID", redemptionMessage.rewardId);
+    listeningBarrage = false;
+  }
+  else
+  {
+    switch (redemptionMessage.rewardId) {
+      case data.singleRedeemID:
+        if (canSingleRedeem && data.singleRedeemEnabled)
+        {
+          single();
+          if (data.singleRedeemCooldown > 0)
+          {
+            canSingleRedeem = false;
+            setTimeout(() => { canSingleRedeem = true; }, data.singleRedeemCooldown * 1000);
+          }
+        }
+        break;
+      case data.barrageRedeemID:
+        if (canBarrageRedeem && data.barrageRedeemEnabled)
+        {
+          barrage();
+          if (data.barrageRedeemCooldown > 0)
+          {
+            canBarrageRedeem = false;
+            setTimeout(() => { canBarrageRedeem = true; }, data.barrageRedeemCooldown * 1000);
+          }
+        }
+        break;
+    }
+  }
+}
+
+var canSub = true, canSubGift = true;
 function onSubHandler(subMessage)
 {
-  if ((data.subEnabled && !subMessage.isGift) || (data.subGiftEnabled && subMessage.isGift)) {
-    if (data.subIsBarrage)
+  if (canSub && data.subEnabled && !subMessage.isGift) {
+    if (data.subType == "barrage")
       barrage();
     else
       single();
+    if (data.subCooldown > 0)
+    {
+      canSub = false;
+      setTimeout(() => { canSub = true; }, data.subCooldown * 1000);
+    }
+  } else if (canSubGift && data.subGiftEnabled && subMessage.isGift) {
+    if (data.subGiftType == "barrage")
+      barrage();
+    else
+      single();
+    if (data.subGiftCooldown > 0)
+    {
+      canSubGift = false;
+      setTimeout(() => { canSub = true; }, data.subGiftCooldown * 1000);
+    }
   }
 }
 
+var canBits = true;
 function onBitsHandler(bitsMessage)
 {
-  if (data.bitsEnabled) {
-    var totalBits = Math.floor(Math.random() * 20000); //bitsMessage.totalBits;
+  if (canBits && data.bitsEnabled) {
+    if (data.bitsCooldown > 0)
+    {
+      canBits = false;
+      setTimeout(() => { canBits = true; }, data.bitsCooldown * 1000);
+    }
+
+    var totalBits = bitsMessage == null ? Math.floor(Math.random() * 20000) : bitsMessage.totalBits;
 
     var num10k = 0, num5k = 0, num1k = 0, num100 = 0;
-    while (totalBits + num100 + num1k + num5k + num10k > data.maxBitsBarrageCount)
+    while (data.maxBitsBarrageCount > 100 && totalBits + num100 + num1k + num5k + num10k > data.maxBitsBarrageCount)
     {
       // Maximum number of possible 10k bit icons
       const max10k = Math.floor(totalBits / 10000);

@@ -1,0 +1,392 @@
+body {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+    color: #ff3cd7;
+}
+
+#header {
+    background-color: #ff9eec;
+    margin-bottom: 15px;
+}
+
+#header h1 {
+    font-family: 'Cascadia Mono', Consolas, 'Courier New', monospace;
+    font-weight: normal;
+    text-align: center;
+    margin: 0;
+}
+
+.buttons {
+    display: flex;
+    margin: auto;
+    width: max-content;
+}
+
+.button {
+    background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.95) 100%);
+    padding: 10px 20px;
+    color: #ff3cd7;
+    text-align: center;
+    cursor: pointer;
+    margin: 0 5px;
+}
+
+.status {
+    width: calc(100% - 60px) !important;
+    margin: 15px !important;
+}
+
+mark {
+    background-color: white;
+    color: black;
+    font-weight: bold;
+    padding: 0 0.1em 0 0.1em;
+}
+
+@keyframes glow {
+    0% {
+        color: #FFCEF5;
+    }
+    50% {
+        color: #FF9EEB;
+    }
+    100% {
+        color: #FFCEF5;
+    }
+}
+
+#oauth {
+    background: none;
+	color: inherit;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+    color: #ff3cd7
+}
+
+#calibrateButtons, #oAuthButton {
+    margin: 0;
+    width: 100%;
+}
+
+#oAuthLink {
+    margin: 0 15px;
+    width: 100%;
+}
+
+.hide {
+    display: none;
+}
+
+#nextCalibrate {
+    margin: 0 15px;
+    width: calc(70% - 65px);
+}
+#cancelCalibrate {
+    margin: 0 15px;
+    width: calc(30% - 65px);
+}
+
+#status, .important {
+    font-weight: bold;
+    animation: glow 3s infinite;
+}
+
+#status {
+    text-align: center;
+}
+
+#panels {
+    position: absolute;
+    bottom: 0;
+    display: grid;
+    margin: 15px;
+    width: max-content;
+}
+
+#panels > * {
+    margin: 0;
+    margin-top: 15px;
+    grid-column: 1;
+}
+
+.block {
+    width: max-content;
+    background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.95) 100%);
+    margin: auto;
+    padding: 15px;
+    color: white;
+}
+
+.config {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    max-height: 600px;
+    overflow-y: scroll;
+    -webkit-animation-duration: 0.5s;
+    animation-duration: 0.5s;
+    -webkit-animation-fill-mode: forwards;
+    animation-fill-mode: forwards;
+    clip-path: polygon(60px 50%, calc(100% - 60px) 50%, 100% 50%, 0% 50%);
+}
+
+h2 {
+    text-align: center;
+    margin: 0;
+}
+
+hr {
+    border: 0;
+    height: 2px;
+    min-height: 2px;
+    background-color: white;
+}
+
+@-webkit-keyframes open1 {
+    0% {
+        height: 0;
+        clip-path: polygon(0% 50%, 100% 50%, calc(100% - 60px) 50%, 60px 50%);
+        margin: 0;
+        padding: 0;
+    }
+    1%{
+        height: auto;
+        clip-path: polygon(0% 50%, 100% 50%, calc(100% - 60px) 50%, 60px 50%);
+        margin: 15px -15px;
+        padding: 15px 45px;
+    }
+    99% {
+        height: auto;
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+        margin: 15px;
+        padding: 15px;
+    }
+    100% {
+        height: auto;
+        clip-path: polygon(0% 0%, calc(100% + 15px) 0%, calc(100% + 15px) calc(100% + 15px), 0% calc(100% + 15px));
+        margin: 15px;
+        padding: 15px;
+    }
+}
+
+@keyframes open1 {
+    0% {
+        height: 0;
+        clip-path: polygon(0% 50%, 100% 50%, calc(100% - 60px) 50%, 60px 50%);
+        margin: 0;
+        padding: 0;
+    }
+    1%{
+        height: auto;
+        clip-path: polygon(0% 50%, 100% 50%, calc(100% - 60px) 50%, 60px 50%);
+        margin: 15px -15px;
+        padding: 15px 45px;
+    }
+    99% {
+        height: auto;
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+        margin: 15px;
+        padding: 15px;
+    }
+    100% {
+        height: auto;
+        clip-path: polygon(0% 0%, calc(100% + 15px) 0%, calc(100% + 15px) calc(100% + 15px), 0% calc(100% + 15px));
+        margin: 15px;
+        padding: 15px;
+    }
+}
+
+@-webkit-keyframes open2 {
+    0% {
+        height: 0;
+        clip-path: polygon(60px 50%, calc(100% - 60px) 50%, 100% 50%, 0% 50%);
+        margin: 0;
+        padding: 0;
+    }
+    1% {
+        height: auto;
+        clip-path: polygon(60px 50%, calc(100% - 60px) 50%, 100% 50%, 0% 50%);
+        margin: 15px -15px;
+        padding: 15px 45px;
+    }
+    99% {
+        height: auto;
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+        margin: 15px;
+        padding: 15px;
+    }
+    100% {
+        height: auto;
+        clip-path: polygon(0% 0%, calc(100% + 15px) 0%, calc(100% + 15px) calc(100% + 15px), 0% calc(100% + 15px));
+        margin: 15px;
+        padding: 15px;
+    }
+}
+
+@keyframes open2 {
+    0% {
+        height: 0;
+        clip-path: polygon(60px 50%, calc(100% - 60px) 50%, 100% 50%, 0% 50%);
+        margin: 0;
+        padding: 0;
+    }
+    1% {
+        height: auto;
+        clip-path: polygon(60px 50%, calc(100% - 60px) 50%, 100% 50%, 0% 50%);
+        margin: 15px -15px;
+        padding: 15px 45px;
+    }
+    99% {
+        height: auto;
+        clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+        margin: 15px;
+        padding: 15px;
+    }
+    100% {
+        height: auto;
+        clip-path: polygon(0% 0%, calc(100% + 15px) 0%, calc(100% + 15px) calc(100% + 15px), 0% calc(100% + 15px));
+        margin: 15px;
+        padding: 15px;
+    }
+}
+
+@-webkit-keyframes open3 {
+    0% {
+        height: 0;
+        clip-path: polygon(50% 60px, 50% calc(100% - 60px), 50% 100%, 50% 0%);
+        margin: 0;
+        padding: 0;
+    }
+    1% {
+        height: auto;
+        clip-path: polygon(50% 60px, 50% calc(100% - 60px), 50% 100%, 50% 0%);
+        margin: -15px 15px;
+        padding: 45px 15px;
+    }
+    99% {
+        height: auto;
+        clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%);
+        margin: 15px;
+        padding: 15px;
+    }
+    100% {
+        height: auto;
+        clip-path: polygon(0% 0%, 0% calc(100% + 15px), calc(100% + 15px) calc(100% + 15px), calc(100% + 15px) 0%);
+        margin: 15px;
+        padding: 15px;
+    }
+}
+
+@keyframes open3 {
+    0% {
+        height: 0;
+        clip-path: polygon(50% 60px, 50% calc(100% - 60px), 50% 100%, 50% 0%);
+        margin: 0;
+        padding: 0;
+    }
+    1% {
+        height: auto;
+        clip-path: polygon(50% 60px, 50% calc(100% - 60px), 50% 100%, 50% 0%);
+        margin: -15px 15px;
+        padding: 45px 15px;
+    }
+    99% {
+        height: auto;
+        clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%);
+        margin: 15px;
+        padding: 15px;
+    }
+    100% {
+        height: auto;
+        clip-path: polygon(0% 0%, 0% calc(100% + 15px), calc(100% + 15px) calc(100% + 15px), calc(100% + 15px) 0%);
+        margin: 15px;
+        padding: 15px;
+    }
+}
+
+@-webkit-keyframes open4 {
+    0% {
+        height: 0;
+        clip-path: polygon(50% 0%, 50% 100%, 50% calc(100% - 60px), 50% 60px);
+        margin: 0;
+        padding: 0;
+    }
+    1% {
+        height: auto;
+        clip-path: polygon(50% 0%, 50% 100%, 50% calc(100% - 60px), 50% 60px);
+        margin: -15px 15px;
+        padding: 45px 15px;
+    }
+    99% {
+        height: auto;
+        clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%);
+        margin: 15px;
+        padding: 15px;
+    }
+    100% {
+        height: auto;
+        clip-path: polygon(0% 0%, 0% calc(100% + 15px), calc(100% + 15px) calc(100% + 15px), calc(100% + 15px) 0%);
+        margin: 15px;
+        padding: 15px;
+    }
+}
+
+@keyframes open4 {
+    0% {
+        height: 0;
+        clip-path: polygon(50% 0%, 50% 100%, 50% calc(100% - 60px), 50% 60px);
+        margin: 0;
+        padding: 0;
+    }
+    1% {
+        height: auto;
+        clip-path: polygon(50% 0%, 50% 100%, 50% calc(100% - 60px), 50% 60px);
+        margin: -15px 15px;
+        padding: 45px 15px;
+    }
+    99% {
+        height: auto;
+        clip-path: polygon(0% 0%, 0% 100%, 100% 100%, 100% 0%);
+        margin: 15px;
+        padding: 15px;
+    }
+    100% {
+        height: auto;
+        clip-path: polygon(0% 0%, 0% calc(100% + 15px), calc(100% + 15px) calc(100% + 15px), calc(100% + 15px) 0%);
+        margin: 15px;
+        padding: 15px;
+    }
+}
+
+.reverse {
+    -webkit-animation-direction: reverse !important;
+    animation-direction: reverse !important;
+}
+
+.open1 {
+    -webkit-animation-name: "open1";
+    animation-name: "open1";
+}
+
+.open2 {
+    -webkit-animation-name: "open2";
+    animation-name: "open2";
+}
+
+.open3 {
+    -webkit-animation-name: "open3";
+    animation-name: "open3";
+}
+
+.open4 {
+    -webkit-animation-name: "open4";
+    animation-name: "open4";
+}
