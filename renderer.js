@@ -41,9 +41,7 @@ document.querySelector("#loadImage").addEventListener("change", () => {
     
     if (!contains)
     {
-        console.log("a");
         throws.push([ "throws/" + imageFile.name, 1.0, 1.0 ]);
-        console.log(throws);
         setData("throws", throws);
         openImages();
     }
@@ -54,19 +52,19 @@ function openImages()
     document.querySelectorAll(".imageRow").forEach((element) => { element.remove(); });
     
     var throws = getData("throws");
-    for (var i = throws.length - 1; i >= 0; i--)
+    throws.forEach(element =>
     {
-        if (fs.existsSync(__dirname + "/" + throws[i][0]))
+        if (fs.existsSync(__dirname + "/" + element[0]))
         {
             var row = document.querySelector("#imageRow").cloneNode(true);
             row.id = "";
             row.classList.add("imageRow");
             row.removeAttribute("hidden");
-            row.querySelector(".imageName").value = throws[i][0].substr(7);
+            row.querySelector(".imageName").value = element[0].substr(7);
             document.querySelector("#imageTable").appendChild(row);
 
             row.querySelector(".removeImage").addEventListener("click", () => {
-                throws.splice(i, 1);
+                throws.splice(throws.indexOf(element), 1);
                 setData("throws", throws);
                 row.remove();
             });
@@ -80,24 +78,24 @@ function openImages()
                 document.querySelector("#imagePreviewParent").hidden = "hidden";
             });
 
-            row.querySelector(".imageWeight").value = throws[i][1];
-            row.querySelector(".imageScale").value = throws[i][2];
-            if (throws[i][3] != null)
+            row.querySelector(".imageWeight").value = element[1];
+            row.querySelector(".imageScale").value = element[2];
+            if (element[3] != null)
             {
-                if (fs.existsSync(__dirname + "/" + throws[i][3]))
+                if (fs.existsSync(__dirname + "/" + element[3]))
                 {
-                    row.querySelector(".imageSound").value = throws[i][3].substr(8);
-                    row.querySelector(".imageSoundVolume").value = throws[i][4];
+                    row.querySelector(".imageSound").value = element[3].substr(8);
+                    row.querySelector(".imageSoundVolume").value = element[4];
                     row.querySelector(".imageSoundVolume").addEventListener("change", () => {
                         clampValue(row.querySelector(".imageSoundVolume"), 0, 1);
-                        throws[i][1] = parseFloat(row.querySelector(".imageSoundVolume").value);
+                        element[1] = parseFloat(row.querySelector(".imageSoundVolume").value);
                         setData("throws", throws);
                     });
                 }
                 else
                 {
                     row.querySelector(".imageSoundVolume").disabled = "disabled";
-                    throws[i].splice(3, 1);
+                    element.splice(3, 1);
                     setData("throws", throws);
                 }
             }
@@ -105,18 +103,18 @@ function openImages()
                 row.querySelector(".imageSoundVolume").disabled = "disable";
 
             row.querySelector(".imageWeight").addEventListener("change", () => {
-                throws[i][1] = parseFloat(row.querySelector(".imageWeight").value);
+                element[1] = parseFloat(row.querySelector(".imageWeight").value);
                 setData("throws", throws);
             });
 
             row.querySelector(".imageScale").addEventListener("change", () => {
-                throws[i][2] = parseFloat(parseFloat(row.querySelector(".imageScale").value));
+                element[2] = parseFloat(parseFloat(row.querySelector(".imageScale").value));
                 setData("throws", throws);
             });
 
             row.querySelector(".removeSound").addEventListener("click", () => {
                 row.querySelector(".imageSound").value = "";
-                throws[i].splice(3, 2);
+                element.splice(3, 2);
                 row.querySelector(".imageSoundVolume").value = "";
                 row.querySelector(".imageSoundVolume").disabled = "disabled";
                 setData("throws", throws);
@@ -127,9 +125,8 @@ function openImages()
                 fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
                 row.querySelector(".imageSound").value = soundFile.name;
                 row.querySelector(".imageScale").value = 1;
-                throws[i][2] = 1;
-                throws[i][3] = "impacts/" + soundFile.name;
-                throws[i][4] = 1;
+                element[3] = "impacts/" + soundFile.name;
+                element[4] = 1;
                 setData("throws", throws);
                 row.querySelector(".imageSoundVolume").value = 1;
                 row.querySelector(".imageSoundVolume").removeAttribute("disabled");
@@ -137,10 +134,10 @@ function openImages()
         }
         else
         {
-            throws.splice(i, 1);
+            throws.splice(throws.indexOf(element), 1);
             setData("throws", throws);
         }
-    }
+    });
 }
 
 document.querySelector("#loadSound").addEventListener("change", () => {
@@ -170,36 +167,36 @@ function openSounds()
     document.querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
     
     var impacts = getData("impacts");
-    for (var i = impacts.length - 1; i >= 0; i--)
+    impacts.forEach(element =>
     {
-        if (fs.existsSync(__dirname + "/" + impacts[i][0]))
+        if (fs.existsSync(__dirname + "/" + element[0]))
         {
-                var row = document.querySelector("#soundRow").cloneNode(true);
-                row.id = "";
-                row.classList.add("soundRow");
-                row.removeAttribute("hidden");
-                row.querySelector(".soundName").value = impacts[i][0].substr(8);
-                document.querySelector("#soundTable").appendChild(row);
+            var row = document.querySelector("#soundRow").cloneNode(true);
+            row.id = "";
+            row.classList.add("soundRow");
+            row.removeAttribute("hidden");
+            row.querySelector(".soundName").value = element[0].substr(8);
+            document.querySelector("#soundTable").appendChild(row);
 
-                row.querySelector(".removeSound").addEventListener("click", () => {
-                    impacts.splice(i, 1);
-                    setData("impacts", impacts);
-                    row.remove();
-                });
+            row.querySelector(".removeSound").addEventListener("click", () => {
+                impacts.splice(impacts.indexOf(element), 1);
+                setData("impacts", impacts);
+                row.remove();
+            });
 
-                row.querySelector(".soundVolume").value = impacts[i][1];
-                row.querySelector(".soundVolume").addEventListener("change", () => {
-                    clampValue(row.querySelector(".soundVolume"), 0, 1);
-                    impacts[i][1] = parseFloat(row.querySelector(".soundVolume").value);
-                    setData("impacts", impacts);
-                });
+            row.querySelector(".soundVolume").value = element[1];
+            row.querySelector(".soundVolume").addEventListener("change", () => {
+                clampValue(row.querySelector(".soundVolume"), 0, 1);
+                element[1] = parseFloat(row.querySelector(".soundVolume").value);
+                setData("impacts", impacts);
+            });
         }
         else
         {
-            impacts.splice(i, 1);
+            impacts.splice(impacts.indexOf(element), 1);
             setData("impacts", impacts);
         }
-    }
+    });
 }
 
 document.querySelector('#single').addEventListener('click', () => { ipcRenderer.send('single'); });
@@ -323,7 +320,9 @@ function setData(field, value)
 
 function setPorts()
 {
-    fs.writeFileSync(__dirname + "/ports.js", "var ports = [ " + getData("portThrower") + ", " + getData("portVTubeStudio") + " ];");
+    setTimeout(() => {
+        fs.writeFileSync(__dirname + "/ports.js", "var ports = [ " + getData("portThrower") + ", " + getData("portVTubeStudio") + " ];");
+    }, 100);
 }
 
 document.querySelector('#HelpButton').addEventListener('click', () => { showPanel("help"); });
