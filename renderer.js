@@ -1,4 +1,3 @@
-const { throws } = require('assert');
 const { ipcRenderer } = require('electron');
 const fs = require("fs");
 
@@ -21,7 +20,7 @@ const statusDesc = [
     "<p>Please ensure OBS is open with <mark>bonker.html</mark> as the source file of an active and enabled Browser Source.</p><p>If you changed the port(s), please refresh the Browser Source.</p>",
     "<p>Please use VTube Studio to position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide. Please do not resize the model during this process.</p>",
     "<p>Please use VTube Studio to position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide. Please do not resize the model during this process.</p>",
-    [ "<p>Please ensure VTube Studio is open with the API enabled on port <mark>", "</mark> and click Allow when Karasubonk requests access.</p><p>If you clicked Deny on the popup or changed the port(s), please refresh the Browser Source.</p>" ],
+    [ "<p>Please ensure the VTube Studio API is enabled on port <mark>", "</mark> and click Allow when Karasubonk requests access.</p><p>You may need to refresh the Browser Source to get the prompt to appear again.</p>" ],
     "<p>Please use the Channel Point Reward you'd like to use for single bonks.</p>",
     "<p>Please use the Channel Point Reward you'd like to use for barrage bonks.</p>"
 ];
@@ -63,7 +62,7 @@ function openImages()
             row.id = "";
             row.classList.add("imageRow");
             row.removeAttribute("hidden");
-            row.querySelector(".imageName").value = throws[i][0].substr(8);
+            row.querySelector(".imageName").value = throws[i][0].substr(7);
             document.querySelector("#imageTable").appendChild(row);
 
             row.querySelector(".removeImage").addEventListener("click", () => {
@@ -179,7 +178,7 @@ function openSounds()
                 row.id = "";
                 row.classList.add("soundRow");
                 row.removeAttribute("hidden");
-                row.querySelector(".soundName").value = impacts[i][0].substr(7);
+                row.querySelector(".soundName").value = impacts[i][0].substr(8);
                 document.querySelector("#soundTable").appendChild(row);
 
                 row.querySelector(".removeSound").addEventListener("click", () => {
