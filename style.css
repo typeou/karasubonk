@@ -420,8 +420,15 @@ label {
     right: 47px;
 }
 
+#imagePreviewParent > p {
+    margin: 0;
+}
+
 #imagePreview {
-    max-height: 240px;
+    display: block;
+    margin: auto;
+    max-width: 450px;
+    max-height: 250px;
     background-color: rgba(255, 255, 255, 0.5);
     padding: 15px;
 }

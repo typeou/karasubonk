@@ -1,6 +1,6 @@
 {
   "name": "karasubonk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Browser source-based item thrower for Live2D models.",
   "main": "main.js",
   "dependencies": {

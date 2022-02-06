@@ -12,6 +12,7 @@
     <div id="header"><h1>Karasubonk</h1></div>
 
     <div class="buttons">
+      <div id="HelpButton" class="button">Help</div>
       <div id="startCalibrate" class="button">Calibrate</div>
       <div id="single" class="button">Test Bonk</div>
       <div id="barrage" class="button">Test Manybonk</div>
@@ -35,9 +36,9 @@
     </div>
 
     <div id="panels">
-      <div id="HelpButton" class="button">Help</div>
       <div id="ImagesButton" class="button">Images</div>
-      <div id="SoundsButton" class="button">Sounds</div>
+      <div id="SoundsButton" class="button">Default Sounds</div>
+      <div id="BitSoundsButton" class="button">Bit Sounds</div>
       <div id="EventsButton" class="button">Events</div>
       <div id="SettingsButton" class="button">Settings</div>
     </div>
@@ -65,6 +66,10 @@
       <p>...and check the "Local file" option to allow you to choose an .html file. Navigate to the folder you stored Karasubonk, then into resources/app and select <mark>bonker.html</mark> as the file.</p>
       <img src="help/browserSourceProperties.png">
       <p>In order for the objects to properly align, you should <mark>set the width and height of the Browser Source to match your VTube Studio Source.</mark></p>
+      <p>You can find the width and height of your VTube Studio Source by <mark>right-clicking on your VTube Studio source</mark> and navigating to <mark>Transform > Edit Transform</mark></p>
+      <img src="help/browserSourceSize.png">
+      <img src="help/browserSourceVtubeSize.png">
+      <p class="center"><small>These values should be the same.</small></p>
       <p>If you tend to move your VTube Studio Source, it may be helpful to make a group for Karasubonk and your VTube Studio source so they always move together.</p>
       <img src="help/browserSourceGroup.png">
       <p>The Browser Source should automatically connect to the main program. If all went well, that status messagge regarding the Browser Source should disappear within a few seconds.</p>
@@ -105,7 +110,7 @@
       <br/>
       <h3>Getting Started: Custom Images and Sounds</h3>
       <p>Finally, loading custom images and sounds.</p>
-      <p>This process is simple: open the "Images" or "Sounds" menu and click the "Choose File" button.</p>
+      <p>This process is simple: open the "Images" or one of the "Sounds" menus and click the "Choose File" button.</p>
       <img src="help/custom.png">
       <p>Simply find the image or sound you'd like to include and open it. The program will then make a copy of the file for its use and add it to the list.</p>
       <p>Images and Sounds can be removed by clicking the "X" button beside them.</p>
@@ -136,6 +141,7 @@
     <div id="images" class="block config" hidden>
       <h2>Images</h2>
       <hr>
+      <p>Images are randomly selected from this list.</p>
       <label for="load" class="btn important">Load New Image:</label>
       <input id="loadImage" type="file" accept="image/*">
       <br/>
@@ -170,12 +176,17 @@
       </table>
     </div>
     
-    <div id="imagePreviewParent" class="block" hidden><img id="imagePreview"></img></div>
+    <div id="imagePreviewParent" class="block" hidden>
+      <img id="imagePreview"></img>
+      <br/>
+      <p class="center important">Preview</p>
+    </div>
 
     <div id="sounds" class="block config" hidden>
-      <h2>Sounds</h2>
+      <h2>Default Sounds</h2>
       <hr>
-      <label for="load" class="btn important">Load New Sound:</label>
+      <p>Sounds are randomly selected from this list.<br/><small>(Unless an override exists!)</small></p>
+      <label for="loadSound" class="btn important">Load New Sound:</label>
       <input id="loadSound" type="file" accept="audio/*">
       <br/>
       <br/>
@@ -193,6 +204,28 @@
       </table>
     </div>
 
+    <div id="bitSounds" class="block config" hidden>
+      <h2>Bit Sound Overrides</h2>
+      <hr>
+      <p>These sounds override the default sounds for Bits.<br/><small>(If there are any in the list!)</small><br/>Sounds are randomly selected from this list.</p>
+      <label for="loadBitSound" class="btn important">Load New Sound:</label>
+      <input id="loadBitSound" type="file" accept="audio/*">
+      <br/>
+      <br/>
+      <table id="bitSoundTable">
+        <tr>
+          <th></th>
+          <th>File</th>
+          <th>Volume</th>
+        </tr>
+        <tr id="bitSoundRow" hidden>
+          <td><button class="removeBitSound">X</button></td>
+          <td><input class="bitSoundName" type="text" disabled></td>
+          <td><input class="bitSoundVolume" type="number" min="0" max="1" step="0.1"></td>
+        </tr>
+      </table>
+    </div>
+
     <div id="events" class="block config" hidden>
       <h2>Events</h2>
       <hr>
@@ -204,16 +237,16 @@
           <th>Cooldown</th></td>
         </tr>
         <tr>
-          <td><input type="checkbox" id="singleRedeemEnabled"></td>
+          <td><input type="checkbox" id="singleRedeemEnabled" checked></td>
           <td>Redeem (Single)</td>
           <td><button id="singleRedeemID">Listen</button></td>
-          <td><input type="number" id="singleRedeemCooldown" min="0"></td>
+          <td><input type="number" id="singleRedeemCooldown" min="0" value="0"></td>
         </tr>
         <tr>
-          <td><input type="checkbox" id="barrageRedeemEnabled"></td>
+          <td><input type="checkbox" id="barrageRedeemEnabled" checked></td>
           <td>Redeem (Barrage)</td>
           <td><button id="barrageRedeemID">Listen</button></td>
-          <td><input type="number" id="barrageRedeemCooldown" min="0"></td>
+          <td><input type="number" id="barrageRedeemCooldown" min="0" value="0"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
@@ -225,16 +258,16 @@
           <th>Cooldown</th></td>
         </tr>
         <tr>
-          <td><input type="checkbox" id="singleCommandEnabled"></td>
+          <td><input type="checkbox" id="singleCommandEnabled" checked></td>
           <td>Command (Single)</td>
           <td><input type="text" id="singleCommandTitle"></td>
-          <td><input type="number" id="singleCommandCooldown" min="0"></td>
+          <td><input type="number" id="singleCommandCooldown" min="0" value="10"></td>
         </tr>
         <tr>
-          <td><input type="checkbox" id="barrageCommandEnabled"></td>
+          <td><input type="checkbox" id="barrageCommandEnabled" checked></td>
           <td>Command (Barrage)</td>
           <td><input type="text" id="barrageCommandTitle"></td>
-          <td><input type="number" id="barrageCommandCooldown" min="0"></td>
+          <td><input type="number" id="barrageCommandCooldown" min="0" value="30"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
@@ -246,26 +279,26 @@
           <th>Cooldown</th></td>
         </tr>
         <tr>
-          <td><input type="checkbox" id="subEnabled"></td>
+          <td><input type="checkbox" id="subEnabled" checked></td>
           <td>Subscription</td>
           <td>
             <select id="subType">
               <option value="single">Single</option>
-              <option value="barrage">Barrage</option>
+              <option value="barrage" selected>Barrage</option>
             </select>
           </td>
-          <td><input type="number" id="subCooldown" min="0"></td>
+          <td><input type="number" id="subCooldown" min="0" value="0"></td>
         </tr>
         <tr>
-          <td><input type="checkbox" id="subGiftEnabled"></td>
+          <td><input type="checkbox" id="subGiftEnabled" checked></td>
           <td>Gift Subscription</td>
           <td>
             <select id="subGiftType">
               <option value="single">Single</option>
-              <option value="barrage">Barrage</option>
+              <option value="barrage" selected>Barrage</option>
             </select>
           </td>
-          <td><input type="number" id="subGiftCooldown" min="0"></td>
+          <td><input type="number" id="subGiftCooldown" min="0" value="0"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
@@ -277,10 +310,10 @@
           <th>Cooldown</th></td>
         </tr>
         <tr>
-          <td><input type="checkbox" id="bitsEnabled"></td>
+          <td><input type="checkbox" id="bitsEnabled" checked></td>
           <td>Bits</td>
-          <td><input type="number" id="bitsMaxBarrageCount"></td>
-          <td><input type="number" id="bitsCooldown" min="0"></td>
+          <td><input type="number" id="bitsMaxBarrageCount" value="110"></td>
+          <td><input type="number" id="bitsCooldown" min="0" value="0"></td>
         </tr>
       </table>
     </div>
@@ -291,32 +324,50 @@
       <table>
         <tr>
           <td>Barrage Count</td>
-          <td><input type="number" id="barrageCount" min="0"></td>
+          <td><input type="number" id="barrageCount" min="0" value="30"></td>
         </tr>
         <tr>
           <td>Barrage Frequency</td>
-          <td><input type="number" id="barrageFrequency" min="0"></td>
+          <td><input type="number" id="barrageFrequency" min="0" value="0.05"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
         </tr>
         <tr>
           <td>Return Speed</td>
-          <td><input type="number" id="returnSpeed" min="0"></td>
+          <td><input type="number" id="returnSpeed" min="0" value="0.05"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Open Eyes on Hit</td>
+          <td><input type="checkbox" id="openEyes"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Item Scale (Min Model Size)</td>
+          <td><input type="number" id="itemScaleMin" min="0" value="0.25"></td>
+        </tr>
+        <tr>
+          <td>Item Scale (Max Model Size)</td>
+          <td><input type="number" id="itemScaleMax" min="0" value="3"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
         </tr>
         <tr>
           <td>Global Volume (0-1)</td>
-          <td><input type="number" id="volume" min="0"></td>
+          <td><input type="number" id="volume" min="0" value="0.2"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
         </tr>
         <tr>
           <td>Delay (ms)</td>
-          <td><input type="number" id="delay" min="0"></td>
+          <td><input type="number" id="delay" min="0" value="0"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
@@ -333,11 +384,11 @@
         </tr>
         <tr>
           <td>Browser Source Port</td>
-          <td><input type="number" id="portThrower"></td>
+          <td><input type="number" id="portThrower" value="8080"></td>
         </tr>
         <tr>
           <td>VTube Studio Port</td>
-          <td><input type="number" id="portVTubeStudio"></td>
+          <td><input type="number" id="portVTubeStudio" value="8001"></td>
         </tr>
       </table>
     </div>

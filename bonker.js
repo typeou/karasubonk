@@ -3,6 +3,12 @@
 var socketKarasu, karasuIsOpen = false;
 var isCalibrating = false;
 
+var previousModelPosition = {
+    "positionX": 0,
+    "positionY": 0,
+    "rotation": 0,
+    "size": 0
+};
 function endCalibration()
 {
     if (isCalibrating)
@@ -20,10 +26,10 @@ function endCalibration()
                 "data": {
                     "timeInSeconds": 0.5,
                     "valuesAreRelativeToModel": false,
-                    "positionX": 0.0,
-                    "positionY": 0.0,
-                    "rotation": 0,
-                    "size": 0
+                    "positionX": previousModelPosition.positionX,
+                    "positionY": previousModelPosition.positionY,
+                    "rotation": previousModelPosition.rotation,
+                    "size": previousModelPosition.size
                 }
             }
             socketVTube.onmessage = null;
@@ -54,7 +60,6 @@ function connectKarasu()
             }
         }, 1000 * 3);
     };
-
     // Process incoming requests
     socketKarasu.onmessage = function(event)
     {
@@ -62,13 +67,43 @@ function connectKarasu()
 
         if (data.type == "calibrating")
         {
-            isCalibrating = true;
-            document.querySelector("#guide").hidden = false;
-            document.querySelector("#guideText").hidden = false;
+            if (data.stage >= 0 && data.stage != 4)
+            {
+                document.querySelector("#guide").hidden = false;
+                document.querySelector("#guideText").hidden = false;
+            }
+            else
+            {
+                document.querySelector("#guide").hidden = true;
+                document.querySelector("#guideText").hidden = true;
+            }
             switch(data.stage)
             {
+                // Stage -1 is storing current position information
+                case -1:
+                    var request = {
+                        "apiName": "VTubeStudioPublicAPI",
+                        "apiVersion": "1.0",
+                        "requestID": "11",
+                        "messageType": "CurrentModelRequest"
+                    }
+                    socketVTube.onmessage = function(event)
+                    {
+                        socketVTube.onmessage = null;
+                        const modelPosition = JSON.parse(event.data).data.modelPosition;
+                        previousModelPosition = {
+                            "positionX": modelPosition.positionX,
+                            "positionY": modelPosition.positionY,
+                            "rotation": modelPosition.rotation,
+                            "size": modelPosition.size
+                        }
+                    }
+                    socketVTube.send(JSON.stringify(request));
+                    break;
                 // Stage 0 is calibrating at smallest size
                 case 0:
+                    isCalibrating = true;
+
                     var request = {
                         "apiName": "VTubeStudioPublicAPI",
                         "apiVersion": "1.0",
@@ -91,18 +126,19 @@ function connectKarasu()
                     var request = {
                         "apiName": "VTubeStudioPublicAPI",
                         "apiVersion": "1.0",
-                        "requestID": "4",
+                        "requestID": "8",
                         "messageType": "CurrentModelRequest"
                     }
                     socketVTube.onmessage = function(event)
                     {
+                        const tempData = JSON.parse(event.data).data;
                         request = {
                             "type": "calibrating",
                             "stage": "min",
-                            "positionX": JSON.parse(event.data).data.modelPosition.positionX,
-                            "positionY": JSON.parse(event.data).data.modelPosition.positionY,
-                            "size": JSON.parse(event.data).data.modelPosition.size,
-                            "modelID": JSON.parse(event.data).data.modelID
+                            "positionX": tempData.modelPosition.positionX,
+                            "positionY": tempData.modelPosition.positionY,
+                            "size": tempData.modelPosition.size,
+                            "modelID": tempData.modelID
                         }
                         socketVTube.onmessage = null;
                         socketKarasu.send(JSON.stringify(request));
@@ -133,18 +169,19 @@ function connectKarasu()
                     var request = {
                         "apiName": "VTubeStudioPublicAPI",
                         "apiVersion": "1.0",
-                        "requestID": "4",
+                        "requestID": "10",
                         "messageType": "CurrentModelRequest"
                     }
                     socketVTube.onmessage = function(event)
                     {
+                        const tempData = JSON.parse(event.data).data;
                         request = {
                             "type": "calibrating",
                             "stage": "max",
-                            "positionX": JSON.parse(event.data).data.modelPosition.positionX,
-                            "positionY": JSON.parse(event.data).data.modelPosition.positionY,
-                            "size": JSON.parse(event.data).data.modelPosition.size,
-                            "modelID": JSON.parse(event.data).data.modelID
+                            "positionX": tempData.modelPosition.positionX,
+                            "positionY": tempData.modelPosition.positionY,
+                            "size": tempData.modelPosition.size,
+                            "modelID": tempData.modelID
                         }
                         socketVTube.onmessage = null;
                         socketKarasu.send(JSON.stringify(request));
@@ -167,20 +204,22 @@ function connectKarasu()
             }
             socketVTube.onmessage = function(event)
             {
-                const paramInfo = JSON.parse(event.data).data.defaultParameters;
-                const modelID = JSON.parse(event.data).data.modelID;
+                const tempData = JSON.parse(event.data).data;
+                const paramInfo = tempData.defaultParameters;
+                const modelID = tempData.modelID;
                 
-                const faceWidthMin = data.data[modelID + "Min"][0];
-                const faceHeightMin = data.data[modelID + "Min"][1];
-                const faceWidthMax = data.data[modelID + "Max"][0];
-                const faceHeightMax = data.data[modelID + "Max"][1];
+                const faceWidthMin = data.data[modelID + "Min"] == null ? 0 : data.data[modelID + "Min"][0];
+                const faceHeightMin = data.data[modelID + "Min"] == null ? 0 : data.data[modelID + "Min"][1];
+                const faceWidthMax = data.data[modelID + "Max"] == null ? 0 : data.data[modelID + "Max"][0];
+                const faceHeightMax = data.data[modelID + "Max"] == null ? 0 : data.data[modelID + "Max"][1];
 
-                for (var i = 0; i < data.data.parametersHorizontal.length; i++)
+                data.data.parametersHorizontal = [];
+                for (var i = 0; i < parametersH.length; i++)
                 {
                     var value = 0, min = -30, max = 30;
                     for (var j = 0; j < paramInfo.length; j++)
                     {
-                        if (paramInfo[j].name == data.data.parametersHorizontal[i])
+                        if (paramInfo[j].name == parametersH[i])
                         {
                             value = paramInfo[j].value;
                             min = paramInfo[j].min;
@@ -188,15 +227,16 @@ function connectKarasu()
                             break;
                         }
                     }
-                    data.data.parametersHorizontal[i] = [ data.data.parametersHorizontal[i], value, min, max ];
+                    data.data.parametersHorizontal[i] = [ parametersH[i], value, min, max ];
                 }
 
-                for (var i = 0; i < data.data.parametersVertical.length; i++)
+                data.data.parametersVertical = [];
+                for (var i = 0; i < parametersV.length; i++)
                 {
                     var value = 0, min = -30, max = 30;
                     for (var j = 0; j < paramInfo.length; j++)
                     {
-                        if (paramInfo[j].name == data.data.parametersVertical[i])
+                        if (paramInfo[j].name == parametersV[i])
                         {
                             value = paramInfo[j].value;
                             min = paramInfo[j].min;
@@ -204,7 +244,7 @@ function connectKarasu()
                             break;
                         }
                     }
-                    data.data.parametersVertical[i] = [ data.data.parametersVertical[i], value, min, max ];
+                    data.data.parametersVertical[i] = [ parametersV[i], value, min, max ];
                 }
 
                 console.log("Received " + data.type);
@@ -212,7 +252,7 @@ function connectKarasu()
                 switch(data.type)
                 {
                     case "single":
-                        bonk(data.image, data.weight, data.scale, data.sound, data.volume, data.data.volume, data.data.parametersHorizontal, data.data.parametersVertical, data.data.delay, data.data.returnSpeed, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
+                        bonk(data.image, data.weight, data.scale, data.sound, data.volume, data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
                         break;
                     case "barrage":
                         var i = 0;
@@ -225,7 +265,7 @@ function connectKarasu()
 
                         var bonker = setInterval(function()
                         {
-                            bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data.volume, data.data.parametersHorizontal, data.data.parametersVertical, data.data.delay, data.data.returnSpeed, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
+                            bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
                             if (++i >= max)
                                 clearInterval(bonker);
                         }, data.data.barrageFrequency * 1000);
@@ -257,6 +297,7 @@ function connectVTube()
     socketVTube = new WebSocket("ws://localhost:" + ports[1]);
     socketVTube.onopen = function()
     {
+        clearInterval(tryConnectVTube);
         console.log("Connected to VTube Studio!");
 
         var request = {
@@ -302,6 +343,14 @@ function connectVTube()
 }
 
 connectVTube();
+// Retry connection to VTube Studio every 3 seconds
+var tryConnectVTube = setInterval(retryConnectVTube, 1000 * 3);
+
+function retryConnectVTube()
+{
+    console.log("Retrying connection to VTube Studio...");
+    connectVTube();
+}
 
 // Report status of VTube studio connection once a second
 setInterval(() => {
@@ -315,7 +364,7 @@ setInterval(() => {
     }
 }, 1000);
 
-function bonk(image, weight, scale, sound, volume, volumeGlobal, paramH, paramV, delay, returnSpeed, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax)
+function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax)
 {
     if (vTubeIsOpen)
     {
@@ -336,13 +385,13 @@ function bonk(image, weight, scale, sound, volume, volumeGlobal, paramH, paramV,
                 const fromLeft = Math.random() < xPos;
                 const multH = fromLeft ? 1 : -1;
                 const angle = (Math.random() * 90) - 45;
+                const sizeScale = data.itemScaleMin + (((pos.size + 100) / 200) * (data.itemScaleMax - data.itemScaleMin));
 
                 if (sound != null)
                 {
                     var audio = new Audio();
-                    audio.src = "impacts/" + encodeURIComponent(sound.substr(8));
-                    console.log(audio.src);
-                    audio.volume = ((weight / 2) + 0.5) * volume * volumeGlobal;
+                    audio.src = sound.substr(0, sound.indexOf("/") + 1) + encodeURIComponent(sound.substr(sound.indexOf("/") + 1));
+                    audio.volume = ((weight / 2) + 0.5) * volume * data.volume;
                     var canPlayAudio = false;
                     audio.oncanplaythrough = function() { canPlayAudio = true; }
                 }
@@ -351,23 +400,22 @@ function bonk(image, weight, scale, sound, volume, volumeGlobal, paramH, paramV,
 
                 var img = new Image();
                 img.src = "throws/" + encodeURIComponent(image.substr(7));
-                console.log(img.src);
                 img.onload = function()
                 {
                     var pivot = document.createElement("div");
                     pivot.classList.add("thrown");
-                    pivot.style.left = ((window.innerWidth * xPos) - (img.width / 2)) + "px";
-                    pivot.style.top = ((window.innerHeight * yPos) - (img.height / 2)) + "px";
+                    pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + "px";
+                    pivot.style.top = (window.innerHeight * yPos) - (img.height * scale * sizeScale / 2) + "px";
                     pivot.style.transform = "rotate(" + angle + "deg)";
                     var movement = document.createElement("div");
                     movement.classList.add("animated");
                     var animName = "throw" + (fromLeft ? "Left" : "Right");
-                    movement.style.animation = animName + " 0.8s " + (delay / 1000) + "s";
+                    movement.style.animation = animName + " 0.8s " + (data.delay / 1000) + "s";
                     var thrown = document.createElement("img");
                     thrown.classList.add("animated");
                     thrown.src = image;
-                    thrown.style.width = img.width * scale + "px";
-                    thrown.style.height = img.height * scale + "px";
+                    thrown.style.width = img.width * scale * sizeScale + "px";
+                    thrown.style.height = img.height * scale * sizeScale + "px";
                     var animName = "spin" + (Math.random() < 0.5 ? "Clockwise " : "CounterClockwise ");
                     thrown.style.animation = animName + ((Math.random() * 0.4) + 0.1) + "s";
                     thrown.style.animationIterationCount = "infinite";
@@ -380,22 +428,22 @@ function bonk(image, weight, scale, sound, volume, volumeGlobal, paramH, paramV,
                     // Don't do anything until both image and audio are ready
                     if (canPlayAudio)
                     {
-                        setTimeout(function() { flinch(multH, angle, weight, paramH, paramV, returnSpeed); }, 300);
+                        setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, data.openEyes); }, 300);
 
                         if (sound != null)
-                            setTimeout(function() { audio.play(); }, 300 + delay);
+                            setTimeout(function() { audio.play(); }, 300 + data.delay);
                         
-                        setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + delay);
+                        setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + data.delay);
                     }
                     else
                     {
                         audio.oncanplaythrough = function()
                         {
-                            setTimeout(function() { flinch(multH, angle, weight, paramH, paramV, returnSpeed); }, 300);
+                            setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, data.openEyes); }, 300);
 
-                            setTimeout(function() { audio.play(); }, 300 + delay);
+                            setTimeout(function() { audio.play(); }, 300 + data.delay);
                             
-                            setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + delay);
+                            setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + data.delay);
                         }
                     }
                 }
@@ -405,7 +453,8 @@ function bonk(image, weight, scale, sound, volume, volumeGlobal, paramH, paramV,
     }
 }
 
-function flinch(multH, angle, mag, paramH, paramV, returnSpeed)
+var parametersH = [ "FaceAngleX", "FaceAngleZ", "FacePositionX"], parametersV = [ "FaceAngleY" ];
+function flinch(multH, angle, mag, paramH, paramV, returnSpeed, openEyes)
 {
     var parameterValues = [];
     for (var i = 0; i < paramH.length; i++)
@@ -436,6 +485,12 @@ function flinch(multH, angle, mag, paramH, paramV, returnSpeed)
             parameterValues.push({ "id": paramH[i][0], "weight": weight, "value": paramH[i][1] + (multH < 0 ? paramH[i][2] : paramH[i][3]) * mag });
         for (var i = 0; i < paramV.length; i++)
             parameterValues.push({ "id": paramV[i][0], "weight": weight, "value": paramV[i][1] + (multH * angle > 0 ? paramV[i][2] : paramV[i][3]) * Math.abs(angle) / 45 * mag });
+
+        if(openEyes)
+        {
+            parameterValues.push({ "id": "EyeOpenLeft", "weight": weight, "value": 1 });
+            parameterValues.push({ "id": "EyeOpenRight", "weight": weight, "value": 1 });
+        }
 
         request = {
             "apiName": "VTubeStudioPublicAPI",
