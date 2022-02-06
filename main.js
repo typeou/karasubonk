@@ -5,6 +5,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1000,
     height: 750,
+    icon: __dirname + "/icon.ico",
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
