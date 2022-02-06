@@ -3,8 +3,8 @@ const { app, BrowserWindow, ipcMain } = require('electron')
 var mainWindow;
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 800,
+    width: 1000,
+    height: 750,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -121,7 +121,7 @@ ipcMain.on('oauth', () => require('electron').shell.openExternal("https://id.twi
 // Websocket server for browser source
 const WebSocket = require("ws");
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: data.portThrower });
 
 var socket, connectedVTube = false;
 
@@ -172,18 +172,19 @@ wss.on('connection', function connection(ws)
   });
 });
 
-function getImageSoundMagnitude()
+function getImageWeightScaleSoundVolume()
 {
   const index = Math.floor(Math.random() * data.throws.length);
-  return [data.throws[index][0], data.throws[index][1], data.throws[index][2] != null ? data.throws[index][2] : data.impacts[Math.floor(Math.random() * data.impacts.length)]];
+  const soundIndex = Math.floor(Math.random() * data.impacts.length);
+  return [ data.throws[index][0], data.throws[index][1], data.throws[index][2], data.throws[index][3] != null ? data.throws[index][3] : data.impacts.length > 0 ? data.impacts[soundIndex][0] : null, data.throws[index][3] != null ? data.throws[index][4] : data.impacts.length > 0 ? data.impacts[soundIndex][1] : 0];
 }
 
-function getImagesSoundsMagnitudes()
+function getImagesWeightsScalesSoundsVolumes()
 {
   var imagesSoundsMagnitudes = [];
 
   for (var i = 0; i < data.barrageCount; i++)
-    imagesSoundsMagnitudes.push(getImageSoundMagnitude());
+    imagesSoundsMagnitudes.push(getImageWeightScaleSoundVolume());
 
   return imagesSoundsMagnitudes;
 }
@@ -194,15 +195,17 @@ ipcMain.on('bits', () => onBitsHandler());
 
 function single()
 {
-  if (socket != null) {
-    const imageSoundMagnitude = getImageSoundMagnitude();
+  if (socket != null && data.throws.length > 0) {
+    const imageWeightScaleSoundVolume = getImageWeightScaleSoundVolume();
 
     var request =
     {
       "type": "single",
-      "image": imageSoundMagnitude[0],
-      "magnitude": imageSoundMagnitude[1],
-      "sound": imageSoundMagnitude[2],
+      "image": imageWeightScaleSoundVolume[0],
+      "weight": imageWeightScaleSoundVolume[1],
+      "scale": imageWeightScaleSoundVolume[2],
+      "sound": imageWeightScaleSoundVolume[3],
+      "volume": imageWeightScaleSoundVolume[4],
       "data": data
     }
     socket.send(JSON.stringify(request));
@@ -211,20 +214,24 @@ function single()
 
 function barrage()
 {
-  if (socket != null) {
-    const imagesSoundsMagnitudes = getImagesSoundsMagnitudes();
-    var images = [], sounds = [], magnitudes = [];
-    for (var i = 0; i < imagesSoundsMagnitudes.length; i++) {
-      images[i] = imagesSoundsMagnitudes[i][0];
-      magnitudes[i] = imagesSoundsMagnitudes[i][1];
-      sounds[i] = imagesSoundsMagnitudes[i][2];
+  if (socket != null && data.throws.length > 0) {
+    const imagesWeightsScalesSoundsVolumes = getImagesWeightsScalesSoundsVolumes();
+    var images = [], weights = [], scales = [], sounds = [], volumes = [];
+    for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
+      images[i] = imagesWeightsScalesSoundsVolumes[i][0];
+      weights[i] = imagesWeightsScalesSoundsVolumes[i][1];
+      scales[i] = imagesWeightsScalesSoundsVolumes[i][2];
+      sounds[i] = imagesWeightsScalesSoundsVolumes[i][3];
+      volumes[i] = imagesWeightsScalesSoundsVolumes[i][4];
     }
 
     var request = {
       "type": "barrage",
       "image": images,
+      "weight": weights,
+      "scale": scales,
       "sound": sounds,
-      "magnitude": magnitudes,
+      "volume": volumes,
       "data": data
     }
     socket.send(JSON.stringify(request));
@@ -368,7 +375,7 @@ function onSubHandler(subMessage)
 var canBits = true;
 function onBitsHandler(bitsMessage)
 {
-  if (canBits && data.bitsEnabled) {
+  if (bitsMessage == null || canBits && data.bitsEnabled) {
     if (data.bitsCooldown > 0)
     {
       canBits = false;
@@ -378,32 +385,37 @@ function onBitsHandler(bitsMessage)
     var totalBits = bitsMessage == null ? Math.floor(Math.random() * 20000) : bitsMessage.totalBits;
 
     var num10k = 0, num5k = 0, num1k = 0, num100 = 0;
-    while (data.maxBitsBarrageCount > 100 && totalBits + num100 + num1k + num5k + num10k > data.maxBitsBarrageCount)
+    if (data.bitsMaxBarrageCount > 100)
     {
-      // Maximum number of possible 10k bit icons
-      const max10k = Math.floor(totalBits / 10000);
-      // Number of 10k bit icons to be thrown
-      var temp = Math.floor(Math.random() * max10k) + max10k > 0 ? 1 : 0;
-      num10k += temp;
-      // Subtract from total bits
-      totalBits -= temp * 10000;
-  
-      // Repeat process for 5k, 1k, and 100 bit icons
-      const max5k = Math.floor(totalBits / 5000);
-      var temp = Math.floor(Math.random() * max5k) + max5k > 0 ? 1 : 0;
-      num5k += temp;
-      totalBits -= temp * 5000;
-  
-      const max1k = Math.floor(totalBits / 1000);
-      var temp = Math.floor(Math.random() * max1k) + max1k > 0 ? 1 : 0;
-      num1k += temp;
-      totalBits -= temp * 1000;
-  
-      const max100 = Math.floor(totalBits / 100);
-      var temp = Math.floor(Math.random() * max100) + max100 > 0 ? 1 : 0;
-      num100 += temp;
-      totalBits -= temp * 100;
+      while (totalBits + num100 + num1k + num5k + num10k > data.bitsMaxBarrageCount)
+      {
+        // Maximum number of possible 10k bit icons
+        const max10k = Math.floor(totalBits / 10000);
+        // Number of 10k bit icons to be thrown
+        var temp = Math.floor(Math.random() * max10k) + max10k > 0 ? 1 : 0;
+        num10k += temp;
+        // Subtract from total bits
+        totalBits -= temp * 10000;
+    
+        // Repeat process for 5k, 1k, and 100 bit icons
+        const max5k = Math.floor(totalBits / 5000);
+        var temp = Math.floor(Math.random() * max5k) + max5k > 0 ? 1 : 0;
+        num5k += temp;
+        totalBits -= temp * 5000;
+    
+        const max1k = Math.floor(totalBits / 1000);
+        var temp = Math.floor(Math.random() * max1k) + max1k > 0 ? 1 : 0;
+        num1k += temp;
+        totalBits -= temp * 1000;
+    
+        const max100 = Math.floor(totalBits / 100);
+        var temp = Math.floor(Math.random() * max100) + max100 > 0 ? 1 : 0;
+        num100 += temp;
+        totalBits -= temp * 100;
+      }
     }
+    else if (totalBits > data.bitsMaxBarrageCount)
+      totalBits = data.bitsMaxBarrageCount;
 
     var bitThrows = [];
     while (num10k-- > 0)
@@ -418,40 +430,45 @@ function onBitsHandler(bitsMessage)
       bitThrows.push(1);
     
     if (socket != null) {
-      var images = [], sounds = [], magnitudes = [];
+      var images = [], weights = [], scales = [], sounds = [], volumes = [];
       while (bitThrows.length > 0)
       {
         switch (bitThrows.splice(Math.floor(Math.random() * bitThrows.length), 1)[0])
         {
           case 1:
             images.push("throws/1.png");
-            magnitudes.push(0.2);
+            weights.push(0.2);
             break;
           case 100:
             images.push("throws/100.png");
-            magnitudes.push(0.4);
+            weights.push(0.4);
             break;
           case 1000:
             images.push("throws/1000.png");
-            magnitudes.push(0.6);
+            weights.push(0.6);
             break;
           case 5000:
             images.push("throws/5000.png");
-            magnitudes.push(0.8);
+            weights.push(0.8);
             break;
           case 10000:
             images.push("throws/10000.png");
-            magnitudes.push(1);
+            weights.push(1);
             break;
         }
-        sounds.push(data.impacts[Math.floor(Math.random() * data.impacts.length)]);
+        const soundIndex = Math.floor(Math.random() * data.impacts.length);
+        scales.push(1);
+        sounds.push(data.impacts[soundIndex][0]);
+        volumes.push(data.impacts[soundIndex][1]);
       }
 
       var request = {
         "type": "barrage",
         "image": images,
+        "weight": weights,
+        "scale": scales,
         "sound": sounds,
-        "magnitude": magnitudes,
+        "volume": volumes,
         "data": data
       }
       socket.send(JSON.stringify(request));

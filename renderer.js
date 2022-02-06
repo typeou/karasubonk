@@ -1,3 +1,4 @@
+const { throws } = require('assert');
 const { ipcRenderer } = require('electron');
 const fs = require("fs");
 
@@ -7,8 +8,8 @@ const statusTitle = [
     "Ready!",
     "Not Authenticated",
     "Browser Source Disconnected",
-    "Calibrating Minimum<br/>(Step 1/2)",
-    "Calibrating Maximum<br/>(Step 2/2)",
+    "Calibrating (1/2)",
+    "Calibrating (2/2)",
     "VTube Studio Disconnected",
     "Listening for Redeem<br/>(Single)",
     "Listening for Redeem<br/>(Barrage)"
@@ -18,12 +19,157 @@ const statusDesc = [
     "",
     "<p>Please provide a valid OAuth token. You may click the button below to generate one with the required scopes.</p><p>Once acquired, please paste it into the \"OAuth Token\" section of the Settings window.",
     "<p>Please ensure OBS is open with <mark>bonker.html</mark> as the source file of an active and enabled Browser Source.</p><p>If you changed the port(s), please refresh the Browser Source.</p>",
-    "<p>Please position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide.<p>Please do not manually resize the model during this process.</p>",
-    "<p>Please position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide.<p>Please do not manually resize the model during this process.</p>",
+    "<p>Please use VTube Studio to position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide. Please do not resize the model during this process.</p>",
+    "<p>Please use VTube Studio to position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide. Please do not resize the model during this process.</p>",
     [ "<p>Please ensure VTube Studio is open with the API enabled on port <mark>", "</mark> and click Allow when Karasubonk requests access.</p><p>If you clicked Deny on the popup or changed the port(s), please refresh the Browser Source.</p>" ],
     "<p>Please use the Channel Point Reward you'd like to use for single bonks.</p>",
     "<p>Please use the Channel Point Reward you'd like to use for barrage bonks.</p>"
 ];
+
+document.querySelector("#loadImage").addEventListener("change", () => {
+    const imageFile = document.querySelector("#loadImage").files[0];
+    fs.copyFileSync(imageFile.path, __dirname + "/throws/" + imageFile.name);
+    var throws = getData("throws");
+    throws.push([ "throws/" + imageFile.name, 1.0 ]);
+    setData("throws", throws);
+    openImages();
+});
+
+function openImages()
+{
+    document.querySelectorAll(".imageRow").forEach((element) => { element.remove(); });
+    
+    var throws = getData("throws");
+    fs.readdirSync(__dirname + "/throws").forEach(file =>
+    {
+        for (var i = 0; i < throws.length; i++)
+        {
+            if (throws[i][0] == "throws/" + file)
+            {
+                var row = document.querySelector("#imageRow").cloneNode(true);
+                row.id = "";
+                row.classList.add("imageRow");
+                row.removeAttribute("hidden");
+                row.querySelector(".imageName").value = file;
+                document.querySelector("#imageTable").appendChild(row);
+
+                row.querySelector(".removeImage").addEventListener("click", () => {
+                    throws.splice(i, 1);
+                    setData("throws", throws);
+                    row.remove();
+                });
+
+                row.querySelector(".imageHover").addEventListener("mouseover", () => {
+                    document.querySelector("#imagePreview").src = "throws/" + row.querySelector(".imageName").value;
+                    document.querySelector("#imagePreviewParent").removeAttribute("hidden");
+                });
+
+                row.querySelector(".imageHover").addEventListener("mouseout", () => {
+                    document.querySelector("#imagePreviewParent").hidden = "hidden";
+                });
+
+                row.querySelector(".imageWeight").value = throws[i][1];
+                row.querySelector(".imageScale").value = throws[i][2];
+                if (throws[i][3] != null)
+                {
+                    if (fs.existsSync(__dirname + "/" + throws[i][3]))
+                    {
+                        row.querySelector(".imageSound").value = throws[i][3].substr(8);
+                        row.querySelector(".imageSoundVolume").value = throws[i][4];
+                        row.querySelector(".imageSoundVolume").addEventListener("change", () => {
+                            clampValue(row.querySelector(".imageSoundVolume"), 0, 1);
+                            throws[i][1] = parseFloat(row.querySelector(".imageSoundVolume").value);
+                            setData("throws", throws);
+                        });
+                    }
+                    else
+                    {
+                        row.querySelector(".imageSoundVolume").disabled = "disabled";
+                        throws[i].splice(3, 1);
+                        setData("throws", throws);
+                    }
+                }
+                else
+                    row.querySelector(".imageSoundVolume").disabled = "disable";
+
+                row.querySelector(".imageWeight").addEventListener("change", () => {
+                    throws[i][1] = parseFloat(row.querySelector(".imageWeight").value);
+                    setData("throws", throws);
+                });
+
+                row.querySelector(".imageScale").addEventListener("change", () => {
+                    throws[i][2] = parseFloat(parseFloat(row.querySelector(".imageScale").value));
+                    setData("throws", throws);
+                });
+
+                row.querySelector(".removeSound").addEventListener("click", () => {
+                    row.querySelector(".imageSound").value = "";
+                    throws[i].splice(3, 2);
+                    row.querySelector(".imageSoundVolume").value = "";
+                    row.querySelector(".imageSoundVolume").disabled = "disabled";
+                    setData("throws", throws);
+                });
+
+                row.querySelector(".imageSoundLoad").addEventListener("change", () => {
+                    const soundFile = row.querySelector(".imageSoundLoad").files[0];
+                    fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
+                    row.querySelector(".imageSound").value = soundFile.name;
+                    throws[i][3] = "impacts/" + soundFile.name;
+                    throws[i][4] = 1;
+                    setData("throws", throws);
+                    row.querySelector(".imageSoundVolume").value = 1;
+                    row.querySelector(".imageSoundVolume").removeAttribute("disabled");
+                });
+                break;
+            }
+        }
+    });
+}
+
+document.querySelector("#loadSound").addEventListener("change", () => {
+    const soundFile = document.querySelector("#loadSound").files[0];
+    fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
+    var impacts = getData("impacts");
+    impacts.push([ "impacts/" + soundFile.name, 1.0 ]);
+    setData("impacts", impacts);
+    openSounds();
+});
+
+function openSounds()
+{
+    document.querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
+    
+    var impacts = getData("impacts");
+    fs.readdirSync(__dirname + "/impacts").forEach(file =>
+    {
+        for (var i = 0; i < impacts.length; i++)
+        {
+            if (impacts[i][0] == "impacts/" + file)
+            {
+                var row = document.querySelector("#soundRow").cloneNode(true);
+                row.id = "";
+                row.classList.add("soundRow");
+                row.removeAttribute("hidden");
+                row.querySelector(".soundName").value = file;
+                document.querySelector("#soundTable").appendChild(row);
+
+                row.querySelector(".removeSound").addEventListener("click", () => {
+                    impacts.splice(i, 1);
+                    setData("impacts", impacts);
+                    row.remove();
+                });
+
+                row.querySelector(".soundVolume").value = impacts[i][1];
+                row.querySelector(".soundVolume").addEventListener("change", () => {
+                    clampValue(row.querySelector(".soundVolume"), 0, 1);
+                    impacts[i][1] = parseFloat(row.querySelector(".soundVolume").value);
+                    setData("impacts", impacts);
+                });
+                break;
+            }
+        }
+    });
+}
 
 document.querySelector('#single').addEventListener('click', () => { ipcRenderer.send('single'); });
 document.querySelector('#startCalibrate').addEventListener('click', () => { ipcRenderer.send('startCalibrate'); });
@@ -102,24 +248,34 @@ document.querySelector("#singleCommandTitle").addEventListener("change", () => s
 document.querySelector("#barrageCommandTitle").addEventListener("change", () => setData("barrageCommandTitle", document.querySelector("#barrageCommandTitle").value));
 document.querySelector("#subType").addEventListener("change", () => setData("subType", document.querySelector("#subType").value));
 document.querySelector("#subGiftType").addEventListener("change", () => setData("subGiftType", document.querySelector("#subGiftType").value));
-document.querySelector("#bitsMaxBarrageCount").addEventListener("change", () => setData("bitsMaxBarrageCount", document.querySelector("#bitsMaxBarrageCount").value));
+document.querySelector("#bitsMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#bitsMaxBarrageCount"), 0, null); setData("bitsMaxBarrageCount", parseInt(document.querySelector("#bitsMaxBarrageCount").value)) });
 
-document.querySelector("#singleRedeemCooldown").addEventListener("change", () => setData("singleRedeemCooldown", document.querySelector("#singleRedeemCooldown").value));
-document.querySelector("#barrageRedeemCooldown").addEventListener("change", () => setData("barrageRedeemCooldown", document.querySelector("#barrageRedeemCooldown").value));
-document.querySelector("#singleCommandCooldown").addEventListener("change", () => setData("singleCommandCooldown", document.querySelector("#singleCommandCooldown").value));
-document.querySelector("#barrageCommandCooldown").addEventListener("change", () => setData("barrageCommandCooldown", document.querySelector("#barrageCommandCooldown").value));
-document.querySelector("#subCooldown").addEventListener("change", () => setData("subCooldown", document.querySelector("#subCooldown").value));
-document.querySelector("#subGiftCooldown").addEventListener("change", () => setData("subGiftCooldown", document.querySelector("#subGiftCooldown").value));
-document.querySelector("#bitsCooldown").addEventListener("change", () => setData("bitsEnabled", document.querySelector("#bitsCooldown").value));
+document.querySelector("#singleRedeemCooldown").addEventListener("change", () => { clampValue(document.querySelector("#singleRedeemCooldown"), 0, null); setData("singleRedeemCooldown", parseFloat(document.querySelector("#singleRedeemCooldown").value)) });
+document.querySelector("#barrageRedeemCooldown").addEventListener("change", () => { clampValue(document.querySelector("#barrageRedeemCooldown"), 0, null); setData("barrageRedeemCooldown", parseFloat(document.querySelector("#barrageRedeemCooldown").value)) });
+document.querySelector("#singleCommandCooldown").addEventListener("change", () => { clampValue(document.querySelector("#singleCommandCooldown"), 0, null); setData("singleCommandCooldown", parseFloat(document.querySelector("#singleCommandCooldown").value)) });
+document.querySelector("#barrageCommandCooldown").addEventListener("change", () => { clampValue(document.querySelector("#barrageCommandCooldown"), 0, null); setData("barrageCommandCooldown", parseFloat(document.querySelector("#barrageCommandCooldown").value)) });
+document.querySelector("#subCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subCooldown"), 0, null); setData("subCooldown", parseFloat(document.querySelector("#subCooldown").value)) });
+document.querySelector("#subGiftCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subGiftCooldown"), 0, null); setData("subGiftCooldown", parseFloat(document.querySelector("#subGiftCooldown").value)) });
+document.querySelector("#bitsCooldown").addEventListener("change", () => { clampValue(document.querySelector("#bitsCooldown"), 0, null); setData("bitsEnabled", parseFloat(document.querySelector("#bitsCooldown").value)) });
 
-document.querySelector("#barrageCount").addEventListener("change", () => setData("barrageCount", document.querySelector("#barrageCount").value));
-document.querySelector("#barrageFrequency").addEventListener("change", () => setData("barrageFrequency", document.querySelector("#barrageFrequency").value));
-document.querySelector("#returnSpeed").addEventListener("change", () => setData("returnSpeed", document.querySelector("#returnSpeed").value));
-document.querySelector("#delay").addEventListener("change", () => setData("delay", document.querySelector("#delay").value));
-document.querySelector("#volume").addEventListener("change", () => setData("volume", document.querySelector("#volume").value));
+document.querySelector("#barrageCount").addEventListener("change", () => { clampValue(document.querySelector("#barrageCount"), 0, null); setData("barrageCount", parseInt(document.querySelector("#barrageCount").value)) });
+document.querySelector("#barrageFrequency").addEventListener("change", () => { clampValue(document.querySelector("#barrageFrequency"), 0, null); setData("barrageFrequency", parseFloat(document.querySelector("#barrageFrequency").value)) });
+document.querySelector("#returnSpeed").addEventListener("change", () => { clampValue(document.querySelector("#returnSpeed"), 0, null); setData("returnSpeed", parseFloat(document.querySelector("#returnSpeed").value)) });
+document.querySelector("#delay").addEventListener("change", () => { clampValue(document.querySelector("#delay"), 0, null); setData("delay", parseInt(document.querySelector("#delay").value)) } );
+document.querySelector("#volume").addEventListener("change", () => { clampValue(document.querySelector("#volume"), 0, 1); setData("volume", parseFloat(document.querySelector("#volume").value)) });
 document.querySelector("#portThrower").addEventListener("change", () => setData("portThrower", document.querySelector("#portThrower").value));
 document.querySelector("#portVTubeStudio").addEventListener("change", () => setData("portVTubeStudio", document.querySelector("#portVTubeStudio").value));
 document.querySelector("#accessToken").addEventListener("change", () => setData("accessToken", document.querySelector("#accessToken").value));
+
+function clampValue(node, min, max)
+{
+    var val = node.value;
+    if (min != null && val < min)
+        val = min;
+    if (max != null && val > max)
+        val = max;
+    node.value = val;
+}
 
 function getData(field)
 {
@@ -139,7 +295,8 @@ function setPorts()
     fs.writeFileSync(__dirname + "/ports.js", "var ports = [ " + getData("portThrower") + ", " + getData("portVTubeStudio") + " ];");
 }
 
-document.querySelector('#ItemsButton').addEventListener('click', () => { showPanel("items"); });
+document.querySelector('#HelpButton').addEventListener('click', () => { showPanel("help"); });
+document.querySelector('#ImagesButton').addEventListener('click', () => { showPanel("images"); });
 document.querySelector('#SoundsButton').addEventListener('click', () => { showPanel("sounds"); });
 document.querySelector('#EventsButton').addEventListener('click', () => { showPanel("events"); });
 document.querySelector('#SettingsButton').addEventListener('click', () => { showPanel("settings"); });
@@ -187,7 +344,7 @@ function showPanel(panel)
                     openPanel(panel);
                 else
                 {
-                    currentPanel.hidden = "";
+                    currentPanel.hidden = "hidden";
                     currentPanel = null;
                 }
             }, 500);
@@ -199,6 +356,11 @@ function showPanel(panel)
 
 function openPanel(panel)
 {
+    if (panel == "images")
+        openImages();
+    else if (panel == "sounds")
+        openSounds();
+
     currentPanel = document.querySelector("#" + panel);
 
     var currentAnim = 0;

@@ -5,6 +5,8 @@
   "main": "main.js",
   "dependencies": {
     "electron": "^16.0.4",
+    "electron-packager": "^15.4.0",
+    "twitch": "^4.6.7",
     "twitch-auth": "^4.6.7",
     "twitch-chat-client": "^4.6.7"
   },

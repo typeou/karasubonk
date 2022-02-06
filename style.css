@@ -113,7 +113,7 @@ mark {
 
 #panels > * {
     margin: 0;
-    margin-top: 15px;
+    margin-top: 10px;
     grid-column: 1;
 }
 
@@ -125,11 +125,16 @@ mark {
     color: white;
 }
 
+.center {
+    text-align: center;
+}
+
 .config {
     position: fixed;
     bottom: 0;
     right: 0;
-    max-height: 600px;
+    max-height: 500px;
+    max-width: 750px;
     overflow-y: scroll;
     -webkit-animation-duration: 0.5s;
     animation-duration: 0.5s;
@@ -389,4 +394,54 @@ hr {
 .open4 {
     -webkit-animation-name: "open4";
     animation-name: "open4";
+}
+
+.imageScale, .imageWeight, .imageSoundVolume, .soundVolume {
+    width: 5em;
+}
+
+label {
+    font-weight: bold;
+}
+
+.imageSoundLoad, #loadSound {
+    width: 200px;
+}
+
+.soundName 
+{
+    width: 250px;
+}
+
+#images {
+    min-height: 300px;
+}
+
+#imagePreviewParent {
+    position: absolute;
+    pointer-events: none;
+    bottom: 15px;
+    right: 15px;
+}
+
+#imagePreview {
+    max-height: 240px;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 15px;
+}
+
+#help > img {
+    display: block;
+    margin: auto;
+    max-width: 100%;
+}
+
+ul > li::marker {
+    font-weight: bold;
+    content: "> ";
+    color: #ff3cd7;
+}
+
+ul > ul > li::marker{
+    color: #9effb1 !important;
 }

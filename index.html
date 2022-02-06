@@ -35,52 +35,159 @@
     </div>
 
     <div id="panels">
-      <div id="ItemsButton" class="button">Items</div>
+      <div id="HelpButton" class="button">Help</div>
+      <div id="ImagesButton" class="button">Images</div>
       <div id="SoundsButton" class="button">Sounds</div>
       <div id="EventsButton" class="button">Events</div>
       <div id="SettingsButton" class="button">Settings</div>
     </div>
 
-    <div id="items" class="block config" hidden>
-      <h2>Items</h2>
+    <div id="help" class="block config" hidden>
+      <h2>Help</h2>
       <hr>
-      <label for="load" class="btn">Load New Items:</label>
-      <input id="load" type="file" accept="image/*">
+      <h3>Getting Started: OAuth Token</h3>
+      <p>First things first, you'll need to acquire a valid OAuth token. This is what will allow Karasubonk to listen to chat messages, redemptions, and subscriptions.</p>
+      <p>On first load, or whenever authorization fails, a "Get OAuth Token" button will appear below the status indicator. Clicking this button will open twitchapps.com in your browser where it will request the required scopes.</p>
+      <img src="help/oauthPrompt.png">
+      <p class="center"><small>The permissions required are listed in the prompt.</small></p>
+      <p>While Karasubonk requests permissions to "Send live Stream Chat and Rooms messages," it will never use these permissions, but they are required to listen to other messages sent in chat.</p>
+      <p>After clicking Authorize, you will be granted your OAuth token. Please keep this secret.</p>
+      <img src="help/oauthToken.png">
+      <p class="center"><small>This token is just an example.</small></p>
+      <p>Copy and paste this token in to the "OAuth Token" text box in Settings.</p>
+      <img src="help/oauthPaste.png">
+      <p>Karasubonk will automatically attempt authorization when a key is provided. If all went well, the status message regarding OAuth should disappear within a few seconds.</p>
+      <br/>
+      <h3>Getting Started: Browser Source</h3>
+      <p>Karasubonk works via a Browser Source overlay inside of OBS, similar to an alert or chat box.</p>
+      <p>To add Karasubonk as a browser source, create a new Browser source...</p>
+      <img src="help/browserSourceLocation.png">
+      <p>...and check the "Local file" option to allow you to choose an .html file. Navigate to where you stored Karasubonk and select <mark>bonker.html</mark> as the file.</p>
+      <img src="help/browserSourceProperties.png">
+      <p>In order for the objects to properly align, you should <mark>set the width and height of the Browser Source to match your VTube Studio Source.</mark></p>
+      <p>If you tend to move your VTube Studio Source, it may be helpful to make a group for Karasubonk and your VTube Studio source so they always move together.</p>
+      <img src="help/browserSourceGroup.png">
+      <p>The Browser Source should automatically connect to the main program. If all went well, that status messagge regarding the Browser Source should disappear within a few seconds.</p>
+      <p>Please note that the program may ask you to refresh your Browser Source under certain circumstances. There are two locations to do this: the properties of the Browser Source...</p>
+      <img src="help/browserSourceRefreshProperties.png">
+      <p>...and the quick actions bar just below your preview window.</p>
+      <img src="help/browserSourceRefreshMain.png">
+      <br/>
+      <h3>Getting Started: VTube Studio API</h3>
+      <p>This program relies on the VTube Studio API. Please ensure that it is enabled and that the port matches the one in the Settings tab.</p>
+      <img src="help/vtubeAPI.png">
+      <p>If properly configued, you should automatically receive a prompt for Karasubonk's connection with VTube Studio.</p>
+      <img src="help/vtubeAccess.png">
+      <p>Click Allow to continue.</p>
+      <p>The program should now be capable of throwing objects. However, the position is likely to be incorrect. A quick calibration process is required to fix that.</p>
+      <br/>
+      <h3>Getting Started: Calibration</h3>
+      <p>Clicking the leftmost button at the top of the screen will engage calibration. This is a short two-step process.</p>
+      <p>After starting calibration, your model in VTube Studio should become very small. Please do not resize it or you will be required to repeat this step.</p>
+      <p>A guide will be displayed on the Browser Source. Please move the model in VTube Studio while looking at your OBS preview in order to align your model's head with the guide.</p>
+      <img src="help/calibration1.png">
+      <p>This step may be a bit difficult, but it doesn't need to be perfectly precise. Just try your best to align the head with the guide.</p>
+      <p>After you are satisfied, click the "Confirm Calibration" button in the main program window.</p>
+      <img src="help/calibrationConfirm.png">
+      <p>If successful, you will proceed to step 2. Your model in VTube Studio should become very large. Please do not resize it or you will be required to repeat this step.</p>
+      <p>As before, align your model's head with the guide displayed in the OBS preview. This should be a bit easier to do.</p>
+      <img src="help/calibration2.png">
+      <p>If successful, the calibration process will complete. Thrown objects should now properly align with your model's head.</p>
+      <p>The values the program saves are unique to each model. This allows you to switch models without needing to recalibrate every time.</p>
+      <br/>
+      <h3>Getting Started: Channel Point Redeems</h3>
+      <p>Naturally, we'll want to configure which channel point redeems trigger which event.</p>
+      <p>To do this, simply navigate to the "Events" menu and click the "Listen" button for one of the types of events.</p>
+      <img src="help/redeem1.png">
+      <p>The program will then enter a state where it listens for a channel point redeem. Simply use the channel point redeem you wish to associate with the event to associate it.</p>
+      <img src="help/redeem2.png">
+      <p>That redeem should now trigger the relevant event. The process is exactly the same for the other event.</p>
+      <br/>
+      <h3>Getting Started: Custom Images and Sounds</h3>
+      <p>Finally, loading custom images and sounds.</p>
+      <p>This process is simple: open the "Images" or "Sounds" menu and click the "Choose File" button.</p>
+      <img src="help/custom.png">
+      <p>Simply find the image or sound you'd like to include and open it. The program will then make a copy of the file for its use and add it to the list.</p>
+      <p>Images and Sounds can be removed by clicking the "X" button beside them.</p>
+      <p>You may then adjust the properties of the image or sound as you like.</p>
+      <p>Images have:</p>
+      <ul>
+        <li>Weight, which controls the impact force on a scale of 0 to 1.</li>
+        <li>Scale, which controls the size of the item.</li>
+        <li>Sound Override, which allows you to force a specific item to play a specific sound.</li>
+        <ul>
+          <li>Simply click the associated "Choose File" button and choose your desired sound.</li>
+          <li>Sound Overrides can be removed by clicking the "X" button beside them.</li>
+        </ul>
+        <li>Volume for a Sound Override, which controls that specific sound's volume.</li>
+      </ul>
+      <p>Sounds have:</p>
+      <ul>
+        <li>Volume, which controls that specific sound's volume.</li>
+      </ul>
+      <p>Images and Sounds will be selected at random when an item is thrown.</p>
+      <br/>
+      <h3>Getting Started: Have at it!</h3>
+      <p>That's all! The program should now be ready to use.</p>
+      <p>You may adjust other properties in Events and Settings such as cooldowns, global volume, impact settings, and whether or not a given type of event is enabled.</p>
+      <p>If you notice any issues with desync between the impact time and the model's movement, try adjusting the "Delay" property in Settings until you are satisfied.</p>
+    </div>
+
+    <div id="images" class="block config" hidden>
+      <h2>Images</h2>
+      <hr>
+      <label for="load" class="btn important">Load New Image:</label>
+      <input id="loadImage" type="file" accept="image/*">
       <br/>
       <br/>
-      <table>
+      <table id="imageTable">
+        <tr>
+          <th colspan="5"></th>
+          <th colspan="3">Sound Overrides</th>
+        </tr>
         <tr>
           <th></th>
           <th>File</th>
           <th>Weight</th>
-          <th>Audio Override</th>
+          <th>Scale</th>
+          <th>&nbsp&nbsp&nbsp</th>
+          <th></th>
+          <th>File</th>
+          <th></th>
+          <th>Volume</th>
         </tr>
-        <tr id="ItemRow">
-          <td><button>X</button></td>
-          <td><input type="text" disabled></td>
-          <td><input type="number" min="0" max="1" step="0.1"></td>
-          <td><input id="load" type="file" accept="audio/*"></td>
+        <tr id="imageRow" hidden>
+          <td><button class="removeImage">X</button></td>
+          <td><div class="imageHover"><input type="text" class="imageName" size="10" disabled></div></td>
+          <td><input type="number" class="imageWeight" min="0" max="1" step="0.1"></td>
+          <td><input type="number" class="imageScale" min="0" step="0.1"></td>
+          <td></td>
+          <td><button class="removeSound">X</button></td>
+          <td><input type="text" class="imageSound" size="5" disabled></td>
+          <td><input class="imageSoundLoad" type="file" accept="audio/*" size="5"></td>
+          <td><input class="imageSoundVolume" type="number" min="0" max="1" step="0.1"></td>
         </tr>
       </table>
+      <div id="imagePreviewParent" class="block" hidden><img id="imagePreview"></img></div>
     </div>
 
     <div id="sounds" class="block config" hidden>
       <h2>Sounds</h2>
       <hr>
-      <label for="load" class="btn">Load New Sounds:</label>
-      <input id="load" type="file" accept="audio/*">
+      <label for="load" class="btn important">Load New Sound:</label>
+      <input id="loadSound" type="file" accept="audio/*">
       <br/>
       <br/>
-      <table>
+      <table id="soundTable">
         <tr>
           <th></th>
           <th>File</th>
           <th>Volume</th>
         </tr>
-        <tr id="SoundRow">
-          <td><button>X</button></td>
-          <td><input type="text" disabled></td>
-          <td><input type="number" min="0" max="1" step="0.1"></td>
+        <tr id="soundRow" hidden>
+          <td><button class="removeSound">X</button></td>
+          <td><input class="soundName" type="text" disabled></td>
+          <td><input class="soundVolume" type="number" min="0" max="1" step="0.1"></td>
         </tr>
       </table>
     </div>
@@ -113,7 +220,7 @@
         <tr>
           <th></th>
           <th></th>
-          <th>Command Names</th>
+          <th>Command Name</th>
           <th>Cooldown</th></td>
         </tr>
         <tr>
@@ -200,14 +307,14 @@
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td>Volume</td>
+          <td>Global Volume (0-1)</td>
           <td><input type="number" id="volume" min="0"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td>Delay</td>
+          <td>Delay (ms)</td>
           <td><input type="number" id="delay" min="0"></td>
         </tr>
         <tr>
