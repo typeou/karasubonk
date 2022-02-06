@@ -163,7 +163,7 @@
                                 break;
                         }
                     }
-                    else if (!isCalibrating)
+                    else if (!isCalibrating && vTubeIsOpen)
                     {
                         var request = {
                             "apiName": "VTubeStudioPublicAPI",
@@ -367,7 +367,7 @@
                             if (sound != null)
                             {
                                 var audio = new Audio();
-                                audio.src = sound;
+                                audio.src = "impacts/" + encodeURIComponent(sound.substr(8));
                                 audio.volume = weight * volume * volumeGlobal;
                                 var canPlayAudio = false;
                                 audio.oncanplaythrough = function() { canPlayAudio = true; }
@@ -376,7 +376,7 @@
                                 canPlayAudio = true;
 
                             var img = new Image();
-                            img.src = image;
+                            img.src = "throws/" + encodeURIComponent(image.substr(7));
                             img.onload = function()
                             {
                                 var pivot = document.createElement("div");
@@ -401,6 +401,7 @@
                                 pivot.appendChild(movement);
                                 document.querySelector("body").appendChild(pivot);
 
+
                                 // Don't do anything until both image and audio are ready
                                 if (canPlayAudio)
                                 {
@@ -409,7 +410,7 @@
                                     if (sound != null)
                                         setTimeout(function() { audio.play(); }, 300 + delay);
                                     
-                                    //setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + delay);
+                                    setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + delay);
                                 }
                                 else
                                 {
@@ -419,7 +420,7 @@
 
                                         setTimeout(function() { audio.play(); }, 300 + delay);
                                         
-                                        //setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + delay);
+                                        setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + delay);
                                     }
                                 }
                             }

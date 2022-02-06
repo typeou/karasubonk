@@ -30,9 +30,24 @@ document.querySelector("#loadImage").addEventListener("change", () => {
     const imageFile = document.querySelector("#loadImage").files[0];
     fs.copyFileSync(imageFile.path, __dirname + "/throws/" + imageFile.name);
     var throws = getData("throws");
-    throws.push([ "throws/" + imageFile.name, 1.0 ]);
-    setData("throws", throws);
-    openImages();
+    var contains = false;
+    for (var i = 0; i < throws.length; i++)
+    {
+        if (throws[i][0] == "throws/" + imageFile.name)
+        {
+            contains = true;
+            break;
+        }
+    }
+    
+    if (!contains)
+    {
+        console.log("a");
+        throws.push([ "throws/" + imageFile.name, 1.0, 1.0 ]);
+        console.log(throws);
+        setData("throws", throws);
+        openImages();
+    }
 });
 
 function openImages()
@@ -40,99 +55,115 @@ function openImages()
     document.querySelectorAll(".imageRow").forEach((element) => { element.remove(); });
     
     var throws = getData("throws");
-    fs.readdirSync(__dirname + "/throws").forEach(file =>
+    for (var i = throws.length - 1; i >= 0; i--)
     {
-        for (var i = 0; i < throws.length; i++)
+        if (fs.existsSync(__dirname + "/" + throws[i][0]))
         {
-            if (throws[i][0] == "throws/" + file)
+            var row = document.querySelector("#imageRow").cloneNode(true);
+            row.id = "";
+            row.classList.add("imageRow");
+            row.removeAttribute("hidden");
+            row.querySelector(".imageName").value = throws[i][0].substr(8);
+            document.querySelector("#imageTable").appendChild(row);
+
+            row.querySelector(".removeImage").addEventListener("click", () => {
+                throws.splice(i, 1);
+                setData("throws", throws);
+                row.remove();
+            });
+
+            row.querySelector(".imageHover").addEventListener("mouseover", () => {
+                document.querySelector("#imagePreview").src = "throws/" + row.querySelector(".imageName").value;
+                document.querySelector("#imagePreviewParent").removeAttribute("hidden");
+            });
+
+            row.querySelector(".imageHover").addEventListener("mouseout", () => {
+                document.querySelector("#imagePreviewParent").hidden = "hidden";
+            });
+
+            row.querySelector(".imageWeight").value = throws[i][1];
+            row.querySelector(".imageScale").value = throws[i][2];
+            if (throws[i][3] != null)
             {
-                var row = document.querySelector("#imageRow").cloneNode(true);
-                row.id = "";
-                row.classList.add("imageRow");
-                row.removeAttribute("hidden");
-                row.querySelector(".imageName").value = file;
-                document.querySelector("#imageTable").appendChild(row);
-
-                row.querySelector(".removeImage").addEventListener("click", () => {
-                    throws.splice(i, 1);
-                    setData("throws", throws);
-                    row.remove();
-                });
-
-                row.querySelector(".imageHover").addEventListener("mouseover", () => {
-                    document.querySelector("#imagePreview").src = "throws/" + row.querySelector(".imageName").value;
-                    document.querySelector("#imagePreviewParent").removeAttribute("hidden");
-                });
-
-                row.querySelector(".imageHover").addEventListener("mouseout", () => {
-                    document.querySelector("#imagePreviewParent").hidden = "hidden";
-                });
-
-                row.querySelector(".imageWeight").value = throws[i][1];
-                row.querySelector(".imageScale").value = throws[i][2];
-                if (throws[i][3] != null)
+                if (fs.existsSync(__dirname + "/" + throws[i][3]))
                 {
-                    if (fs.existsSync(__dirname + "/" + throws[i][3]))
-                    {
-                        row.querySelector(".imageSound").value = throws[i][3].substr(8);
-                        row.querySelector(".imageSoundVolume").value = throws[i][4];
-                        row.querySelector(".imageSoundVolume").addEventListener("change", () => {
-                            clampValue(row.querySelector(".imageSoundVolume"), 0, 1);
-                            throws[i][1] = parseFloat(row.querySelector(".imageSoundVolume").value);
-                            setData("throws", throws);
-                        });
-                    }
-                    else
-                    {
-                        row.querySelector(".imageSoundVolume").disabled = "disabled";
-                        throws[i].splice(3, 1);
+                    row.querySelector(".imageSound").value = throws[i][3].substr(8);
+                    row.querySelector(".imageSoundVolume").value = throws[i][4];
+                    row.querySelector(".imageSoundVolume").addEventListener("change", () => {
+                        clampValue(row.querySelector(".imageSoundVolume"), 0, 1);
+                        throws[i][1] = parseFloat(row.querySelector(".imageSoundVolume").value);
                         setData("throws", throws);
-                    }
+                    });
                 }
                 else
-                    row.querySelector(".imageSoundVolume").disabled = "disable";
-
-                row.querySelector(".imageWeight").addEventListener("change", () => {
-                    throws[i][1] = parseFloat(row.querySelector(".imageWeight").value);
-                    setData("throws", throws);
-                });
-
-                row.querySelector(".imageScale").addEventListener("change", () => {
-                    throws[i][2] = parseFloat(parseFloat(row.querySelector(".imageScale").value));
-                    setData("throws", throws);
-                });
-
-                row.querySelector(".removeSound").addEventListener("click", () => {
-                    row.querySelector(".imageSound").value = "";
-                    throws[i].splice(3, 2);
-                    row.querySelector(".imageSoundVolume").value = "";
+                {
                     row.querySelector(".imageSoundVolume").disabled = "disabled";
+                    throws[i].splice(3, 1);
                     setData("throws", throws);
-                });
-
-                row.querySelector(".imageSoundLoad").addEventListener("change", () => {
-                    const soundFile = row.querySelector(".imageSoundLoad").files[0];
-                    fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
-                    row.querySelector(".imageSound").value = soundFile.name;
-                    throws[i][3] = "impacts/" + soundFile.name;
-                    throws[i][4] = 1;
-                    setData("throws", throws);
-                    row.querySelector(".imageSoundVolume").value = 1;
-                    row.querySelector(".imageSoundVolume").removeAttribute("disabled");
-                });
-                break;
+                }
             }
+            else
+                row.querySelector(".imageSoundVolume").disabled = "disable";
+
+            row.querySelector(".imageWeight").addEventListener("change", () => {
+                throws[i][1] = parseFloat(row.querySelector(".imageWeight").value);
+                setData("throws", throws);
+            });
+
+            row.querySelector(".imageScale").addEventListener("change", () => {
+                throws[i][2] = parseFloat(parseFloat(row.querySelector(".imageScale").value));
+                setData("throws", throws);
+            });
+
+            row.querySelector(".removeSound").addEventListener("click", () => {
+                row.querySelector(".imageSound").value = "";
+                throws[i].splice(3, 2);
+                row.querySelector(".imageSoundVolume").value = "";
+                row.querySelector(".imageSoundVolume").disabled = "disabled";
+                setData("throws", throws);
+            });
+
+            row.querySelector(".imageSoundLoad").addEventListener("change", () => {
+                const soundFile = row.querySelector(".imageSoundLoad").files[0];
+                fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
+                row.querySelector(".imageSound").value = soundFile.name;
+                row.querySelector(".imageScale").value = 1;
+                throws[i][2] = 1;
+                throws[i][3] = "impacts/" + soundFile.name;
+                throws[i][4] = 1;
+                setData("throws", throws);
+                row.querySelector(".imageSoundVolume").value = 1;
+                row.querySelector(".imageSoundVolume").removeAttribute("disabled");
+            });
         }
-    });
+        else
+        {
+            throws.splice(i, 1);
+            setData("throws", throws);
+        }
+    }
 }
 
 document.querySelector("#loadSound").addEventListener("change", () => {
     const soundFile = document.querySelector("#loadSound").files[0];
     fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
     var impacts = getData("impacts");
-    impacts.push([ "impacts/" + soundFile.name, 1.0 ]);
-    setData("impacts", impacts);
-    openSounds();
+    var contains = false;
+    for (var i = 0; i < impacts.length; i++)
+    {
+        if (impacts[i][0] == "impacts/" + soundFile.name)
+        {
+            contains = true;
+            break;
+        }
+    }
+
+    if (!contains)
+    {
+        impacts.push([ "impacts/" + soundFile.name, 1.0 ]);
+        setData("impacts", impacts);
+        openSounds();
+    }
 });
 
 function openSounds()
@@ -140,17 +171,15 @@ function openSounds()
     document.querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
     
     var impacts = getData("impacts");
-    fs.readdirSync(__dirname + "/impacts").forEach(file =>
+    for (var i = impacts.length - 1; i >= 0; i--)
     {
-        for (var i = 0; i < impacts.length; i++)
+        if (fs.existsSync(__dirname + "/" + impacts[i][0]))
         {
-            if (impacts[i][0] == "impacts/" + file)
-            {
                 var row = document.querySelector("#soundRow").cloneNode(true);
                 row.id = "";
                 row.classList.add("soundRow");
                 row.removeAttribute("hidden");
-                row.querySelector(".soundName").value = file;
+                row.querySelector(".soundName").value = impacts[i][0].substr(7);
                 document.querySelector("#soundTable").appendChild(row);
 
                 row.querySelector(".removeSound").addEventListener("click", () => {
@@ -165,10 +194,13 @@ function openSounds()
                     impacts[i][1] = parseFloat(row.querySelector(".soundVolume").value);
                     setData("impacts", impacts);
                 });
-                break;
-            }
         }
-    });
+        else
+        {
+            impacts.splice(i, 1);
+            setData("impacts", impacts);
+        }
+    }
 }
 
 document.querySelector('#single').addEventListener('click', () => { ipcRenderer.send('single'); });
@@ -263,8 +295,8 @@ document.querySelector("#barrageFrequency").addEventListener("change", () => { c
 document.querySelector("#returnSpeed").addEventListener("change", () => { clampValue(document.querySelector("#returnSpeed"), 0, null); setData("returnSpeed", parseFloat(document.querySelector("#returnSpeed").value)) });
 document.querySelector("#delay").addEventListener("change", () => { clampValue(document.querySelector("#delay"), 0, null); setData("delay", parseInt(document.querySelector("#delay").value)) } );
 document.querySelector("#volume").addEventListener("change", () => { clampValue(document.querySelector("#volume"), 0, 1); setData("volume", parseFloat(document.querySelector("#volume").value)) });
-document.querySelector("#portThrower").addEventListener("change", () => setData("portThrower", document.querySelector("#portThrower").value));
-document.querySelector("#portVTubeStudio").addEventListener("change", () => setData("portVTubeStudio", document.querySelector("#portVTubeStudio").value));
+document.querySelector("#portThrower").addEventListener("change", () => setData("portThrower", parseInt(document.querySelector("#portThrower").value)));
+document.querySelector("#portVTubeStudio").addEventListener("change", () => setData("portVTubeStudio", parseInt(document.querySelector("#portVTubeStudio").value)));
 document.querySelector("#accessToken").addEventListener("change", () => setData("accessToken", document.querySelector("#accessToken").value));
 
 function clampValue(node, min, max)
