@@ -1,4 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
+const { PubSubClient } = require('twitch-pubsub-client')
+const { ChatClient } = require('twitch-chat-client')
 
 var mainWindow;
 const createWindow = () => {
@@ -44,6 +46,8 @@ setInterval(() => {
       status = 6;
     else if (listeningBarrage)
       status = 7;
+    else if (!listenersActive)
+      status = 8;
   
     if (open)
       mainWindow.webContents.send("status", status);
@@ -57,13 +61,13 @@ ipcMain.on('listenBarrage', () => listenBarrage());
 function listenSingle()
 {
   listeningBarrage = false;
-  listeningSingle = true;
+  listeningSingle = !listeningSingle;
 }
 
 function listenBarrage()
 {
   listeningSingle = false;
-  listeningBarrage = true;
+  listeningBarrage = !listeningBarrage;
 }
 
 app.on('window-all-closed', () => {
@@ -80,10 +84,8 @@ const { ApiClient } = require('twitch');
 const { StaticAuthProvider } = require('twitch-auth');
 var authProvider, apiClient, chatClient;
 
+var listenersActive = false;
 async function pubSub(apiClient) {
-  const { PubSubClient } = require('twitch-pubsub-client');
-  const { ChatClient } = require('twitch-chat-client');
-
   const pubSubClient = new PubSubClient();
 
   const userID = await pubSubClient.registerUserListener(apiClient);
@@ -92,9 +94,13 @@ async function pubSub(apiClient) {
   await chatClient.connect();
   chatClient.onMessage(onMessageHandler);
 
+  console.log("Listening to Redemptions");
   await pubSubClient.onRedemption(userID, onRedeemHandler);
+  console.log("Listening to Subs");
   await pubSubClient.onSubscription(userID, onSubHandler);
+  console.log("Listening to Bits");
   await pubSubClient.onBits(userID, onBitsHandler);
+  listenersActive = true;
 }
 
 var authenticated = false;
@@ -196,6 +202,7 @@ ipcMain.on('bits', () => onBitsHandler());
 
 function single()
 {
+  console.log("Sending Single");
   if (socket != null && data.throws.length > 0) {
     const imageWeightScaleSoundVolume = getImageWeightScaleSoundVolume();
 
@@ -215,6 +222,7 @@ function single()
 
 function barrage()
 {
+  console.log("Sending Barrage");
   if (socket != null && data.throws.length > 0) {
     const imagesWeightsScalesSoundsVolumes = getImagesWeightsScalesSoundsVolumes();
     var images = [], weights = [], scales = [], sounds = [], volumes = [];
@@ -285,6 +293,7 @@ function setData(field, value)
 var canSingleCommand = true, canBarrageCommand = true;
 function onMessageHandler(_, _, message)
 {
+  console.log("Received Message");
   if (canSingleCommand && data.singleCommandEnabled && message.toLowerCase() == data.singleCommandTitle.toLowerCase())
   {
     single();
@@ -308,6 +317,7 @@ function onMessageHandler(_, _, message)
 var canSingleRedeem = true, canBarrageRedeem = true
 async function onRedeemHandler(redemptionMessage)
 {
+  console.log("Received Redeem");
   if (listeningSingle)
   {
     setData("singleRedeemID", redemptionMessage.rewardId);
@@ -350,6 +360,7 @@ async function onRedeemHandler(redemptionMessage)
 var canSub = true, canSubGift = true;
 function onSubHandler(subMessage)
 {
+  console.log("Received Sub");
   if (canSub && data.subEnabled && !subMessage.isGift) {
     if (data.subType == "barrage")
       barrage();
@@ -376,6 +387,7 @@ function onSubHandler(subMessage)
 var canBits = true;
 function onBitsHandler(bitsMessage)
 {
+  console.log("Received Bits");
   if (bitsMessage == null || canBits && data.bitsEnabled) {
     if (data.bitsCooldown > 0)
     {
@@ -383,7 +395,7 @@ function onBitsHandler(bitsMessage)
       setTimeout(() => { canBits = true; }, data.bitsCooldown * 1000);
     }
 
-    var totalBits = bitsMessage == null ? Math.floor(Math.random() * 20000) : bitsMessage.totalBits;
+    var totalBits = bitsMessage == null ? Math.floor(Math.random() * 20000) : bitsMessage.bits;
 
     var num10k = 0, num5k = 0, num1k = 0, num100 = 0;
     if (data.bitsMaxBarrageCount > 100)

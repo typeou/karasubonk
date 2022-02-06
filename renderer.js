@@ -11,7 +11,8 @@ const statusTitle = [
     "Calibrating (2/2)",
     "VTube Studio Disconnected",
     "Listening for Redeem<br/>(Single)",
-    "Listening for Redeem<br/>(Barrage)"
+    "Listening for Redeem<br/>(Barrage)",
+    "Waiting for Listeners..."
 ];
 
 const statusDesc = [
@@ -21,8 +22,9 @@ const statusDesc = [
     "<p>Please use VTube Studio to position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide. Please do not resize the model during this process.</p>",
     "<p>Please use VTube Studio to position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide. Please do not resize the model during this process.</p>",
     [ "<p>Please ensure the VTube Studio API is enabled on port <mark>", "</mark> and click Allow when Karasubonk requests access.</p><p>You may need to refresh the Browser Source to get the prompt to appear again.</p>" ],
-    "<p>Please use the Channel Point Reward you'd like to use for single bonks.</p>",
-    "<p>Please use the Channel Point Reward you'd like to use for barrage bonks.</p>"
+    "<p>Please use the Channel Point Reward you'd like to use for single bonks.</p><p>Click the Listen button again to cancel.</p>",
+    "<p>Please use the Channel Point Reward you'd like to use for barrage bonks.</p><p>Click the Listen button again to cancel.</p>",
+    ""
 ];
 
 document.querySelector("#loadImage").addEventListener("change", () => {

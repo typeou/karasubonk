@@ -1,0 +1,145 @@
+{
+    "singleRedeemEnabled": true,
+    "singleRedeemID": "f4e3f8b1-a906-4018-bc3e-76945bad7acb",
+    "singleRedeemCooldown": 0,
+    "barrageRedeemEnabled": true,
+    "barrageRedeemID": "8ae69da7-f79e-47a8-898e-8e10175277f4",
+    "barrageRedeemCooldown": 0,
+    "singleCommandEnabled": true,
+    "singleCommandTitle": "!bonk",
+    "singleCommandCooldown": "10",
+    "barrageCommandEnabled": true,
+    "barrageCommandTitle": "!manybonk",
+    "barrageCommandCooldown": 30,
+    "subEnabled": true,
+    "subType": "barrage",
+    "subCooldown": 0,
+    "subGiftEnabled": true,
+    "subGiftType": "barrage",
+    "subGiftCooldown": 0,
+    "bitsEnabled": true,
+    "bitsMaxBarrageCount": 110,
+    "bitsCooldown": 0,
+    "barrageCount": 30,
+    "barrageFrequency": 0.075,
+    "returnSpeed": 0.05,
+    "delay": 0,
+    "volume": 0.1,
+    "parametersHorizontal": [
+        "FaceAngleX",
+        "FaceAngleZ",
+        "FacePositionX"
+    ],
+    "parametersVertical": [
+        "FaceAngleY"
+    ],
+    "portThrower": 8080,
+    "portVTubeStudio": 8001,
+    "accessToken": "qhu1gqy1uw8ocfp5npeud1e88xq0s9 ",
+    "throws": [
+        [
+            "throws/gnome.png",
+            1,
+            1,
+            "impacts/gnome.mp3",
+            1
+        ],
+        [
+            "throws/lien.png",
+            0.25,
+            1
+        ],
+        [
+            "throws/b00logo.png",
+            0.75,
+            1
+        ],
+        [
+            "throws/me.png",
+            0.1,
+            1
+        ],
+        [
+            "throws/twitch.png",
+            0.75,
+            1
+        ],
+        [
+            "throws/github.png",
+            0.75,
+            1
+        ],
+        [
+            "throws/walk.png",
+            1,
+            1
+        ],
+        [
+            "throws/pixel.png",
+            1,
+            1
+        ]
+    ],
+    "impacts": [
+        [
+            "impacts/body_medium_impact_hard2.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_hard3.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_hard4.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_hard5.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_hard6.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_soft1.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_soft2.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_soft3.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_soft4.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_soft5.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_soft6.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_soft7.wav",
+            1
+        ],
+        [
+            "impacts/body_medium_impact_hard1.wav",
+            1
+        ]
+    ],
+    "4b55651e13ed4a77819c5c8585ff323aMin": [
+        0.026041746139526367,
+        -0.13148146867752075
+    ],
+    "4b55651e13ed4a77819c5c8585ff323aMax": [
+        0.3390166759490967,
+        -0.3501841425895691
+    ]
+}

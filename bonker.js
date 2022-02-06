@@ -207,6 +207,8 @@ function connectKarasu()
                     data.data.parametersVertical[i] = [ data.data.parametersVertical[i], value, min, max ];
                 }
 
+                console.log("Received " + data.type);
+
                 switch(data.type)
                 {
                     case "single":
@@ -339,6 +341,7 @@ function bonk(image, weight, scale, sound, volume, volumeGlobal, paramH, paramV,
                 {
                     var audio = new Audio();
                     audio.src = "impacts/" + encodeURIComponent(sound.substr(8));
+                    console.log(audio.src);
                     audio.volume = ((weight / 2) + 0.5) * volume * volumeGlobal;
                     var canPlayAudio = false;
                     audio.oncanplaythrough = function() { canPlayAudio = true; }
@@ -348,6 +351,7 @@ function bonk(image, weight, scale, sound, volume, volumeGlobal, paramH, paramV,
 
                 var img = new Image();
                 img.src = "throws/" + encodeURIComponent(image.substr(7));
+                console.log(img.src);
                 img.onload = function()
                 {
                     var pivot = document.createElement("div");
