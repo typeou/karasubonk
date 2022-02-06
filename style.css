@@ -413,15 +413,11 @@ label {
     width: 250px;
 }
 
-#images {
-    min-height: 300px;
-}
-
 #imagePreviewParent {
-    position: absolute;
+    position: fixed;
     pointer-events: none;
-    bottom: 15px;
-    right: 15px;
+    bottom: 30px;
+    right: 47px;
 }
 
 #imagePreview {
