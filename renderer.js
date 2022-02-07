@@ -328,15 +328,21 @@ function loadData(field)
     const thisData = getData(field);
     if (thisData != null)
     {
-        document.querySelector("#" + field).value = thisData;
-        if (field == "portThrower" || field == "portVTubeStudio")
-            setPorts();
+        if (field.includes("Enabled"))
+            document.querySelector("#" + field).checked = thisData;
+        else
+        {
+            document.querySelector("#" + field).value = thisData;
+            if (field == "portThrower" || field == "portVTubeStudio")
+                setPorts();
+        }
     }
     else
     {
-        const val = document.querySelector("#" + field).value;
-        const parsed = parseFloat(val);
-        setData(field, parsed == NaN ? val : parsed);
+        const node = document.querySelector("#" + field);
+        const val = node.type == "checkbox" ? node.checked : (node.type == "number" ? parseFloat(node.value) : node.value);
+        console.log(field + "," + val);
+        setData(field, val);
     }
 }
 
@@ -610,6 +616,7 @@ const defaultData = {
         ]
     ]
 }
+
 function getData(field)
 {
     if (!fs.existsSync(__dirname + "/data.json"))

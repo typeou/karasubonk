@@ -613,7 +613,7 @@ function onBitsHandler(bitsMessage)
     }
 
     if (totalBits + num100 + num1k + num5k + num10k > data.bitsMaxBarrageCount)
-      totalBits = data.bitsMaxBarrageCount - (num100 + num1k + num5k + num10k)
+      totalBits = data.bitsMaxBarrageCount - (num100 + num1k + num5k + num10k);
 
     var bitThrows = [];
     while (num10k-- > 0)
