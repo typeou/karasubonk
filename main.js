@@ -77,189 +77,8 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-const defaultData = {
-  "portThrower": 8080,
-  "portVTubeStudio": 8001,
-  "throws": [
-      [
-          "throws/I_C_Banana.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Bread.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Carrot.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Cheese.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Cherry.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Fish.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Grapes.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_GreenGrapes.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_GreenPepper.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Lemon.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Mulberry.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Mushroom.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Nut.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Orange.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Pear.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Pie.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Pineapple.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Radish.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_RawFish.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_RawMeat.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_RedPepper.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Strawberry.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_Watermellon.png",
-          1,
-          3
-      ],
-      [
-          "throws/I_C_YellowPepper.png",
-          1,
-          3
-      ],
-      [
-          "throws/gnome.png",
-          1,
-          1,
-          "impacts/gnome.mp3",
-          1
-      ]
-  ],
-  "impacts": [
-      [
-          "impacts/punch_general_body_impact_03.wav",
-          1
-      ],
-      [
-          "impacts/punch_grit_wet_impact_05.wav",
-          1
-      ],
-      [
-          "impacts/punch_heavy_huge_distorted_01.wav",
-          1
-      ],
-      [
-          "impacts/Seq 2.1 Hit #1 96 HK1.wav",
-          1
-      ],
-      [
-          "impacts/Seq 2.1 Hit #2 96 HK1.wav",
-          1
-      ],
-      [
-          "impacts/Seq 2.1 Hit #3 96 HK1.wav",
-          1
-      ],
-      [
-          "impacts/Seq 2.27 Hit #1 96 HK1.wav",
-          1
-      ],
-      [
-          "impacts/Seq 2.27 Hit #2 96 HK1.wav",
-          1
-      ],
-      [
-          "impacts/Seq 2.27 Hit #3 96 HK1.wav",
-          1
-      ],
-      [
-          "impacts/Seq1.15 Hit #1 96 HK1.wav",
-          1
-      ],
-      [
-          "impacts/Seq1.15 Hit #2 96 HK1.wav",
-          1
-      ],
-      [
-          "impacts/Seq1.15 Hit #3 96 HK1.wav",
-          1
-      ]
-  ]
-}
+const defaultData = JSON.parse(fs.readFileSync(__dirname + "/defaultData.json", "utf8"));
+
 // Main process code
 const fs = require("fs");
 if (!fs.existsSync(__dirname + "/data.json"))
@@ -368,8 +187,16 @@ wss.on('connection', function connection(ws)
 
 function getImageWeightScaleSoundVolume()
 {
-  const index = Math.floor(Math.random() * data.throws.length);
-  const soundIndex = Math.floor(Math.random() * data.impacts.length);
+  var index;
+  do {
+    index = Math.floor(Math.random() * data.throws.length);
+  } while (!data.throws[index][5]);
+
+  var soundIndex;
+  do {
+    soundIndex = Math.floor(Math.random() * data.impacts.length);
+  } while (!data.impacts[soundIndex][3]);
+
   return [ data.throws[index][0], data.throws[index][1], data.throws[index][2], data.throws[index][3] != null ? data.throws[index][3] : data.impacts.length > 0 ? data.impacts[soundIndex][0] : null, data.throws[index][3] != null ? data.throws[index][4] : data.impacts.length > 0 ? data.impacts[soundIndex][1] : 0];
 }
 
@@ -657,13 +484,21 @@ function onBitsHandler(bitsMessage)
         scales.push(2);
         if (data.bitImpacts != null && data.bitImpacts.length > 0)
         {
-          const soundIndex = Math.floor(Math.random() * data.bitImpacts.length);
+          var soundIndex;
+          do {
+            soundIndex = Math.floor(Math.random() * data.bitImpacts.length);
+          } while (!data.bitImpacts[soundIndex][3]);
+
           sounds.push(data.bitImpacts[soundIndex][0]);
           volumes.push(data.bitImpacts[soundIndex][1]);
         }
         else if (data.impacts != null && data.impacts.length > 0)
         {
-          const soundIndex = Math.floor(Math.random() * data.impacts.length);
+          var soundIndex;
+          do {
+            soundIndex = Math.floor(Math.random() * data.impacts.length);
+          } while (!data.impacts[soundIndex][3]);
+
           sounds.push(data.impacts[soundIndex][0]);
           volumes.push(data.impacts[soundIndex][1]);
         }

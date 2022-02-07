@@ -153,6 +153,7 @@
         </tr>
         <tr>
           <th></th>
+          <th>&nbsp&nbsp&nbsp</th>
           <th>File</th>
           <th>Weight</th>
           <th>Scale</th>
@@ -164,6 +165,8 @@
         </tr>
         <tr id="imageRow" hidden>
           <td><button class="removeImage">X</button></td>
+          <td></td>
+          <td><input type="checkbox" class="imageEnabled" checked></td>
           <td><div class="imageHover"><input type="text" class="imageName" size="10" disabled></div></td>
           <td><input type="number" class="imageWeight" min="0" max="1" step="0.1"></td>
           <td><input type="number" class="imageScale" min="0" step="0.1"></td>
@@ -193,11 +196,14 @@
       <table id="soundTable">
         <tr>
           <th></th>
+          <th>&nbsp&nbsp&nbsp</th>
           <th>File</th>
           <th>Volume</th>
         </tr>
         <tr id="soundRow" hidden>
           <td><button class="removeSound">X</button></td>
+          <td></td>
+          <td><input type="checkbox" class="soundEnabled" checked></td>
           <td><input class="soundName" type="text" disabled></td>
           <td><input class="soundVolume" type="number" min="0" max="1" step="0.1"></td>
         </tr>
@@ -215,11 +221,14 @@
       <table id="bitSoundTable">
         <tr>
           <th></th>
+          <th>&nbsp&nbsp&nbsp</th>
           <th>File</th>
           <th>Volume</th>
         </tr>
         <tr id="bitSoundRow" hidden>
           <td><button class="removeBitSound">X</button></td>
+          <td></td>
+          <td><input type="checkbox" class="bitSoundEnabled" checked></td>
           <td><input class="bitSoundName" type="text" disabled></td>
           <td><input class="bitSoundVolume" type="number" min="0" max="1" step="0.1"></td>
         </tr>
@@ -329,6 +338,13 @@
         <tr>
           <td>Barrage Frequency</td>
           <td><input type="number" id="barrageFrequency" min="0" value="0.05"></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Throw Duration</td>
+          <td><input type="number" id="throwDuration" min="0.5" value="1.0"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>

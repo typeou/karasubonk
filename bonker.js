@@ -410,7 +410,7 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     var movement = document.createElement("div");
                     movement.classList.add("animated");
                     var animName = "throw" + (fromLeft ? "Left" : "Right");
-                    movement.style.animation = animName + " 0.8s " + (data.delay / 1000) + "s";
+                    movement.style.animation = animName + " " + data.duration + "s " + (data.delay / 1000) + "s";
                     var thrown = document.createElement("img");
                     thrown.classList.add("animated");
                     thrown.src = image;
@@ -428,22 +428,22 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     // Don't do anything until both image and audio are ready
                     if (canPlayAudio)
                     {
-                        setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, data.openEyes); }, 300);
+                        setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, data.openEyes); }, data.duration * 500);
 
                         if (sound != null)
-                            setTimeout(function() { audio.play(); }, 300 + data.delay);
+                            setTimeout(function() { audio.play(); }, (data.duration * 500) + data.delay);
                         
-                        setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + data.delay);
+                        setTimeout(function() { document.querySelector("body").removeChild(pivot); }, (data.duration * 1000) + data.delay);
                     }
                     else
                     {
                         audio.oncanplaythrough = function()
                         {
-                            setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, data.openEyes); }, 300);
+                            setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, data.openEyes); }, data.duration * 500);
 
-                            setTimeout(function() { audio.play(); }, 300 + data.delay);
+                            setTimeout(function() { audio.play(); }, (data.duration * 500) + data.delay);
                             
-                            setTimeout(function() { document.querySelector("body").removeChild(pivot); }, 800 + data.delay);
+                            setTimeout(function() { document.querySelector("body").removeChild(pivot); }, (data.duration * 1000) + data.delay);
                         }
                     }
                 }

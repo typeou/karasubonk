@@ -82,6 +82,18 @@ function openImages()
                         row.remove();
                     });
 
+                    if (element[5] == null)
+                    {
+                        element[5] = true;
+                        setData("throws", throws);
+                    }
+
+                    row.querySelector(".imageEnabled").checked = element[5];
+                    row.querySelector(".imageEnabled").addEventListener("change", () => {
+                        element[5] = row.querySelector(".imageEnabled").checked;
+                        setData("throws", throws);
+                    });
+
                     row.querySelector(".imageHover").addEventListener("mouseover", () => {
                         document.querySelector("#imagePreview").src = "throws/" + row.querySelector(".imageName").value;
                         document.querySelector("#imagePreviewParent").removeAttribute("hidden");
@@ -108,7 +120,7 @@ function openImages()
                         else
                         {
                             row.querySelector(".imageSoundVolume").disabled = "disabled";
-                            element.splice(3, 1);
+                            element[3] = element[4] = null;
                             setData("throws", throws);
                         }
                     }
@@ -127,7 +139,7 @@ function openImages()
 
                     row.querySelector(".removeSound").addEventListener("click", () => {
                         row.querySelector(".imageSound").value = "";
-                        element.splice(3, 2);
+                        element[3] = element[4] = null;
                         row.querySelector(".imageSoundVolume").value = "";
                         row.querySelector(".imageSoundVolume").disabled = "disabled";
                         setData("throws", throws);
@@ -208,6 +220,18 @@ function openSounds()
                         row.remove();
                     });
 
+                    if (element[3] == null)
+                    {
+                        element[3] = true;
+                        setData("impacts", impacts);
+                    }
+
+                    row.querySelector(".soundEnabled").checked = element[3];
+                    row.querySelector(".soundEnabled").addEventListener("change", () => {
+                        element[3] = row.querySelector(".soundEnabled").checked;
+                        setData("impacts", impacts);
+                    });
+
                     row.querySelector(".soundVolume").value = element[1];
                     row.querySelector(".soundVolume").addEventListener("change", () => {
                         clampValue(row.querySelector(".soundVolume"), 0, 1);
@@ -276,6 +300,18 @@ function openBitSounds()
                         bitImpacts.splice(bitImpacts.indexOf(element), 1);
                         setData("bitImpacts", bitImpacts);
                         row.remove();
+                    });
+
+                    if (element[3] == null)
+                    {
+                        element[3] = true;
+                        setData("bitImpacts", impacts);
+                    }
+
+                    row.querySelector(".bitSoundEnabled").checked = element[3];
+                    row.querySelector(".bitSoundEnabled").addEventListener("change", () => {
+                        element[3] = row.querySelector(".bitSoundEnabled").checked;
+                        setData("bitImpacts", impacts);
                     });
         
                     row.querySelector(".bitSoundVolume").value = element[1];
@@ -375,6 +411,7 @@ window.onload = function()
 
     loadData("barrageCount");
     loadData("barrageFrequency");
+    loadData("throwDuration");
     loadData("returnSpeed");
     loadData("openEyes");
     loadData("itemScaleMin");
@@ -413,6 +450,7 @@ document.querySelector("#bitsCooldown").addEventListener("change", () => { clamp
 
 document.querySelector("#barrageCount").addEventListener("change", () => { clampValue(document.querySelector("#barrageCount"), 0, null); setData("barrageCount", parseInt(document.querySelector("#barrageCount").value)) });
 document.querySelector("#barrageFrequency").addEventListener("change", () => { clampValue(document.querySelector("#barrageFrequency"), 0, null); setData("barrageFrequency", parseFloat(document.querySelector("#barrageFrequency").value)) });
+document.querySelector("#throwDuration").addEventListener("change", () => { clampValue(document.querySelector("#throwDuration"), 0.5, null); setData("throwDuration", parseFloat(document.querySelector("#throwDuration").value)) });
 document.querySelector("#returnSpeed").addEventListener("change", () => { clampValue(document.querySelector("#returnSpeed"), 0, null); setData("returnSpeed", parseFloat(document.querySelector("#returnSpeed").value)) });
 document.querySelector("#openEyes").addEventListener("change", () => { setData("openEyes", document.querySelector("#openEyes").checked) });
 document.querySelector("#itemScaleMin").addEventListener("change", () => { clampValue(document.querySelector("#itemScaleMin"), 0, getData("itemScaleMax")); setData("itemScaleMin", parseFloat(document.querySelector("#itemScaleMin").value)) });
@@ -433,189 +471,7 @@ function clampValue(node, min, max)
     node.value = val;
 }
 
-const defaultData = {
-    "portThrower": 8080,
-    "portVTubeStudio": 8001,
-    "throws": [
-        [
-            "throws/I_C_Banana.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Bread.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Carrot.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Cheese.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Cherry.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Fish.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Grapes.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_GreenGrapes.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_GreenPepper.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Lemon.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Mulberry.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Mushroom.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Nut.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Orange.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Pear.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Pie.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Pineapple.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Radish.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_RawFish.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_RawMeat.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_RedPepper.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Strawberry.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_Watermellon.png",
-            1,
-            3
-        ],
-        [
-            "throws/I_C_YellowPepper.png",
-            1,
-            3
-        ],
-        [
-            "throws/gnome.png",
-            1,
-            1,
-            "impacts/gnome.mp3",
-            1
-        ]
-    ],
-    "impacts": [
-        [
-            "impacts/punch_general_body_impact_03.wav",
-            1
-        ],
-        [
-            "impacts/punch_grit_wet_impact_05.wav",
-            1
-        ],
-        [
-            "impacts/punch_heavy_huge_distorted_01.wav",
-            1
-        ],
-        [
-            "impacts/Seq 2.1 Hit #1 96 HK1.wav",
-            1
-        ],
-        [
-            "impacts/Seq 2.1 Hit #2 96 HK1.wav",
-            1
-        ],
-        [
-            "impacts/Seq 2.1 Hit #3 96 HK1.wav",
-            1
-        ],
-        [
-            "impacts/Seq 2.27 Hit #1 96 HK1.wav",
-            1
-        ],
-        [
-            "impacts/Seq 2.27 Hit #2 96 HK1.wav",
-            1
-        ],
-        [
-            "impacts/Seq 2.27 Hit #3 96 HK1.wav",
-            1
-        ],
-        [
-            "impacts/Seq1.15 Hit #1 96 HK1.wav",
-            1
-        ],
-        [
-            "impacts/Seq1.15 Hit #2 96 HK1.wav",
-            1
-        ],
-        [
-            "impacts/Seq1.15 Hit #3 96 HK1.wav",
-            1
-        ]
-    ]
-}
+const defaultData = JSON.parse(fs.readFileSync(__dirname + "/defaultData.json", "utf8"));
 
 function getData(field)
 {
