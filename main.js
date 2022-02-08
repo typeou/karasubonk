@@ -77,10 +77,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-const defaultData = JSON.parse(fs.readFileSync(__dirname + "/defaultData.json", "utf8"));
-
 // Main process code
 const fs = require("fs");
+const defaultData = JSON.parse(fs.readFileSync(__dirname + "/defaultData.json", "utf8"));
 if (!fs.existsSync(__dirname + "/data.json"))
   fs.writeFileSync(__dirname + "/data.json", JSON.stringify(defaultData));
 var data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
@@ -156,7 +155,7 @@ wss.on('connection', function connection(ws)
           }
           else
           {
-            setData(request.modelID + "Min", [ request.positionX, request.positionY ]);
+            setData(request.modelID + "Min", [ request.positionX, request.positionY ], false);
             calibrateStage = 2;
             calibrate();
           }
@@ -169,7 +168,7 @@ wss.on('connection', function connection(ws)
           }
           else
           {
-            setData(request.modelID + "Max", [ request.positionX, request.positionY ]);
+            setData(request.modelID + "Max", [ request.positionX, request.positionY ], false);
             calibrateStage = 4;
             calibrate();
           }
@@ -295,13 +294,15 @@ function calibrate()
 
 ipcMain.on("setData", (_, arg) =>
 {
-  setData(arg[0], arg[1])
+  setData(arg[0], arg[1], true);
 });
 
-function setData(field, value)
+function setData(field, value, external)
 {
   data[field] = value;
   fs.writeFileSync(__dirname + "/data.json", JSON.stringify(data));
+  if (external)
+    mainWindow.webContents.send("doneWriting");
 }
 
 var canSingleCommand = true, canBarrageCommand = true;
@@ -334,12 +335,12 @@ async function onRedeemHandler(redemptionMessage)
   console.log("Received Redeem");
   if (listeningSingle)
   {
-    setData("singleRedeemID", redemptionMessage.rewardId);
+    setData("singleRedeemID", redemptionMessage.rewardId, false);
     listeningSingle = false;
   }
   else if (listeningBarrage)
   {
-    setData("barrageRedeemID", redemptionMessage.rewardId);
+    setData("barrageRedeemID", redemptionMessage.rewardId, false);
     listeningBarrage = false;
   }
   else

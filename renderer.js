@@ -29,12 +29,21 @@ const statusDesc = [
     "<p>Please click \"Confirm Calibration\" to start the calibration process.</p>"
 ];
 
-document.querySelector("#loadImage").addEventListener("change", () => {
+var isWriting = 0;
+ipcRenderer.on("doneWriting", () => {
+    if (--isWriting < 0)
+        isWriting = 0;
+});
+
+document.querySelector("#loadImage").addEventListener("change", loadImage);
+
+async function loadImage()
+{
     const imageFile = document.querySelector("#loadImage").files[0];
     if (!fs.existsSync(__dirname + "/throws/"))
         fs.mkdirSync(__dirname + "/throws/");
     fs.copyFileSync(imageFile.path, __dirname + "/throws/" + imageFile.name);
-    var throws = getData("throws");
+    var throws = await getData("throws");
     var contains = false;
     for (var i = 0; i < throws.length; i++)
     {
@@ -53,126 +62,128 @@ document.querySelector("#loadImage").addEventListener("change", () => {
     }
     
     document.querySelector("#loadImage").value = null;
-});
-
-function openImages()
-{
-    document.querySelectorAll(".imageRow").forEach((element) => { element.remove(); });
-    
-    setTimeout(() => {
-        var throws = getData("throws");
-        if (throws == null)
-            setData("throws", []);
-        else
-        {
-            throws.forEach(element =>
-            {
-                if (fs.existsSync(__dirname + "/" + element[0]))
-                {
-                    var row = document.querySelector("#imageRow").cloneNode(true);
-                    row.id = "";
-                    row.classList.add("imageRow");
-                    row.removeAttribute("hidden");
-                    row.querySelector(".imageName").value = element[0].substr(7);
-                    document.querySelector("#imageTable").appendChild(row);
-
-                    row.querySelector(".removeImage").addEventListener("click", () => {
-                        throws.splice(throws.indexOf(element), 1);
-                        setData("throws", throws);
-                        row.remove();
-                    });
-
-                    if (element[5] == null)
-                    {
-                        element[5] = true;
-                        setData("throws", throws);
-                    }
-
-                    row.querySelector(".imageEnabled").checked = element[5];
-                    row.querySelector(".imageEnabled").addEventListener("change", () => {
-                        element[5] = row.querySelector(".imageEnabled").checked;
-                        setData("throws", throws);
-                    });
-
-                    row.querySelector(".imageHover").addEventListener("mouseover", () => {
-                        document.querySelector("#imagePreview").src = "throws/" + row.querySelector(".imageName").value;
-                        document.querySelector("#imagePreviewParent").removeAttribute("hidden");
-                    });
-
-                    row.querySelector(".imageHover").addEventListener("mouseout", () => {
-                        document.querySelector("#imagePreviewParent").hidden = "hidden";
-                    });
-
-                    row.querySelector(".imageWeight").value = element[1];
-                    row.querySelector(".imageScale").value = element[2];
-                    if (element[3] != null)
-                    {
-                        if (fs.existsSync(__dirname + "/" + element[3]))
-                        {
-                            row.querySelector(".imageSound").value = element[3].substr(8);
-                            row.querySelector(".imageSoundVolume").value = element[4];
-                            row.querySelector(".imageSoundVolume").addEventListener("change", () => {
-                                clampValue(row.querySelector(".imageSoundVolume"), 0, 1);
-                                element[1] = parseFloat(row.querySelector(".imageSoundVolume").value);
-                                setData("throws", throws);
-                            });
-                        }
-                        else
-                        {
-                            row.querySelector(".imageSoundVolume").disabled = "disabled";
-                            element[3] = element[4] = null;
-                            setData("throws", throws);
-                        }
-                    }
-                    else
-                        row.querySelector(".imageSoundVolume").disabled = "disable";
-
-                    row.querySelector(".imageWeight").addEventListener("change", () => {
-                        element[1] = parseFloat(row.querySelector(".imageWeight").value);
-                        setData("throws", throws);
-                    });
-
-                    row.querySelector(".imageScale").addEventListener("change", () => {
-                        element[2] = parseFloat(parseFloat(row.querySelector(".imageScale").value));
-                        setData("throws", throws);
-                    });
-
-                    row.querySelector(".removeSound").addEventListener("click", () => {
-                        row.querySelector(".imageSound").value = "";
-                        element[3] = element[4] = null;
-                        row.querySelector(".imageSoundVolume").value = "";
-                        row.querySelector(".imageSoundVolume").disabled = "disabled";
-                        setData("throws", throws);
-                    });
-
-                    row.querySelector(".imageSoundLoad").addEventListener("change", () => {
-                        const soundFile = row.querySelector(".imageSoundLoad").files[0];
-                        fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
-                        row.querySelector(".imageSound").value = soundFile.name;
-                        row.querySelector(".imageScale").value = 1;
-                        element[3] = "impacts/" + soundFile.name;
-                        element[4] = 1;
-                        setData("throws", throws);
-                        row.querySelector(".imageSoundVolume").value = 1;
-                        row.querySelector(".imageSoundVolume").removeAttribute("disabled");
-                    });
-                }
-                else
-                {
-                    throws.splice(throws.indexOf(element), 1);
-                    setData("throws", throws);
-                }
-            });
-        }
-    }, 100);
 }
 
-document.querySelector("#loadSound").addEventListener("change", () => {
+async function openImages()
+{
+    var throws = await getData("throws");
+
+    document.querySelectorAll(".imageRow").forEach((element) => { element.remove(); });
+
+    if (throws == null)
+        setData("throws", []);
+    else
+    {
+        throws.forEach(element =>
+        {
+            if (fs.existsSync(__dirname + "/" + element[0]))
+            {
+                var row = document.querySelector("#imageRow").cloneNode(true);
+                row.id = "";
+                row.classList.add("imageRow");
+                row.removeAttribute("hidden");
+                row.querySelector(".imageName").value = element[0].substr(7);
+                document.querySelector("#imageTable").appendChild(row);
+
+                row.querySelector(".removeImage").addEventListener("click", () => {
+                    throws.splice(throws.indexOf(element), 1);
+                    setData("throws", throws);
+                    row.remove();
+                });
+
+                if (element[5] == null)
+                {
+                    element[5] = true;
+                    setData("throws", throws);
+                }
+
+                row.querySelector(".imageEnabled").checked = element[5];
+                row.querySelector(".imageEnabled").addEventListener("change", () => {
+                    element[5] = row.querySelector(".imageEnabled").checked;
+                    setData("throws", throws);
+                });
+
+                row.querySelector(".imageHover").addEventListener("mouseover", () => {
+                    document.querySelector("#imagePreview").src = "throws/" + row.querySelector(".imageName").value;
+                    document.querySelector("#imagePreviewParent").removeAttribute("hidden");
+                });
+
+                row.querySelector(".imageHover").addEventListener("mouseout", () => {
+                    document.querySelector("#imagePreviewParent").hidden = "hidden";
+                });
+
+                row.querySelector(".imageWeight").value = element[1];
+                row.querySelector(".imageScale").value = element[2];
+                if (element[3] != null)
+                {
+                    if (fs.existsSync(__dirname + "/" + element[3]))
+                    {
+                        row.querySelector(".imageSound").value = element[3].substr(8);
+                        row.querySelector(".imageSoundVolume").value = element[4];
+                        row.querySelector(".imageSoundVolume").addEventListener("change", () => {
+                            clampValue(row.querySelector(".imageSoundVolume"), 0, 1);
+                            element[1] = parseFloat(row.querySelector(".imageSoundVolume").value);
+                            setData("throws", throws);
+                        });
+                    }
+                    else
+                    {
+                        row.querySelector(".imageSoundVolume").disabled = "disabled";
+                        element[3] = element[4] = null;
+                        setData("throws", throws);
+                    }
+                }
+                else
+                    row.querySelector(".imageSoundVolume").disabled = "disable";
+
+                row.querySelector(".imageWeight").addEventListener("change", () => {
+                    element[1] = parseFloat(row.querySelector(".imageWeight").value);
+                    setData("throws", throws);
+                });
+
+                row.querySelector(".imageScale").addEventListener("change", () => {
+                    element[2] = parseFloat(parseFloat(row.querySelector(".imageScale").value));
+                    setData("throws", throws);
+                });
+
+                row.querySelector(".removeSound").addEventListener("click", () => {
+                    row.querySelector(".imageSound").value = "";
+                    element[3] = element[4] = null;
+                    row.querySelector(".imageSoundVolume").value = "";
+                    row.querySelector(".imageSoundVolume").disabled = "disabled";
+                    setData("throws", throws);
+                });
+
+                row.querySelector(".imageSoundLoad").addEventListener("change", () => {
+                    const soundFile = row.querySelector(".imageSoundLoad").files[0];
+                    fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
+                    row.querySelector(".imageSound").value = soundFile.name;
+                    row.querySelector(".imageScale").value = 1;
+                    element[3] = "impacts/" + soundFile.name;
+                    element[4] = 1;
+                    setData("throws", throws);
+                    row.querySelector(".imageSoundVolume").value = 1;
+                    row.querySelector(".imageSoundVolume").removeAttribute("disabled");
+                });
+            }
+            else
+            {
+                throws.splice(throws.indexOf(element), 1);
+                setData("throws", throws);
+            }
+        });
+    }
+}
+
+document.querySelector("#loadSound").addEventListener("change", loadSound);
+
+async function loadSound()
+{
     const soundFile = document.querySelector("#loadSound").files[0];
     if (!fs.existsSync(__dirname + "/impacts/"))
         fs.mkdirSync(__dirname + "/impacts/");
     fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
-    var impacts = getData("impacts");
+    var impacts = await getData("impacts");
     var contains = false;
     for (var i = 0; i < impacts.length; i++)
     {
@@ -191,70 +202,72 @@ document.querySelector("#loadSound").addEventListener("change", () => {
     }
     
     document.querySelector("#loadSound").value = null;
-});
-
-function openSounds()
-{
-    document.querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
-    
-    setTimeout(() => {
-        var impacts = getData("impacts");
-        if (impacts == null)
-            setData("impacts", []);
-        else
-        {
-            impacts.forEach(element =>
-            {
-                if (fs.existsSync(__dirname + "/" + element[0]))
-                {
-                    var row = document.querySelector("#soundRow").cloneNode(true);
-                    row.id = "";
-                    row.classList.add("soundRow");
-                    row.removeAttribute("hidden");
-                    row.querySelector(".soundName").value = element[0].substr(8);
-                    document.querySelector("#soundTable").appendChild(row);
-
-                    row.querySelector(".removeSound").addEventListener("click", () => {
-                        impacts.splice(impacts.indexOf(element), 1);
-                        setData("impacts", impacts);
-                        row.remove();
-                    });
-
-                    if (element[3] == null)
-                    {
-                        element[3] = true;
-                        setData("impacts", impacts);
-                    }
-
-                    row.querySelector(".soundEnabled").checked = element[3];
-                    row.querySelector(".soundEnabled").addEventListener("change", () => {
-                        element[3] = row.querySelector(".soundEnabled").checked;
-                        setData("impacts", impacts);
-                    });
-
-                    row.querySelector(".soundVolume").value = element[1];
-                    row.querySelector(".soundVolume").addEventListener("change", () => {
-                        clampValue(row.querySelector(".soundVolume"), 0, 1);
-                        element[1] = parseFloat(row.querySelector(".soundVolume").value);
-                        setData("impacts", impacts);
-                    });
-                }
-                else
-                {
-                    impacts.splice(impacts.indexOf(element), 1);
-                    setData("impacts", impacts);
-                }
-            });
-        }
-    }, 100);
 }
 
-document.querySelector("#loadBitSound").addEventListener("change", () => {
+async function openSounds()
+{
+    var impacts = await getData("impacts");
+    
+    document.querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
+
+    if (impacts == null)
+        setData("impacts", []);
+    else
+    {
+        impacts.forEach(element =>
+        {
+            if (fs.existsSync(__dirname + "/" + element[0]))
+            {
+                var row = document.querySelector("#soundRow").cloneNode(true);
+                row.id = "";
+                row.classList.add("soundRow");
+                row.removeAttribute("hidden");
+                row.querySelector(".soundName").value = element[0].substr(8);
+                document.querySelector("#soundTable").appendChild(row);
+
+                row.querySelector(".removeSound").addEventListener("click", () => {
+                    impacts.splice(impacts.indexOf(element), 1);
+                    setData("impacts", impacts);
+                    row.remove();
+                });
+
+                if (element[3] == null)
+                {
+                    element[3] = true;
+                    setData("impacts", impacts);
+                }
+
+                row.querySelector(".soundEnabled").checked = element[3];
+                row.querySelector(".soundEnabled").addEventListener("change", () => {
+                    element[3] = row.querySelector(".soundEnabled").checked;
+                    setData("impacts", impacts);
+                });
+
+                row.querySelector(".soundVolume").value = element[1];
+                row.querySelector(".soundVolume").addEventListener("change", () => {
+                    clampValue(row.querySelector(".soundVolume"), 0, 1);
+                    element[1] = parseFloat(row.querySelector(".soundVolume").value);
+                    setData("impacts", impacts);
+                });
+            }
+            else
+            {
+                impacts.splice(impacts.indexOf(element), 1);
+                setData("impacts", impacts);
+            }
+        });
+    }
+}
+
+document.querySelector("#loadBitSound").addEventListener("change", loadBitSound);
+
+async function loadBitSound()
+{
     const soundFile = document.querySelector("#loadBitSound").files[0];
     if (!fs.existsSync(__dirname + "/bitImpacts/"))
         fs.mkdirSync(__dirname + "/bitImpacts/");
     fs.copyFileSync(soundFile.path, __dirname + "/bitImpacts/" + soundFile.name);
-    var bitImpacts = getData("bitImpacts");
+    var bitImpacts = await getData("bitImpacts");
     var contains = false;
     for (var i = 0; i < bitImpacts.length; i++)
     {
@@ -273,62 +286,61 @@ document.querySelector("#loadBitSound").addEventListener("change", () => {
     }
 
     document.querySelector("#loadBitSound").value = null;
-});
+}
 
-function openBitSounds()
+async function openBitSounds()
 {
+    var bitImpacts = await getData("bitImpacts");
+    
     document.querySelectorAll(".bitSoundRow").forEach((element) => { element.remove(); });
 
-    setTimeout(() => {
-        var bitImpacts = getData("bitImpacts");
-        if (bitImpacts == null)
-            setData("bitImpacts", []);
-        else
+    if (bitImpacts == null)
+        setData("bitImpacts", []);
+    else
+    {
+        bitImpacts.forEach(element =>
         {
-            bitImpacts.forEach(element =>
+            if (fs.existsSync(__dirname + "/" + element[0]))
             {
-                if (fs.existsSync(__dirname + "/" + element[0]))
-                {
-                    var row = document.querySelector("#bitSoundRow").cloneNode(true);
-                    row.id = "";
-                    row.classList.add("bitSoundRow");
-                    row.removeAttribute("hidden");
-                    row.querySelector(".bitSoundName").value = element[0].substr(11);
-                    document.querySelector("#bitSoundTable").appendChild(row);
-        
-                    row.querySelector(".removeBitSound").addEventListener("click", () => {
-                        bitImpacts.splice(bitImpacts.indexOf(element), 1);
-                        setData("bitImpacts", bitImpacts);
-                        row.remove();
-                    });
-
-                    if (element[3] == null)
-                    {
-                        element[3] = true;
-                        setData("bitImpacts", impacts);
-                    }
-
-                    row.querySelector(".bitSoundEnabled").checked = element[3];
-                    row.querySelector(".bitSoundEnabled").addEventListener("change", () => {
-                        element[3] = row.querySelector(".bitSoundEnabled").checked;
-                        setData("bitImpacts", impacts);
-                    });
-        
-                    row.querySelector(".bitSoundVolume").value = element[1];
-                    row.querySelector(".bitSoundVolume").addEventListener("change", () => {
-                        clampValue(row.querySelector(".bitSoundVolume"), 0, 1);
-                        element[1] = parseFloat(row.querySelector(".bitSoundVolume").value);
-                        setData("bitImpacts", bitImpacts);
-                    });
-                }
-                else
-                {
+                var row = document.querySelector("#bitSoundRow").cloneNode(true);
+                row.id = "";
+                row.classList.add("bitSoundRow");
+                row.removeAttribute("hidden");
+                row.querySelector(".bitSoundName").value = element[0].substr(11);
+                document.querySelector("#bitSoundTable").appendChild(row);
+    
+                row.querySelector(".removeBitSound").addEventListener("click", () => {
                     bitImpacts.splice(bitImpacts.indexOf(element), 1);
                     setData("bitImpacts", bitImpacts);
+                    row.remove();
+                });
+
+                if (element[3] == null)
+                {
+                    element[3] = true;
+                    setData("bitImpacts", impacts);
                 }
-            });
-        }
-    }, 100);
+
+                row.querySelector(".bitSoundEnabled").checked = element[3];
+                row.querySelector(".bitSoundEnabled").addEventListener("change", () => {
+                    element[3] = row.querySelector(".bitSoundEnabled").checked;
+                    setData("bitImpacts", impacts);
+                });
+    
+                row.querySelector(".bitSoundVolume").value = element[1];
+                row.querySelector(".bitSoundVolume").addEventListener("change", () => {
+                    clampValue(row.querySelector(".bitSoundVolume"), 0, 1);
+                    element[1] = parseFloat(row.querySelector(".bitSoundVolume").value);
+                    setData("bitImpacts", bitImpacts);
+                });
+            }
+            else
+            {
+                bitImpacts.splice(bitImpacts.indexOf(element), 1);
+                setData("bitImpacts", bitImpacts);
+            }
+        });
+    }
 }
 
 document.querySelector('#single').addEventListener('click', () => { ipcRenderer.send('single'); });
@@ -339,14 +351,17 @@ document.querySelector('#barrage').addEventListener('click', () => { ipcRenderer
 document.querySelector('#bits').addEventListener('click', () => { ipcRenderer.send('bits'); });
 document.querySelector("#oAuthLink").addEventListener('click', () => { ipcRenderer.send('oauth'); });
 
-ipcRenderer.on("status", (event, message) => {
+ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
+
+async function setStatus(_, message)
+{
     status = message;
     document.querySelector("#status").innerHTML = statusTitle[status];
 
     if (status != 5)
         document.querySelector("#statusDesc").innerHTML = statusDesc[status];
     else
-        document.querySelector("#statusDesc").innerHTML = statusDesc[status][0] + getData("portVTubeStudio") + statusDesc[status][1];
+        document.querySelector("#statusDesc").innerHTML = statusDesc[status][0] + await getData("portVTubeStudio") + statusDesc[status][1];
 
     if (status == 1)
         document.querySelector("#oAuthButton").classList.remove("hide");
@@ -357,11 +372,11 @@ ipcRenderer.on("status", (event, message) => {
         document.querySelector("#calibrateButtons").classList.remove("hide");
     else
         document.querySelector("#calibrateButtons").classList.add("hide");
-});
+}
 
-function loadData(field)
+async function loadData(field)
 {
-    const thisData = getData(field);
+    const thisData = await getData(field);
     if (thisData != null)
     {
         if (field.includes("Enabled"))
@@ -377,7 +392,6 @@ function loadData(field)
     {
         const node = document.querySelector("#" + field);
         const val = node.type == "checkbox" ? node.checked : (node.type == "number" ? parseFloat(node.value) : node.value);
-        console.log(field + "," + val);
         setData(field, val);
     }
 }
@@ -413,6 +427,7 @@ window.onload = function()
     loadData("barrageFrequency");
     loadData("throwDuration");
     loadData("returnSpeed");
+    loadData("closeEyes");
     loadData("openEyes");
     loadData("itemScaleMin");
     loadData("itemScaleMax");
@@ -452,9 +467,29 @@ document.querySelector("#barrageCount").addEventListener("change", () => { clamp
 document.querySelector("#barrageFrequency").addEventListener("change", () => { clampValue(document.querySelector("#barrageFrequency"), 0, null); setData("barrageFrequency", parseFloat(document.querySelector("#barrageFrequency").value)) });
 document.querySelector("#throwDuration").addEventListener("change", () => { clampValue(document.querySelector("#throwDuration"), 0.5, null); setData("throwDuration", parseFloat(document.querySelector("#throwDuration").value)) });
 document.querySelector("#returnSpeed").addEventListener("change", () => { clampValue(document.querySelector("#returnSpeed"), 0, null); setData("returnSpeed", parseFloat(document.querySelector("#returnSpeed").value)) });
-document.querySelector("#openEyes").addEventListener("change", () => { setData("openEyes", document.querySelector("#openEyes").checked) });
-document.querySelector("#itemScaleMin").addEventListener("change", () => { clampValue(document.querySelector("#itemScaleMin"), 0, getData("itemScaleMax")); setData("itemScaleMin", parseFloat(document.querySelector("#itemScaleMin").value)) });
-document.querySelector("#itemScaleMax").addEventListener("change", () => { clampValue(document.querySelector("#itemScaleMax"), getData("itemScaleMin"), null); setData("itemScaleMax", parseFloat(document.querySelector("#itemScaleMax").value)) });
+
+document.querySelector("#closeEyes").addEventListener("change", () => {
+    const val = document.querySelector("#closeEyes").checked;
+    setData("closeEyes", val);
+    if (val)
+    {
+        document.querySelector("#openEyes").checked = false;
+        setData("openEyes", false);
+    }
+});
+
+document.querySelector("#openEyes").addEventListener("change", () => {
+    const val = document.querySelector("#openEyes").checked;
+    setData("openEyes", val);
+    if (val)
+    {
+        document.querySelector("#closeEyes").checked = false;
+        setData("closeEyes", false);
+    }
+});
+
+document.querySelector("#itemScaleMin").addEventListener("change", () => { clampValue(document.querySelector("#itemScaleMin"), 0, parseFloat(document.querySelector("#itemScaleMax").value)); setData("itemScaleMin", parseFloat(document.querySelector("#itemScaleMin").value)) });
+document.querySelector("#itemScaleMax").addEventListener("change", () => { clampValue(document.querySelector("#itemScaleMax"), parseFloat(document.querySelector("#itemScaleMin").value), null); setData("itemScaleMax", parseFloat(document.querySelector("#itemScaleMax").value)) });
 document.querySelector("#delay").addEventListener("change", () => { clampValue(document.querySelector("#delay"), 0, null); setData("delay", parseInt(document.querySelector("#delay").value)) } );
 document.querySelector("#volume").addEventListener("change", () => { clampValue(document.querySelector("#volume"), 0, 1); setData("volume", parseFloat(document.querySelector("#volume").value)) });
 document.querySelector("#portThrower").addEventListener("change", () => setData("portThrower", parseInt(document.querySelector("#portThrower").value)));
@@ -473,30 +508,39 @@ function clampValue(node, min, max)
 
 const defaultData = JSON.parse(fs.readFileSync(__dirname + "/defaultData.json", "utf8"));
 
-function getData(field)
+async function getData(field)
 {
+    while (isWriting > 0)
+        await new Promise(resolve => setTimeout(resolve, 10));
+
     if (!fs.existsSync(__dirname + "/data.json"))
         fs.writeFileSync(__dirname + "/data.json", JSON.stringify(defaultData));
+
     var data;
+    // An error should only be thrown if the other process is in the middle of writing to the file.
+    // If so, it should finish shortly and this loop will exit.
     while (data == null)
     {
         try {
             data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
         } catch {}
     }
+    data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
     return data[field];
 }
 
 function setData(field, value)
 {
+    isWriting++;
     ipcRenderer.send("setData", [ field, value ]);
+    
     if (field == "portThrower" || field == "portVTubeStudio")
         setPorts();
 }
 
-function setPorts()
+async function setPorts()
 {
-    fs.writeFileSync(__dirname + "/ports.js", "var ports = [ " + getData("portThrower") + ", " + getData("portVTubeStudio") + " ];");
+    fs.writeFileSync(__dirname + "/ports.js", "var ports = [ " + await getData("portThrower") + ", " + await getData("portVTubeStudio") + " ];");
 }
 
 document.querySelector('#HelpButton').addEventListener('click', () => { showPanel("help"); });

@@ -386,6 +386,7 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                 const multH = fromLeft ? 1 : -1;
                 const angle = (Math.random() * 90) - 45;
                 const sizeScale = data.itemScaleMin + (((pos.size + 100) / 200) * (data.itemScaleMax - data.itemScaleMin));
+                const eyeState = data.closeEyes ? 1 : (data.openEyes ? 2 : 0);
 
                 if (sound != null)
                 {
@@ -428,7 +429,7 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     // Don't do anything until both image and audio are ready
                     if (canPlayAudio)
                     {
-                        setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, data.openEyes); }, data.duration * 500);
+                        setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, eyeState); }, data.duration * 500);
 
                         if (sound != null)
                             setTimeout(function() { audio.play(); }, (data.duration * 500) + data.delay);
@@ -439,7 +440,7 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     {
                         audio.oncanplaythrough = function()
                         {
-                            setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, data.openEyes); }, data.duration * 500);
+                            setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, eyeState); }, data.duration * 500);
 
                             setTimeout(function() { audio.play(); }, (data.duration * 500) + data.delay);
                             
@@ -454,7 +455,7 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
 }
 
 var parametersH = [ "FaceAngleX", "FaceAngleZ", "FacePositionX"], parametersV = [ "FaceAngleY" ];
-function flinch(multH, angle, mag, paramH, paramV, returnSpeed, openEyes)
+function flinch(multH, angle, mag, paramH, paramV, returnSpeed, eyeState)
 {
     var parameterValues = [];
     for (var i = 0; i < paramH.length; i++)
@@ -486,7 +487,12 @@ function flinch(multH, angle, mag, paramH, paramV, returnSpeed, openEyes)
         for (var i = 0; i < paramV.length; i++)
             parameterValues.push({ "id": paramV[i][0], "weight": weight, "value": paramV[i][1] + (multH * angle > 0 ? paramV[i][2] : paramV[i][3]) * Math.abs(angle) / 45 * mag });
 
-        if(openEyes)
+        if (eyeState == 1)
+        {
+            parameterValues.push({ "id": "EyeOpenLeft", "weight": weight, "value": 0 });
+            parameterValues.push({ "id": "EyeOpenRight", "weight": weight, "value": 0 });
+        }
+        else if (eyeState == 2)
         {
             parameterValues.push({ "id": "EyeOpenLeft", "weight": weight, "value": 1 });
             parameterValues.push({ "id": "EyeOpenRight", "weight": weight, "value": 1 });
