@@ -381,10 +381,11 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
             {
                 const offsetX = faceWidthMin + (((pos.size + 100) / 200) * (faceWidthMax - faceWidthMin));
                 const offsetY = faceHeightMin + (((pos.size + 100) / 200) * (faceHeightMax - faceHeightMin));
-                const xPos = (parseFloat(pos.positionX - offsetX) + 1) / 2, yPos = 1 - ((parseFloat(pos.positionY - offsetY) + 1) / 2);
-                const fromLeft = Math.random() < xPos;
+                const xPos = (parseFloat(pos.positionX - offsetX) + 1) / 2;
+                const yPos = 1 - ((parseFloat(pos.positionY - offsetY) + 1) / 2);
+                const fromLeft = Math.random() * 1.5 - 0.25 < xPos;
                 const multH = fromLeft ? 1 : -1;
-                const angle = (Math.random() * 90) - 45;
+                const angle = ((Math.random() * (data.throwAngleMax - data.throwAngleMin)) + data.throwAngleMin) * multH;
                 const sizeScale = data.itemScaleMin + (((pos.size + 100) / 200) * (data.itemScaleMax - data.itemScaleMin));
                 const eyeState = data.closeEyes ? 1 : (data.openEyes ? 2 : 0);
 
@@ -400,18 +401,24 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     canPlayAudio = true;
 
                 var img = new Image();
-                img.src = "throws/" + encodeURIComponent(image.substr(7));
+                if (image.startsWith("https://static-cdn.jtvnw.net/emoticons/v1/"))
+                    img.src = image;
+                else
+                    img.src = "throws/" + encodeURIComponent(image.substr(7));
+
                 img.onload = function()
                 {
                     var pivot = document.createElement("div");
                     pivot.classList.add("thrown");
-                    pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + "px";
-                    pivot.style.top = (window.innerHeight * yPos) - (img.height * scale * sizeScale / 2) + "px";
+                    pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
+                    pivot.style.top = (window.innerHeight * yPos) - (img.height * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
                     pivot.style.transform = "rotate(" + angle + "deg)";
                     var movement = document.createElement("div");
                     movement.classList.add("animated");
                     var animName = "throw" + (fromLeft ? "Left" : "Right");
-                    movement.style.animation = animName + " " + data.duration + "s " + (data.delay / 1000) + "s";
+                    movement.style.animationName = animName;
+                    movement.style.animationDuration = data.throwDuration + "s";
+                    movement.style.animationDelay = (data.delay / 1000) + "s";
                     var thrown = document.createElement("img");
                     thrown.classList.add("animated");
                     thrown.src = image;
@@ -429,22 +436,22 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     // Don't do anything until both image and audio are ready
                     if (canPlayAudio)
                     {
-                        setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, eyeState); }, data.duration * 500);
+                        setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, eyeState); }, data.throwDuration * 500, data.throwAngleMin, data.throwAngleMax);
 
                         if (sound != null)
-                            setTimeout(function() { audio.play(); }, (data.duration * 500) + data.delay);
+                            setTimeout(function() { audio.play(); }, (data.throwDuration * 500) + data.delay);
                         
-                        setTimeout(function() { document.querySelector("body").removeChild(pivot); }, (data.duration * 1000) + data.delay);
+                        setTimeout(function() { document.querySelector("body").removeChild(pivot); }, (data.throwDuration * 1000) + data.delay);
                     }
                     else
                     {
                         audio.oncanplaythrough = function()
                         {
-                            setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, eyeState); }, data.duration * 500);
+                            setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, eyeState); }, data.throwDuration * 500, data.throwAngleMin, data.throwAngleMax);
 
-                            setTimeout(function() { audio.play(); }, (data.duration * 500) + data.delay);
+                            setTimeout(function() { audio.play(); }, (data.throwDuration * 500) + data.delay);
                             
-                            setTimeout(function() { document.querySelector("body").removeChild(pivot); }, (data.duration * 1000) + data.delay);
+                            setTimeout(function() { document.querySelector("body").removeChild(pivot); }, (data.throwDuration * 1000) + data.delay);
                         }
                     }
                 }
@@ -455,7 +462,7 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
 }
 
 var parametersH = [ "FaceAngleX", "FaceAngleZ", "FacePositionX"], parametersV = [ "FaceAngleY" ];
-function flinch(multH, angle, mag, paramH, paramV, returnSpeed, eyeState)
+function flinch(multH, angle, mag, paramH, paramV, returnSpeed, eyeState, throwAngleMin, throwAngleMax)
 {
     var parameterValues = [];
     for (var i = 0; i < paramH.length; i++)

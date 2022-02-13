@@ -1,6 +1,6 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
-const { PubSubClient } = require('twitch-pubsub-client')
-const { ChatClient } = require('twitch-chat-client')
+const { app, BrowserWindow, ipcMain } = require('electron');
+const { PubSubClient } = require('twitch-pubsub-client');
+const { ChatClient } = require('twitch-chat-client');
 
 var mainWindow;
 const createWindow = () => {
@@ -87,17 +87,15 @@ var data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
 // PubSub authentication for listening to events
 const { ApiClient } = require('twitch');
 const { StaticAuthProvider } = require('twitch-auth');
-var authProvider, apiClient, chatClient;
+var authProvider, apiClient, chatClient, userID;
 
 var listenersActive = false;
 async function pubSub(apiClient) {
   const pubSubClient = new PubSubClient();
 
-  const userID = await pubSubClient.registerUserListener(apiClient);
+  userID = await pubSubClient.registerUserListener(apiClient);
   const user = await apiClient.helix.users.getUserById(userID);
   chatClient = new ChatClient(authProvider, { channels: [user.name] });
-  await chatClient.connect();
-  chatClient.onMessage(onMessageHandler);
 
   console.log("Listening to Redemptions");
   await pubSubClient.onRedemption(userID, onRedeemHandler);
@@ -105,6 +103,12 @@ async function pubSub(apiClient) {
   await pubSubClient.onSubscription(userID, onSubHandler);
   console.log("Listening to Bits");
   await pubSubClient.onBits(userID, onBitsHandler);
+
+  console.log("Listening to Messages");
+  await chatClient.connect();
+  chatClient.onMessage(onMessageHandler);
+  console.log("Listening to Raids");
+  chatClient.onRaid(onRaidHandler);
   listenersActive = true;
 }
 
@@ -189,44 +193,54 @@ function getImageWeightScaleSoundVolume()
   var index;
   do {
     index = Math.floor(Math.random() * data.throws.length);
-  } while (!data.throws[index][5]);
+  } while (!data.throws[index].enabled);
 
   var soundIndex;
-  do {
-    soundIndex = Math.floor(Math.random() * data.impacts.length);
-  } while (!data.impacts[soundIndex][3]);
+  if (hasActiveSound())
+  {
+    do {
+      soundIndex = Math.floor(Math.random() * data.impacts.length);
+    } while (!data.impacts[soundIndex].enabled);
+  }
 
-  return [ data.throws[index][0], data.throws[index][1], data.throws[index][2], data.throws[index][3] != null ? data.throws[index][3] : data.impacts.length > 0 ? data.impacts[soundIndex][0] : null, data.throws[index][3] != null ? data.throws[index][4] : data.impacts.length > 0 ? data.impacts[soundIndex][1] : 0];
+  return {
+    "location": data.throws[index].location,
+    "weight": data.throws[index].weight,
+    "scale": data.throws[index].scale,
+    "sound": data.throws[index].sound != null ? data.throws[index].sound : hasActiveSound() ? data.impacts[soundIndex].location : null,
+    "volume": data.throws[index].sound != null ? data.throws[index].volume : hasActiveSound() ? data.impacts[soundIndex].volume : 0
+  };
 }
 
 function getImagesWeightsScalesSoundsVolumes()
 {
-  var imagesSoundsMagnitudes = [];
+  var getImagesWeightsScalesSoundsVolumes = [];
 
   for (var i = 0; i < data.barrageCount; i++)
-    imagesSoundsMagnitudes.push(getImageWeightScaleSoundVolume());
+    getImagesWeightsScalesSoundsVolumes.push(getImageWeightScaleSoundVolume());
 
-  return imagesSoundsMagnitudes;
+  return getImagesWeightsScalesSoundsVolumes;
 }
 
 ipcMain.on('single', () => single());
 ipcMain.on('barrage', () => barrage());
 ipcMain.on('bits', () => onBitsHandler());
+ipcMain.on('raid', () => onRaidHandler());
 
 function single()
 {
   console.log("Sending Single");
-  if (socket != null && data.throws.length > 0) {
+  if (socket != null && hasActiveImage()) {
     const imageWeightScaleSoundVolume = getImageWeightScaleSoundVolume();
 
     var request =
     {
       "type": "single",
-      "image": imageWeightScaleSoundVolume[0],
-      "weight": imageWeightScaleSoundVolume[1],
-      "scale": imageWeightScaleSoundVolume[2],
-      "sound": imageWeightScaleSoundVolume[3],
-      "volume": imageWeightScaleSoundVolume[4],
+      "image": imageWeightScaleSoundVolume.location,
+      "weight": imageWeightScaleSoundVolume.weight,
+      "scale": imageWeightScaleSoundVolume.scale,
+      "sound": imageWeightScaleSoundVolume.sound,
+      "volume": imageWeightScaleSoundVolume.volume,
       "data": data
     }
     socket.send(JSON.stringify(request));
@@ -236,15 +250,15 @@ function single()
 function barrage()
 {
   console.log("Sending Barrage");
-  if (socket != null && data.throws.length > 0) {
+  if (socket != null && hasActiveImage()) {
     const imagesWeightsScalesSoundsVolumes = getImagesWeightsScalesSoundsVolumes();
     var images = [], weights = [], scales = [], sounds = [], volumes = [];
     for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
-      images[i] = imagesWeightsScalesSoundsVolumes[i][0];
-      weights[i] = imagesWeightsScalesSoundsVolumes[i][1];
-      scales[i] = imagesWeightsScalesSoundsVolumes[i][2];
-      sounds[i] = imagesWeightsScalesSoundsVolumes[i][3];
-      volumes[i] = imagesWeightsScalesSoundsVolumes[i][4];
+      images[i] = imagesWeightsScalesSoundsVolumes[i].location;
+      weights[i] = imagesWeightsScalesSoundsVolumes[i].weight;
+      scales[i] = imagesWeightsScalesSoundsVolumes[i].scale;
+      sounds[i] = imagesWeightsScalesSoundsVolumes[i].sound;
+      volumes[i] = imagesWeightsScalesSoundsVolumes[i].volume;
     }
 
     var request = {
@@ -332,7 +346,9 @@ function onMessageHandler(_, _, message)
 var canSingleRedeem = true, canBarrageRedeem = true
 async function onRedeemHandler(redemptionMessage)
 {
-  console.log("Received Redeem");
+  const reward = await apiClient.helix.channelPoints.getCustomRewardById(redemptionMessage.channelId, redemptionMessage.rewardId);
+  console.log(reward.title);
+
   if (listeningSingle)
   {
     setData("singleRedeemID", redemptionMessage.rewardId, false);
@@ -375,7 +391,6 @@ async function onRedeemHandler(redemptionMessage)
 var canSub = true, canSubGift = true;
 function onSubHandler(subMessage)
 {
-  console.log("Received Sub");
   if (canSub && data.subEnabled && !subMessage.isGift) {
     if (data.subType == "barrage")
       barrage();
@@ -402,7 +417,6 @@ function onSubHandler(subMessage)
 var canBits = true;
 function onBitsHandler(bitsMessage)
 {
-  console.log("Received Bits");
   if (bitsMessage == null || canBits && data.bitsEnabled) {
     if (data.bitsCooldown > 0)
     {
@@ -482,26 +496,26 @@ function onBitsHandler(bitsMessage)
             weights.push(1);
             break;
         }
-        scales.push(2);
-        if (data.bitImpacts != null && data.bitImpacts.length > 0)
+        scales.push(1.5);
+        if (hasActiveBitSound())
         {
           var soundIndex;
           do {
             soundIndex = Math.floor(Math.random() * data.bitImpacts.length);
-          } while (!data.bitImpacts[soundIndex][3]);
+          } while (!data.bitImpacts[soundIndex].enabled);
 
-          sounds.push(data.bitImpacts[soundIndex][0]);
-          volumes.push(data.bitImpacts[soundIndex][1]);
+          sounds.push(data.bitImpacts[soundIndex].location);
+          volumes.push(data.bitImpacts[soundIndex].volume);
         }
-        else if (data.impacts != null && data.impacts.length > 0)
+        else if (hasActiveSound())
         {
           var soundIndex;
           do {
             soundIndex = Math.floor(Math.random() * data.impacts.length);
-          } while (!data.impacts[soundIndex][3]);
+          } while (!data.impacts[soundIndex].enabled);
 
-          sounds.push(data.impacts[soundIndex][0]);
-          volumes.push(data.impacts[soundIndex][1]);
+          sounds.push(data.impacts[soundIndex].location);
+          volumes.push(data.impacts[soundIndex].volume);
         }
         else
         {
@@ -522,4 +536,134 @@ function onBitsHandler(bitsMessage)
       socket.send(JSON.stringify(request));
     }
   }
+}
+
+var canRaid = true, numRaiders = 0;
+async function onRaidHandler(_, raider, raidInfo)
+{
+  if (data.raidEnabled && canRaid)
+  {
+    if (data.raidCooldown > 0)
+    {
+      canRaid = false;
+      setTimeout(() => { canRaid = true; }, data.raidCooldown * 1000);
+    }
+
+    if (raider == null)
+    {
+      raider = userID
+      numRaiders = Math.floor(Math.random() * data.raidMaxBarrageCount);
+    }
+    else
+    {
+      numRaiders = raidInfo.viewerCount;
+      raider = await apiClient.helix.users.getUserByName(raider);
+      raider = raider.id;
+    }
+  
+    if (numRaiders > data.raidMaxBarrageCount)
+      numRaiders = data.raidMaxBarrageCount;
+  
+    mainWindow.webContents.send("raid", raider);
+  }
+}
+
+ipcMain.on('emotes', (event, message) => handleRaidEmotes(event, message));
+
+function handleRaidEmotes(_, emotes)
+{
+  if (socket != null)
+  {
+    if (emotes.data.length > 0)
+    {
+      var images = [], weights = [], scales = [], sounds = [], volumes = [];
+      for (var i = 0; i < numRaiders; i++)
+      {
+        images.push("https://static-cdn.jtvnw.net/emoticons/v1/" + emotes.data[Math.floor(Math.random() * emotes.data.length)].id + "/3.0");
+  
+        weights.push(1);
+        scales.push(1);
+  
+        if (hasActiveSound())
+        {
+          var soundIndex;
+          do {
+            soundIndex = Math.floor(Math.random() * data.impacts.length);
+          } while (!data.impacts[soundIndex].enabled);
+  
+          sounds.push(data.impacts[soundIndex].location);
+          volumes.push(data.impacts[soundIndex].volume);
+        }
+        else
+        {
+          sounds.push(null);
+          volumes.push(0);
+        }
+      }
+  
+      var request = {
+        "type": "barrage",
+        "image": images,
+        "weight": weights,
+        "scale": scales,
+        "sound": sounds,
+        "volume": volumes,
+        "data": data
+      }
+      socket.send(JSON.stringify(request));
+    }
+    else
+      barrage();
+  }
+}
+
+function hasActiveImage()
+{
+  if (data.throws == null || data.throws.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.throws.length; i++)
+  {
+    if (data.throws[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
+}
+
+function hasActiveSound()
+{
+  if (data.impacts == null || data.impacts.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.impacts.length; i++)
+  {
+    if (data.impacts[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
+}
+
+function hasActiveBitSound()
+{
+  if (data.bitImpacts == null || data.bitImpacts.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.bitImpacts.length; i++)
+  {
+    if (data.bitImpacts[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
 }

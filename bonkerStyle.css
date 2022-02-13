@@ -9,7 +9,7 @@
         transform: translate(0vw, 0vh);
     }
     100% {
-        transform: translate(-30vw, -150vh);
+        transform: translate(-30vw, -120vh);
     }
 }
 
@@ -24,7 +24,7 @@
         transform: translate(0vw, 0vh);
     }
     100% {
-        transform: translate(-30vw, -150vh);
+        transform: translate(-30vw, -120vh);
     }
 }
 
@@ -39,7 +39,7 @@
         transform: translate(0vw, 0vh);
     }
     100% {
-        transform: translate(30vw, -150vh);
+        transform: translate(30vw, -120vh);
     }
 }
 
@@ -54,7 +54,55 @@
         transform: translate(0vw, 0vh);
     }
     100% {
-        transform: translate(30vw, -150vh);
+        transform: translate(30vw, -120vh);
+    }
+}
+
+@-webkit-keyframes fallLeft {
+    0% {
+        transform: translate(0, -150vh);
+    }
+    50% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(-30vw, 120vh);
+    }
+}
+
+@keyframes fallLeft {
+    0% {
+        transform: translate(0, -150vh);
+    }
+    50% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(-30vw, 120vh);
+    }
+}
+
+@-webkit-keyframes fallRight {
+    0% {
+        transform: translate(0, -150vh);
+    }
+    50% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(30vw, 120vh);
+    }
+}
+
+@keyframes fallRight {
+    0% {
+        transform: translate(0, -150vh);
+    }
+    50% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(30vw, 120vh);
     }
 }
 
@@ -97,7 +145,7 @@
 body {
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     color: white;
-    -webkit-text-stroke: 2px black;
+    -webkit-text-stroke: 3px black;
     font-weight: bold;
     margin: 0;
     padding: 0;
@@ -116,8 +164,8 @@ body {
 
 #guide {
     position: absolute;
-    top: calc(50% - 25px);
-    left: calc(50% - 25px);
+    top: calc(50% - 50px);
+    left: calc(50% - 50px);
     background-color: #FF9EEB;
     opacity: 0.5;
     width: 100px;
@@ -151,7 +199,7 @@ body {
 }
 
 #guideText p {
-    font-size: 32px;
+    font-size: 48px;
     text-align: center;
     animation: glow 3s infinite;
 }

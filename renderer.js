@@ -13,20 +13,20 @@ const statusTitle = [
     "Listening for Redeem<br/>(Single)",
     "Listening for Redeem<br/>(Barrage)",
     "Waiting for Listeners...",
-    "Calibration (Pre)"
+    "Calibration"
 ];
 
 const statusDesc = [
     "",
     "<p>Please provide a valid OAuth token. You may click the button below to generate one with the required scopes.</p><p>Once acquired, please paste it into the \"OAuth Token\" section of the Settings window.",
     "<p>Please ensure OBS is open with <mark>bonker.html</mark> as the source file of an active and enabled Browser Source.</p><p>If you changed the port(s), please refresh the Browser Source.</p>",
-    "<p>Please use VTube Studio to position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide. Please do not resize the model during this process.</p>",
-    "<p>Please use VTube Studio to position your model's desired impact location in the center of the window and click the <mark>Confirm Calibration</mark> button below to continue.</p><p>The browser source in OBS is displaying a guide. Please do not resize the model during this process.</p>",
+    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Press the <mark>Confirm Calibration</mark> button below to continue.</p>",
+    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Press the <mark>Confirm Calibration</mark> button below to continue.</p>",
     [ "<p>Please ensure the VTube Studio API is enabled on port <mark>", "</mark> and click Allow when Karasubonk requests access.</p><p>You may need to refresh the Browser Source to get the prompt to appear again.</p>" ],
     "<p>Please use the Channel Point Reward you'd like to use for single bonks.</p><p>Click the Listen button again to cancel.</p>",
     "<p>Please use the Channel Point Reward you'd like to use for barrage bonks.</p><p>Click the Listen button again to cancel.</p>",
     "",
-    "<p>Please click \"Confirm Calibration\" to start the calibration process.</p>"
+    "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>"
 ];
 
 var isWriting = 0;
@@ -74,32 +74,47 @@ async function openImages()
         setData("throws", []);
     else
     {
-        throws.forEach(element =>
+        throws.forEach((_, index) =>
         {
-            if (fs.existsSync(__dirname + "/" + element[0]))
+            // For those upgrading from 1.0.1 or earlier.
+            // Converts old array into JSON object.
+            if (Array.isArray(throws[index]))
+            {
+                throws[index] = {
+                    "location": throws[index][0],
+                    "weight": throws[index][1],
+                    "scale": throws[index][2],
+                    "sound": throws[index][3],
+                    "volume": throws[index][4],
+                    "enabled": throws[index][5]
+                };
+                setData("throws", throws);
+            }
+
+            if (fs.existsSync(__dirname + "/" + throws[index].location))
             {
                 var row = document.querySelector("#imageRow").cloneNode(true);
                 row.id = "";
                 row.classList.add("imageRow");
                 row.removeAttribute("hidden");
-                row.querySelector(".imageName").value = element[0].substr(7);
+                row.querySelector(".imageName").value = throws[index].location.substr(7);
                 document.querySelector("#imageTable").appendChild(row);
 
                 row.querySelector(".removeImage").addEventListener("click", () => {
-                    throws.splice(throws.indexOf(element), 1);
+                    throws.splice(index, 1);
                     setData("throws", throws);
                     row.remove();
                 });
 
-                if (element[5] == null)
+                if (throws[index].enabled == null)
                 {
-                    element[5] = true;
+                    throws[index].enabled = true;
                     setData("throws", throws);
                 }
 
-                row.querySelector(".imageEnabled").checked = element[5];
+                row.querySelector(".imageEnabled").checked = throws[index].enabled;
                 row.querySelector(".imageEnabled").addEventListener("change", () => {
-                    element[5] = row.querySelector(".imageEnabled").checked;
+                    throws[index].enabled = row.querySelector(".imageEnabled").checked;
                     setData("throws", throws);
                 });
 
@@ -112,24 +127,24 @@ async function openImages()
                     document.querySelector("#imagePreviewParent").hidden = "hidden";
                 });
 
-                row.querySelector(".imageWeight").value = element[1];
-                row.querySelector(".imageScale").value = element[2];
-                if (element[3] != null)
+                row.querySelector(".imageWeight").value = throws[index].weight;
+                row.querySelector(".imageScale").value = throws[index].scale;
+                if (throws[index].sound != null)
                 {
-                    if (fs.existsSync(__dirname + "/" + element[3]))
+                    if (fs.existsSync(__dirname + "/" + throws[index].sound))
                     {
-                        row.querySelector(".imageSound").value = element[3].substr(8);
-                        row.querySelector(".imageSoundVolume").value = element[4];
+                        row.querySelector(".imageSound").value = throws[index].sound.substr(8);
+                        row.querySelector(".imageSoundVolume").value = throws[index].volume;
                         row.querySelector(".imageSoundVolume").addEventListener("change", () => {
                             clampValue(row.querySelector(".imageSoundVolume"), 0, 1);
-                            element[1] = parseFloat(row.querySelector(".imageSoundVolume").value);
+                            throws[index].weight = parseFloat(row.querySelector(".imageSoundVolume").value);
                             setData("throws", throws);
                         });
                     }
                     else
                     {
                         row.querySelector(".imageSoundVolume").disabled = "disabled";
-                        element[3] = element[4] = null;
+                        throws[index].sound = throws[index].volume = null;
                         setData("throws", throws);
                     }
                 }
@@ -137,18 +152,18 @@ async function openImages()
                     row.querySelector(".imageSoundVolume").disabled = "disable";
 
                 row.querySelector(".imageWeight").addEventListener("change", () => {
-                    element[1] = parseFloat(row.querySelector(".imageWeight").value);
+                    throws[index].weight = parseFloat(row.querySelector(".imageWeight").value);
                     setData("throws", throws);
                 });
 
                 row.querySelector(".imageScale").addEventListener("change", () => {
-                    element[2] = parseFloat(parseFloat(row.querySelector(".imageScale").value));
+                    throws[index].scale = parseFloat(parseFloat(row.querySelector(".imageScale").value));
                     setData("throws", throws);
                 });
 
                 row.querySelector(".removeSound").addEventListener("click", () => {
                     row.querySelector(".imageSound").value = "";
-                    element[3] = element[4] = null;
+                    throws[index].sound = throws[index].volume = null;
                     row.querySelector(".imageSoundVolume").value = "";
                     row.querySelector(".imageSoundVolume").disabled = "disabled";
                     setData("throws", throws);
@@ -159,8 +174,8 @@ async function openImages()
                     fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
                     row.querySelector(".imageSound").value = soundFile.name;
                     row.querySelector(".imageScale").value = 1;
-                    element[3] = "impacts/" + soundFile.name;
-                    element[4] = 1;
+                    throws[index].sound = "impacts/" + soundFile.name;
+                    throws[index].volume = 1;
                     setData("throws", throws);
                     row.querySelector(".imageSoundVolume").value = 1;
                     row.querySelector(".imageSoundVolume").removeAttribute("disabled");
@@ -168,7 +183,7 @@ async function openImages()
             }
             else
             {
-                throws.splice(throws.indexOf(element), 1);
+                throws.splice(index, 1);
                 setData("throws", throws);
             }
         });
@@ -214,45 +229,58 @@ async function openSounds()
         setData("impacts", []);
     else
     {
-        impacts.forEach(element =>
+        impacts.forEach((_, index) =>
         {
-            if (fs.existsSync(__dirname + "/" + element[0]))
+            // For those upgrading from 1.0.1 or earlier.
+            // Converts old array into JSON object.
+            if (Array.isArray(impacts[index]))
+            {
+                impacts[index] = {
+                    "location": impacts[index][0],
+                    "volume": impacts[index][1],
+                    "enabled": impacts[index][2]
+                };
+            }
+
+            if (fs.existsSync(__dirname + "/" + impacts[index].location))
             {
                 var row = document.querySelector("#soundRow").cloneNode(true);
                 row.id = "";
                 row.classList.add("soundRow");
                 row.removeAttribute("hidden");
-                row.querySelector(".soundName").value = element[0].substr(8);
+                row.querySelector(".soundName").value = impacts[index].location.substr(8);
                 document.querySelector("#soundTable").appendChild(row);
 
                 row.querySelector(".removeSound").addEventListener("click", () => {
-                    impacts.splice(impacts.indexOf(element), 1);
+                    impacts.splice(index, 1);
                     setData("impacts", impacts);
                     row.remove();
                 });
 
-                if (element[3] == null)
+                // For those upgrading from version 1.0.1 or earlier.
+                // Sets default "enabled" value to true.
+                if (impacts[index].enabled == null)
                 {
-                    element[3] = true;
+                    impacts[index].enabled = true;
                     setData("impacts", impacts);
                 }
 
-                row.querySelector(".soundEnabled").checked = element[3];
+                row.querySelector(".soundEnabled").checked = impacts[index].enabled;
                 row.querySelector(".soundEnabled").addEventListener("change", () => {
-                    element[3] = row.querySelector(".soundEnabled").checked;
+                    impacts[index].enabled = row.querySelector(".soundEnabled").checked;
                     setData("impacts", impacts);
                 });
 
-                row.querySelector(".soundVolume").value = element[1];
+                row.querySelector(".soundVolume").value = impacts[index].volume;
                 row.querySelector(".soundVolume").addEventListener("change", () => {
                     clampValue(row.querySelector(".soundVolume"), 0, 1);
-                    element[1] = parseFloat(row.querySelector(".soundVolume").value);
+                    impacts[index].volume = parseFloat(row.querySelector(".soundVolume").value);
                     setData("impacts", impacts);
                 });
             }
             else
             {
-                impacts.splice(impacts.indexOf(element), 1);
+                impacts.splice(index, 1);
                 setData("impacts", impacts);
             }
         });
@@ -298,45 +326,56 @@ async function openBitSounds()
         setData("bitImpacts", []);
     else
     {
-        bitImpacts.forEach(element =>
+        bitImpacts.forEach((_, index) =>
         {
-            if (fs.existsSync(__dirname + "/" + element[0]))
+            // For those upgrading from 1.0.1 or earlier.
+            // Converts old array into JSON object.
+            if (Array.isArray(bitImpacts[index]))
+            {
+                bitImpacts[index] = {
+                    "location": bitImpacts[index][0],
+                    "volume": bitImpacts[index][1],
+                    "enabled": bitImpacts[index][2]
+                };
+            }
+
+            if (fs.existsSync(__dirname + "/" + bitImpacts[index].location))
             {
                 var row = document.querySelector("#bitSoundRow").cloneNode(true);
                 row.id = "";
                 row.classList.add("bitSoundRow");
                 row.removeAttribute("hidden");
-                row.querySelector(".bitSoundName").value = element[0].substr(11);
+                row.querySelector(".bitSoundName").value = bitImpacts[index].location.substr(11);
                 document.querySelector("#bitSoundTable").appendChild(row);
     
                 row.querySelector(".removeBitSound").addEventListener("click", () => {
-                    bitImpacts.splice(bitImpacts.indexOf(element), 1);
+                    bitImpacts.splice(index, 1);
                     setData("bitImpacts", bitImpacts);
                     row.remove();
                 });
 
-                if (element[3] == null)
+                if (bitImpacts[index].enabled == null)
                 {
-                    element[3] = true;
+                    bitImpacts[index].enabled = true;
                     setData("bitImpacts", impacts);
                 }
 
-                row.querySelector(".bitSoundEnabled").checked = element[3];
+                row.querySelector(".bitSoundEnabled").checked = bitImpacts[index].enabled;
                 row.querySelector(".bitSoundEnabled").addEventListener("change", () => {
-                    element[3] = row.querySelector(".bitSoundEnabled").checked;
+                    bitImpacts[index].enabled = row.querySelector(".bitSoundEnabled").checked;
                     setData("bitImpacts", impacts);
                 });
     
-                row.querySelector(".bitSoundVolume").value = element[1];
+                row.querySelector(".bitSoundVolume").value = bitImpacts[index].volume;
                 row.querySelector(".bitSoundVolume").addEventListener("change", () => {
                     clampValue(row.querySelector(".bitSoundVolume"), 0, 1);
-                    element[1] = parseFloat(row.querySelector(".bitSoundVolume").value);
+                    bitImpacts[index].volume = parseFloat(row.querySelector(".bitSoundVolume").value);
                     setData("bitImpacts", bitImpacts);
                 });
             }
             else
             {
-                bitImpacts.splice(bitImpacts.indexOf(element), 1);
+                bitImpacts.splice(index, 1);
                 setData("bitImpacts", bitImpacts);
             }
         });
@@ -349,6 +388,7 @@ document.querySelector('#nextCalibrate').addEventListener('click', () => { ipcRe
 document.querySelector('#cancelCalibrate').addEventListener('click', () => { ipcRenderer.send('cancelCalibrate'); });
 document.querySelector('#barrage').addEventListener('click', () => { ipcRenderer.send('barrage'); });
 document.querySelector('#bits').addEventListener('click', () => { ipcRenderer.send('bits'); });
+document.querySelector('#raid').addEventListener('click', () => { ipcRenderer.send('raid'); });
 document.querySelector("#oAuthLink").addEventListener('click', () => { ipcRenderer.send('oauth'); });
 
 ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
@@ -369,7 +409,13 @@ async function setStatus(_, message)
         document.querySelector("#oAuthButton").classList.add("hide");
 
     if (status == 3 || status == 4 || status == 9)
+    {
+        if (status == 9)
+            document.querySelector("#nextCalibrate").innerText = "Start Calibration";
+        else
+            document.querySelector("#nextCalibrate").innerText = "Confirm Calibration";
         document.querySelector("#calibrateButtons").classList.remove("hide");
+    }
     else
         document.querySelector("#calibrateButtons").classList.add("hide");
 }
@@ -405,6 +451,7 @@ window.onload = function()
     loadData("subEnabled");
     loadData("subGiftEnabled");
     loadData("bitsEnabled");
+    loadData("raidEnabled");
 
     loadData("singleRedeemID");
     loadData("barrageRedeemID");
@@ -414,6 +461,7 @@ window.onload = function()
     loadData("subType");
     loadData("subGiftType");
     loadData("bitsMaxBarrageCount");
+    loadData("raidMaxBarrageCount");
 
     loadData("singleRedeemCooldown");
     loadData("barrageRedeemCooldown");
@@ -422,11 +470,14 @@ window.onload = function()
     loadData("subCooldown");
     loadData("subGiftCooldown");
     loadData("bitsCooldown");
+    loadData("raidCooldown");
 
     loadData("barrageCount");
     loadData("barrageFrequency");
     loadData("throwDuration");
     loadData("returnSpeed");
+    loadData("throwAngleMin");
+    loadData("throwAngleMax");
     loadData("closeEyes");
     loadData("openEyes");
     loadData("itemScaleMin");
@@ -445,6 +496,7 @@ document.querySelector("#barrageCommandEnabled").addEventListener("change", () =
 document.querySelector("#subEnabled").addEventListener("change", () => setData("subEnabled", document.querySelector("#subEnabled").checked));
 document.querySelector("#subGiftEnabled").addEventListener("change", () => setData("subGiftEnabled", document.querySelector("#subGiftEnabled").checked));
 document.querySelector("#bitsEnabled").addEventListener("change", () => setData("bitsEnabled", document.querySelector("#bitsEnabled").checked));
+document.querySelector("#raidEnabled").addEventListener("change", () => setData("raidEnabled", document.querySelector("#raidEnabled").checked));
 
 document.querySelector("#singleRedeemID").addEventListener("click", () => { ipcRenderer.send('listenSingle'); });
 document.querySelector("#barrageRedeemID").addEventListener("click", () => { ipcRenderer.send('listenBarrage'); });
@@ -454,6 +506,7 @@ document.querySelector("#barrageCommandTitle").addEventListener("change", () => 
 document.querySelector("#subType").addEventListener("change", () => setData("subType", document.querySelector("#subType").value));
 document.querySelector("#subGiftType").addEventListener("change", () => setData("subGiftType", document.querySelector("#subGiftType").value));
 document.querySelector("#bitsMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#bitsMaxBarrageCount"), 0, null); setData("bitsMaxBarrageCount", parseInt(document.querySelector("#bitsMaxBarrageCount").value)) });
+document.querySelector("#raidMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#raidMaxBarrageCount"), 0, null); setData("raidMaxBarrageCount", parseInt(document.querySelector("#raidMaxBarrageCount").value)) });
 
 document.querySelector("#singleRedeemCooldown").addEventListener("change", () => { clampValue(document.querySelector("#singleRedeemCooldown"), 0, null); setData("singleRedeemCooldown", parseFloat(document.querySelector("#singleRedeemCooldown").value)) });
 document.querySelector("#barrageRedeemCooldown").addEventListener("change", () => { clampValue(document.querySelector("#barrageRedeemCooldown"), 0, null); setData("barrageRedeemCooldown", parseFloat(document.querySelector("#barrageRedeemCooldown").value)) });
@@ -461,12 +514,15 @@ document.querySelector("#singleCommandCooldown").addEventListener("change", () =
 document.querySelector("#barrageCommandCooldown").addEventListener("change", () => { clampValue(document.querySelector("#barrageCommandCooldown"), 0, null); setData("barrageCommandCooldown", parseFloat(document.querySelector("#barrageCommandCooldown").value)) });
 document.querySelector("#subCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subCooldown"), 0, null); setData("subCooldown", parseFloat(document.querySelector("#subCooldown").value)) });
 document.querySelector("#subGiftCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subGiftCooldown"), 0, null); setData("subGiftCooldown", parseFloat(document.querySelector("#subGiftCooldown").value)) });
-document.querySelector("#bitsCooldown").addEventListener("change", () => { clampValue(document.querySelector("#bitsCooldown"), 0, null); setData("bitsEnabled", parseFloat(document.querySelector("#bitsCooldown").value)) });
+document.querySelector("#bitsCooldown").addEventListener("change", () => { clampValue(document.querySelector("#bitsCooldown"), 0, null); setData("bitsCooldown", parseFloat(document.querySelector("#bitsCooldown").value)) });
+document.querySelector("#raidCooldown").addEventListener("change", () => { clampValue(document.querySelector("#raidCooldown"), 0, null); setData("raidCooldown", parseFloat(document.querySelector("#raidCooldown").value)) });
 
 document.querySelector("#barrageCount").addEventListener("change", () => { clampValue(document.querySelector("#barrageCount"), 0, null); setData("barrageCount", parseInt(document.querySelector("#barrageCount").value)) });
 document.querySelector("#barrageFrequency").addEventListener("change", () => { clampValue(document.querySelector("#barrageFrequency"), 0, null); setData("barrageFrequency", parseFloat(document.querySelector("#barrageFrequency").value)) });
 document.querySelector("#throwDuration").addEventListener("change", () => { clampValue(document.querySelector("#throwDuration"), 0.5, null); setData("throwDuration", parseFloat(document.querySelector("#throwDuration").value)) });
 document.querySelector("#returnSpeed").addEventListener("change", () => { clampValue(document.querySelector("#returnSpeed"), 0, null); setData("returnSpeed", parseFloat(document.querySelector("#returnSpeed").value)) });
+document.querySelector("#throwAngleMin").addEventListener("change", () => { clampValue(document.querySelector("#throwAngleMin"), -90, parseFloat(document.querySelector("#throwAngleMax").value)); setData("throwAngleMin", parseFloat(document.querySelector("#throwAngleMin").value)) });
+document.querySelector("#throwAngleMax").addEventListener("change", () => { clampValue(document.querySelector("#throwAngleMax"), parseFloat(document.querySelector("#throwAngleMin").value), null); setData("throwAngleMax", parseFloat(document.querySelector("#throwAngleMax").value)) });
 
 document.querySelector("#closeEyes").addEventListener("change", () => {
     const val = document.querySelector("#closeEyes").checked;
@@ -547,6 +603,7 @@ document.querySelector('#HelpButton').addEventListener('click', () => { showPane
 document.querySelector('#ImagesButton').addEventListener('click', () => { showPanel("images"); });
 document.querySelector('#SoundsButton').addEventListener('click', () => { showPanel("sounds"); });
 document.querySelector('#BitSoundsButton').addEventListener('click', () => { showPanel("bitSounds"); });
+document.querySelector('#BonksButton').addEventListener('click', () => { showPanel("bonks"); });
 document.querySelector('#EventsButton').addEventListener('click', () => { showPanel("events"); });
 document.querySelector('#SettingsButton').addEventListener('click', () => { showPanel("settings"); });
 
@@ -649,4 +706,24 @@ function openPanel(panel)
     setTimeout(() => {
         playing = false;
     }, 500);
+}
+
+// In response to raid event from main process.
+// Do the HTTP request here, since it's already a browser of sorts, and send the response back.
+ipcRenderer.on("raid", (event, message) => { getRaidEmotes(event, message); });
+async function getRaidEmotes(_, raider)
+{
+  var channelEmotes = new XMLHttpRequest();
+  channelEmotes.onreadystatechange = function() {
+      if (this.readyState == 4 && this.status == 200)
+      {
+          const emotes = JSON.parse(this.responseText);
+          ipcRenderer.send('emotes', emotes);
+      }
+  };
+  // Open the request and send it.
+  channelEmotes.open("GET", "https://api.twitch.tv/helix/chat/emotes?broadcaster_id=" + raider, true);
+  channelEmotes.setRequestHeader("Authorization", "Bearer " + await getData("accessToken"));
+  channelEmotes.setRequestHeader("Client-Id", "u4rwa52hwkkgyoyow0t3gywxyv54pg");
+  channelEmotes.send();
 }
