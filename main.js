@@ -32,7 +32,9 @@ setInterval(() => {
   if (mainWindow != null)
   {
     var status = 0;
-    if (!authenticated)
+    if (!triedAuthenticate)
+      status = 10
+    else if (!authenticated)
       status = 1
     else if (socket == null)
       status = 2;
@@ -112,7 +114,7 @@ async function pubSub(apiClient) {
   listenersActive = true;
 }
 
-var authenticated = false;
+var authenticated = false, triedAuthenticate = false;
 var authenticator = setInterval(() => {
   if (!authenticated)
     authenticate();
@@ -130,6 +132,7 @@ async function authenticate() {
     apiClient = new ApiClient({ authProvider });
     pubSub(apiClient);
   }
+  triedAuthenticate = true;
 }
 
 ipcMain.on('oauth', () => require('electron').shell.openExternal("https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=u4rwa52hwkkgyoyow0t3gywxyv54pg&redirect_uri=https://twitchapps.com/tokengen/&scope=chat%3Aread%20chat%3Aedit%20channel%3Aread%3Aredemptions%20channel_subscriptions%20bits%3Aread"));

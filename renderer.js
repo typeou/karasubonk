@@ -1,4 +1,4 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, app } = require('electron');
 const fs = require("fs");
 
 var status = 0;
@@ -6,61 +6,75 @@ var status = 0;
 const statusTitle = [
     "Ready!",
     "Not Authenticated",
-    "Browser Source Disconnected",
+    "Connecting to KBonk Browser Source...",
     "Calibrating (1/2)",
     "Calibrating (2/2)",
-    "VTube Studio Disconnected",
+    "Connecting to VTube Studio...",
     "Listening for Redeem<br/>(Single)",
     "Listening for Redeem<br/>(Barrage)",
     "Waiting for Listeners...",
-    "Calibration"
+    "Calibration",
+    "Authenticating..."
 ];
 
 const statusDesc = [
     "",
-    "<p>Please provide a valid OAuth token. You may click the button below to generate one with the required scopes.</p><p>Once acquired, please paste it into the \"OAuth Token\" section of the Settings window.",
-    "<p>Please ensure OBS is open with <mark>bonker.html</mark> as the source file of an active and enabled Browser Source.</p><p>If you changed the port(s), please refresh the Browser Source.</p>",
-    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Press the <mark>Confirm Calibration</mark> button below to continue.</p>",
-    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Press the <mark>Confirm Calibration</mark> button below to continue.</p>",
-    [ "<p>Please ensure the VTube Studio API is enabled on port <mark>", "</mark> and click Allow when Karasubonk requests access.</p><p>You may need to refresh the Browser Source to get the prompt to appear again.</p>" ],
+    "<p>Please provide a valid OAuth token. You may click the button below to generate one with the required scopes.</p><p>Once acquired, please paste it into the \"OAuth Token\" section of the Settings window.</p>",
+    "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source in OBS.</p><p>The KBonk Browser Source should be active with <mark>karasubonk/resources/app/bonker.html</mark> as the source file.</p>",
+    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p><small>Your VTube Studio Source and KBonk Browser Source should be overlapping.</small></p><p>Press the <mark>Continue Calibration</mark> button below to continue to the next step.</p>",
+    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p><small>Your VTube Studio Source and KBonk Browser Source should be overlapping.</small></p><p>Press the <mark>Confirm Calibration</mark> button below to finish calibration.</p>",
+    [ "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p>" ],
     "<p>Please use the Channel Point Reward you'd like to use for single bonks.</p><p>Click the Listen button again to cancel.</p>",
     "<p>Please use the Channel Point Reward you'd like to use for barrage bonks.</p><p>Click the Listen button again to cancel.</p>",
     "",
-    "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>"
+    "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>",
+    ""
 ];
 
+// Counter for number of writes that are being attempted
+// Will only attempt to load data if not currently writing
+// Inter-process communication means this is necessary
 var isWriting = 0;
 ipcRenderer.on("doneWriting", () => {
     if (--isWriting < 0)
         isWriting = 0;
 });
 
+// Adding a new image to the list
 document.querySelector("#loadImage").addEventListener("change", loadImage);
 
 async function loadImage()
 {
+    // Grab the image that was just loaded
     const imageFile = document.querySelector("#loadImage").files[0];
+    // If the folder for objects doesn't exist for some reason, make it
     if (!fs.existsSync(__dirname + "/throws/"))
         fs.mkdirSync(__dirname + "/throws/");
+
+    // Ensure that we're not overwriting any existing files with the same name
+    // If a file already exists, add an interating number to the end until it's a unique filename
+    var append = "";
+    while (fs.existsSync(imageFile.path, __dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1)))
+        append = append == "" ? 2 : (append + 1);
+    imageFile.name = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1);
+
+    // Make a copy of the file into the local folder
     fs.copyFileSync(imageFile.path, __dirname + "/throws/" + imageFile.name);
+    
+    // Get the existing images, add the new image, update the data, and refresh the images page
     var throws = await getData("throws");
-    var contains = false;
-    for (var i = 0; i < throws.length; i++)
-    {
-        if (throws[i][0] == "throws/" + imageFile.name)
-        {
-            contains = true;
-            break;
-        }
-    }
+    throws.push({
+        "location": "throws/" + imageFile.name,
+        "weight": 1.0,
+        "scale": 1.0,
+        "sound": null,
+        "volume": null,
+        "enabled": true
+    });
+    setData("throws", throws);
+    openImages();
     
-    if (!contains)
-    {
-        throws.push([ "throws/" + imageFile.name, 1.0, 1.0 ]);
-        setData("throws", throws);
-        openImages();
-    }
-    
+    // Reset the image upload
     document.querySelector("#loadImage").value = null;
 }
 
@@ -97,14 +111,8 @@ async function openImages()
                 row.id = "";
                 row.classList.add("imageRow");
                 row.removeAttribute("hidden");
-                row.querySelector(".imageName").value = throws[index].location.substr(7);
+                row.querySelector(".imageImage").src = throws[index].location;
                 document.querySelector("#imageTable").appendChild(row);
-
-                row.querySelector(".removeImage").addEventListener("click", () => {
-                    throws.splice(index, 1);
-                    setData("throws", throws);
-                    row.remove();
-                });
 
                 if (throws[index].enabled == null)
                 {
@@ -118,67 +126,10 @@ async function openImages()
                     setData("throws", throws);
                 });
 
-                row.querySelector(".imageHover").addEventListener("mouseover", () => {
-                    document.querySelector("#imagePreview").src = "throws/" + row.querySelector(".imageName").value;
-                    document.querySelector("#imagePreviewParent").removeAttribute("hidden");
-                });
-
-                row.querySelector(".imageHover").addEventListener("mouseout", () => {
-                    document.querySelector("#imagePreviewParent").hidden = "hidden";
-                });
-
-                row.querySelector(".imageWeight").value = throws[index].weight;
-                row.querySelector(".imageScale").value = throws[index].scale;
-                if (throws[index].sound != null)
-                {
-                    if (fs.existsSync(__dirname + "/" + throws[index].sound))
-                    {
-                        row.querySelector(".imageSound").value = throws[index].sound.substr(8);
-                        row.querySelector(".imageSoundVolume").value = throws[index].volume;
-                        row.querySelector(".imageSoundVolume").addEventListener("change", () => {
-                            clampValue(row.querySelector(".imageSoundVolume"), 0, 1);
-                            throws[index].weight = parseFloat(row.querySelector(".imageSoundVolume").value);
-                            setData("throws", throws);
-                        });
-                    }
-                    else
-                    {
-                        row.querySelector(".imageSoundVolume").disabled = "disabled";
-                        throws[index].sound = throws[index].volume = null;
-                        setData("throws", throws);
-                    }
-                }
-                else
-                    row.querySelector(".imageSoundVolume").disabled = "disable";
-
-                row.querySelector(".imageWeight").addEventListener("change", () => {
-                    throws[index].weight = parseFloat(row.querySelector(".imageWeight").value);
-                    setData("throws", throws);
-                });
-
-                row.querySelector(".imageScale").addEventListener("change", () => {
-                    throws[index].scale = parseFloat(parseFloat(row.querySelector(".imageScale").value));
-                    setData("throws", throws);
-                });
-
-                row.querySelector(".removeSound").addEventListener("click", () => {
-                    row.querySelector(".imageSound").value = "";
-                    throws[index].sound = throws[index].volume = null;
-                    row.querySelector(".imageSoundVolume").value = "";
-                    row.querySelector(".imageSoundVolume").disabled = "disabled";
-                    setData("throws", throws);
-                });
-
-                row.querySelector(".imageSoundLoad").addEventListener("change", () => {
-                    const soundFile = row.querySelector(".imageSoundLoad").files[0];
-                    fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
-                    row.querySelector(".imageSound").value = soundFile.name;
-                    row.querySelector(".imageScale").value = 1;
-                    throws[index].sound = "impacts/" + soundFile.name;
-                    throws[index].volume = 1;
-                    setData("throws", throws);
-                    row.querySelector(".imageSoundVolume").value = 1;
-                    row.querySelector(".imageSoundVolume").removeAttribute("disabled");
+                row.querySelector(".imageDetails").addEventListener("click", () => {
+                    currentImageIndex = index;
+                    openImageDetails();
+                    showPanel("imageDetails");
                 });
             }
             else
@@ -190,6 +141,99 @@ async function openImages()
     }
 }
 
+document.querySelector("#loadImageSound").addEventListener("change", loadImageSound);
+
+async function loadImageSound()
+{
+    // Grab the image that was just loaded
+    const imageFile = document.querySelector("#loadImageSound").files[0];
+    // If the folder for objects doesn't exist for some reason, make it
+    if (!fs.existsSync(__dirname + "/throws/"))
+        fs.mkdirSync(__dirname + "/throws/");
+
+    // Ensure that we're not overwriting any existing files with the same name
+    // If a file already exists, add an interating number to the end until it's a unique filename
+    var append = "";
+    while (fs.existsSync(imageFile.path, __dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1)))
+        append = append == "" ? 2 : (append + 1);
+    //imageFile.name = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1);
+
+    // Make a copy of the file into the local folder
+    fs.copyFileSync(imageFile.path, __dirname + "/throws/" + imageFile.name);
+    
+    // Get the existing images, add the new image, update the data, and refresh the images page
+    var throws = await getData("throws");
+    throws[currentImageIndex].sound = "impacts/" + soundFile.name;
+    setData("throws", throws);
+    
+    // Reset the image upload
+    document.querySelector("#loadImageSound").value = null;
+    openImageDetails(currentImageIndex);
+}
+
+var currentImageIndex = -1;
+async function openImageDetails()
+{
+    var throws = await getData("throws");
+    const details = document.querySelector("#imageDetails");
+
+    details.querySelector(".imageImage").src = throws[currentImageIndex].location;
+    details.querySelector(".imageEnabled").checked = throws[currentImageIndex].enabled;
+    details.querySelector(".imageWeight").value = throws[currentImageIndex].weight;
+    details.querySelector(".imageScale").value = throws[currentImageIndex].scale;
+    if (throws[currentImageIndex].sound != null)
+    {
+        details.querySelector(".imageSoundName").value = throws[currentImageIndex].sound.substr(8);
+        details.querySelector(".imageSoundVolume").value = throws[currentImageIndex].volume;
+        details.querySelector(".imageSoundVolume").removeAttribute("disabled");
+        details.querySelector(".imageSoundRemove").removeAttribute("disabled");
+    }
+    else
+    {
+        details.querySelector(".imageSoundName").value = null;
+        details.querySelector(".imageSoundVolume").value = null;
+        details.querySelector(".imageSoundVolume").disabled = "disabled";
+        details.querySelector(".imageSoundRemove").disabled = "disabled";
+    }
+
+    details.querySelector(".imageEnabled").addEventListener("click", () => {
+        throws[currentImageIndex].enabled = details.querySelector(".imageEnabled").checked;
+        setData("throws", throws);
+    });
+
+    details.querySelector(".imageWeight").addEventListener("change", () => {
+        throws[currentImageIndex].weight = parseFloat(details.querySelector(".imageWeight").value);
+        setData("throws", throws);
+    });
+
+    details.querySelector(".imageScale").addEventListener("change", () => {
+        throws[currentImageIndex].scale = parseFloat(details.querySelector(".imageScale").value);
+        setData("throws", throws);
+    });
+
+    details.querySelector(".imageRemove").addEventListener("click", () => {
+        throws.splice(currentImageIndex, 1);
+        setData("throws", throws);
+        showPanel("images");
+    });
+
+    details.querySelector(".imageSoundVolume").addEventListener("change", () => {
+        throws[currentImageIndex].volume = parseFloat(details.querySelector(".imageVolume").value);
+        setData("throws", throws);
+    });
+
+    details.querySelector(".imageSoundRemove").addEventListener("click", () => {
+        throws[currentImageIndex].sound = null;
+        throws[currentImageIndex].volume = null;
+        setData("throws", throws);
+        details.querySelector(".imageSoundName").value = null;
+        details.querySelector(".imageSoundVolume").value = null;
+        details.querySelector(".imageSoundVolume").disabled = "disabled";
+        details.querySelector(".imageSoundRemove").disabled = "disabled";
+    });
+
+}
+
 document.querySelector("#loadSound").addEventListener("change", loadSound);
 
 async function loadSound()
@@ -197,24 +241,23 @@ async function loadSound()
     const soundFile = document.querySelector("#loadSound").files[0];
     if (!fs.existsSync(__dirname + "/impacts/"))
         fs.mkdirSync(__dirname + "/impacts/");
-    fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
-    var impacts = await getData("impacts");
-    var contains = false;
-    for (var i = 0; i < impacts.length; i++)
-    {
-        if (impacts[i][0] == "impacts/" + soundFile.name)
-        {
-            contains = true;
-            break;
-        }
-    }
 
-    if (!contains)
-    {
-        impacts.push([ "impacts/" + soundFile.name, 1.0 ]);
-        setData("impacts", impacts);
-        openSounds();
-    }
+    var append = "";
+    while (fs.existsSync(imageFile.path, __dirname + "/impacts/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1)))
+        append = append == "" ? 2 : (append + 1);
+    imageFile.name = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1);
+
+    fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + soundFile.name);
+
+    var impacts = await getData("impacts");
+
+    impacts.push({
+        "location": "impacts/" + soundFile.name,
+        "volume": 1.0,
+        "enabled": true
+    });
+    setData("impacts", impacts);
+    openSounds();
     
     document.querySelector("#loadSound").value = null;
 }
@@ -294,24 +337,22 @@ async function loadBitSound()
     const soundFile = document.querySelector("#loadBitSound").files[0];
     if (!fs.existsSync(__dirname + "/bitImpacts/"))
         fs.mkdirSync(__dirname + "/bitImpacts/");
-    fs.copyFileSync(soundFile.path, __dirname + "/bitImpacts/" + soundFile.name);
-    var bitImpacts = await getData("bitImpacts");
-    var contains = false;
-    for (var i = 0; i < bitImpacts.length; i++)
-    {
-        if (bitImpacts[i][0] == "bitImpacts/" + soundFile.name)
-        {
-            contains = true;
-            break;
-        }
-    }
 
-    if (!contains)
-    {
-        bitImpacts.push([ "bitImpacts/" + soundFile.name, 1.0 ]);
-        setData("bitImpacts", bitImpacts);
-        openBitSounds();
-    }
+    var append = "";
+    while (fs.existsSync(imageFile.path, __dirname + "/bitImpacts/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1)))
+        append = append == "" ? 2 : (append + 1);
+    imageFile.name = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1);
+
+    fs.copyFileSync(soundFile.path, __dirname + "/bitImpacts/" + soundFile.name);
+    
+    var bitImpacts = await getData("bitImpacts");
+    bitImpacts.push({
+        "location": "bitImpacts/" + soundFile.name,
+        "volume": 1.0,
+        "enabled": true
+    });
+    setData("bitImpacts", bitImpacts);
+    openBitSounds();
 
     document.querySelector("#loadBitSound").value = null;
 }
@@ -412,7 +453,9 @@ async function setStatus(_, message)
     {
         if (status == 9)
             document.querySelector("#nextCalibrate").innerText = "Start Calibration";
-        else
+        else if (status == 3)
+            document.querySelector("#nextCalibrate").innerText = "Continue Calibration";
+        else if (status == 4)
             document.querySelector("#nextCalibrate").innerText = "Confirm Calibration";
         document.querySelector("#calibrateButtons").classList.remove("hide");
     }

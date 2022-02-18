@@ -448,3 +448,11 @@ ul > li::marker {
 ul > ul > li::marker{
     color: #9effb1 !important;
 }
+
+.imageImage {
+    height: 75px;
+}
+
+#imageTable {
+    width: 100%;
+}

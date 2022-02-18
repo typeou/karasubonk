@@ -140,6 +140,46 @@
       <p>If you notice any issues with desync between the impact time and the model's movement, try adjusting the "Delay" property in Settings until you are satisfied.</p>
     </div>
 
+    <div id="imageDetails" class="block config">
+      <h2>Image Details</h2>
+      <hr>
+      <table id="imageDetailsTable">
+        <tr>
+          <td colspan="2"><img class="imageImage"></td>
+        </tr>
+        <tr>
+          <td>Enabled</td>
+          <td><input class="imageEnabled" type="checkBox"></td>
+        </tr>
+        <tr>
+          <td>Weight</td>
+          <td><input type="range" class="imageWeight" min="0" max="1" step="0.1"></td>
+        </tr>
+        <tr>
+          <td>Scale</td>
+          <td><input type="number" class="imageScale" min="0" step="0.1"></td>
+        </tr>
+        <tr>
+          <td colspan="2"><button class="imageRemove">Delete Image</button></td>
+        </tr>
+        <tr>
+          <td colspan="2"><hr></td>
+        </tr>
+        <tr>
+          <td>Sound Override</td>
+          <td><input class="imageSoundName" type="text" disabled></td>
+        </tr>
+        <tr>
+          <td>Load Sound</td>
+          <td><input id="loadImageSound" type="file" accept="audio/*"></td>
+        </tr>
+        <tr>
+          <td>Sound Volume</td>
+          <td><input class="imageSoundVolume" type="range" min="0" max="1" step="0.1" disabled></td>
+        </tr>
+      </table>
+    </div>
+
     <div id="images" class="block config" hidden>
       <h2>Images</h2>
       <hr>
@@ -149,43 +189,12 @@
       <br/>
       <br/>
       <table id="imageTable">
-        <tr>
-          <th colspan="7"></th>
-          <th colspan="4">Sound Overrides</th>
-        </tr>
-        <tr>
-          <th></th>
-          <th>&nbsp&nbsp&nbsp</th>
-          <td></td>
-          <th>File</th>
-          <th>Weight</th>
-          <th>Scale</th>
-          <th>&nbsp&nbsp&nbsp</th>
-          <th></th>
-          <th>File</th>
-          <th></th>
-          <th>Volume</th>
-        </tr>
         <tr id="imageRow" hidden>
-          <td><button class="removeImage">X</button></td>
-          <td></td>
           <td><input type="checkbox" class="imageEnabled" checked></td>
-          <td><div class="imageHover"><input type="text" class="imageName" size="10" disabled></div></td>
-          <td><input type="range" class="imageWeight" min="0" max="1" step="0.1"></td>
-          <td><input type="number" class="imageScale" min="0" step="0.1"></td>
-          <td></td>
-          <td><button class="removeSound">X</button></td>
-          <td><input type="text" class="imageSound" size="5" disabled></td>
-          <td><input class="imageSoundLoad" type="file" accept="audio/*" size="5"></td>
-          <td><input class="imageSoundVolume" type="range" min="0" max="1" step="0.1"></td>
+          <td><img class="imageImage"></img></td>
+          <td><button class="imageDetails">Details</button></td>
         </tr>
       </table>
-    </div>
-    
-    <div id="imagePreviewParent" class="block" hidden>
-      <img id="imagePreview"></img>
-      <br/>
-      <p class="center important">Preview</p>
     </div>
 
     <div id="sounds" class="block config" hidden>
