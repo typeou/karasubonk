@@ -1,1 +1,1 @@
-var ports = [ 8080, 8001 ];
+const ports = [ 8080, 8001 ];

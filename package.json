@@ -8,6 +8,7 @@
     "twitch": "^4.6.7",
     "twitch-auth": "^4.6.7",
     "twitch-chat-client": "^4.6.7",
+    "twitch-electron-auth-provider": "^4.6.7",
     "twitch-pubsub-client": "^4.6.7"
   },
   "devDependencies": {

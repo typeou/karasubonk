@@ -27,10 +27,6 @@
       <p id="statusDesc"></p>
     </div>
 
-    <div class="buttons" id="oAuthButton">
-      <div id="oAuthLink" class="button">Get OAuth Token</div>
-    </div>
-
     <div class="buttons hide" id="calibrateButtons">
       <div id="nextCalibrate" class="button">Confirm Calibration</div>
       <div id="cancelCalibrate" class="button">Cancel</div>
@@ -249,68 +245,76 @@
       </table>
     </div>
 
-    <div id="bonksDetail" class="block config" hidden>
+    <div id="bonkDetails" class="block config" hidden>
       <h2>Bonk Details</h2>
       <hr>
       <table id="bonkDetailsTable">
         <tr>
-          <td></td>
+          <td>Override</td>
           <td>Name</td>
-          <td><input type="text"></td>
+          <td><input type="text" class="bonkName"></td>
         </tr>
         <tr>
           <td></td>
           <td>Count</td>
-          <td><input type="number" min="0" step="1"></td>
+          <td><input type="number" min="0" step="1" class="barrageCount"></td>
         </tr>
         <tr>
-          <td><input type="checkbox"></td>
+          <td><input type="checkbox" class="barrageFrequencyOverride"></td>
           <td>Frequency</td>
-          <td><input type="number" min="0" step="1"></td>
+          <td><input type="number" min="0" step="1" class="barrageFrequency"></td>
         </tr>
         <tr>
-          <td><input type="checkbox"></td>
+          <td><input type="checkbox" class="throwDurationOverride"></td>
           <td>Throw Duration</td>
-          <td><input type="number" min="0" step="1"></td>
+          <td><input type="number" min="0" step="1" class="throwDuration"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td><input type="checkbox"></td>
+          <td><input type="checkbox" class="throwAngleMinOverride"></td>
           <td>Throw Angle (Min)</td>
-          <td><input type="number" min="-90" value="-45"></td>
+          <td><input type="number" min="-90" value="-45" step="1" class="throwAngleMin"></td>
         </tr>
         <tr>
-          <td><input type="checkbox"></td>
+          <td><input type="checkbox" class="throwAngleMaxOverride"></td>
           <td>Throw Angle (Max)</td>
-          <td><input type="number" max="90" value="45"></td>
+          <td><input type="number" max="90" value="45" step="1" class="throwAngleMax"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td><input type="checkbox"></td>
+          <td><input type="checkbox" class="itemsOverride"></td>
           <td>Items</td>
-          <td><button>...</button></td>
+          <td><button class="items">...</button></td>
         </tr>
         <tr>
-          <td><input type="checkbox"></td>
+          <td><input type="checkbox" class="soundsOverride"></td>
           <td>Sounds</td>
-          <td><button>...</button></td>
+          <td><button class="sounds">...</button></td>
         </tr>
         <tr>
-          <td><input type="checkbox"></td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="impactDecalsOverride"></td>
           <td>Impact Decals</td>
-          <td><button>...</button></td>
+          <td><button class="impactDecals">...</button></td>
         </tr>
         <tr>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td><input type="checkbox" class="windupSoundsOverride"></td>
           <td>Windup Sounds</td>
-          <td><button>...</button></td>
+          <td><button class="windupSounds">...</button></td>
         </tr>
         <tr>
+          <td><input type="checkbox" class="windupDelayOverride"></td>
           <td>Windup Delay (s)</td>
-          <td><input type="number" min="0"></td>
+          <td><input type="number" min="0" class="windupDelay"></td>
         </tr>
       </table>
     </div>
@@ -322,16 +326,21 @@
       <button id="bonksAdd">+</button>
       <table id="bonksTable">
         <tr>
-          <td><button disabled>...</button></td>
+          <td></td>
           <td><input type="text" disabled value="Single (Default)"></td>
         </tr>
         <tr>
-          <td><button disabled>...</button></td>
+          <td></td>
           <td><input type="text" disabled value="Barrage (Default)"></td>
         </tr>
         <tr>
-          <td><button disabled>...</button></td>
+          <td><button>Items</button></td>
           <td><input type="text" disabled value="Bits (Default)"></td>
+        </tr>
+        <tr id="customBonkRow" hidden>
+          <td><button class="bonkDetailsButton">Details</button></td>
+          <td><input type="text" class="bonkName" disabled></td>
+          <td><button class="bonkDelete">X</button></td>
         </tr>
       </table>
     </div>
@@ -339,24 +348,25 @@
     <div id="events" class="block config" hidden>
       <h2>Events</h2>
       <hr>
+      <label for="redeemAdd">Add New Redeem:</label>
+      <button id="redeemAdd">+</button>
       <table>
-        <tr>
+        <tr id="redeems">
           <th></th>
+          <th>Redeem Name</th>
           <th></th>
-          <th>Redeem ID</th>
-          <th>Cooldown</th>
+          <th>Bonk Type</th>
         </tr>
-        <tr>
-          <td><input type="checkbox" id="singleRedeemEnabled" checked></td>
-          <td>Redeem (Single)</td>
-          <td><button id="singleRedeemID">Listen</button></td>
-          <td><input type="number" id="singleRedeemCooldown" min="0" value="0"></td>
-        </tr>
-        <tr>
-          <td><input type="checkbox" id="barrageRedeemEnabled" checked></td>
-          <td>Redeem (Barrage)</td>
-          <td><button id="barrageRedeemID">Listen</button></td>
-          <td><input type="number" id="barrageRedeemCooldown" min="0" value="0"></td>
+        <tr id="redeemsRow" class="redeemsRow" hidden>
+          <td><input type="checkbox" class="redeemEnabled"></td>
+          <td><input type="text" class="redeemName" disabled></td>
+          <td><button class="redeemID">Listen</button></td>
+          <td>
+            <select class="redeemType">
+              <option value="single">Single (Default)</option>
+              <option value="barrage">Barrage (Default)</option>
+            </select>
+          </td>
         </tr>
         <tr>
           <td>&nbsp;</td>
@@ -365,16 +375,16 @@
           <th></th>
           <th></th>
           <th>Command Name</th>
-          <th>Cooldown</th>
+          <th>Cooldown (s)</th>
         </tr>
         <tr>
-          <td><input type="checkbox" id="singleCommandEnabled" checked></td>
+          <td><input type="checkbox" id="singleCommandEnabled"></td>
           <td>Command (Single)</td>
           <td><input type="text" id="singleCommandTitle" value="!bonk"></td>
           <td><input type="number" id="singleCommandCooldown" min="0" value="10"></td>
         </tr>
         <tr>
-          <td><input type="checkbox" id="barrageCommandEnabled" checked></td>
+          <td><input type="checkbox" id="barrageCommandEnabled"></td>
           <td>Command (Barrage)</td>
           <td><input type="text" id="barrageCommandTitle" value="!manybonk"></td>
           <td><input type="number" id="barrageCommandCooldown" min="0" value="30"></td>
@@ -386,7 +396,7 @@
           <th></th>
           <th></th>
           <th>Bonk Type</th>
-          <th>Cooldown</th>
+          <th>Cooldown (s)</th>
         </tr>
         <tr>
           <td><input type="checkbox" id="subEnabled" checked></td>
@@ -417,7 +427,7 @@
           <th></th>
           <th></th>
           <th>Max Bonks</th>
-          <th>Cooldown</th>
+          <th>Cooldown (s)</th>
         </tr>
         <tr>
           <td><input type="checkbox" id="bitsEnabled" checked></td>
@@ -432,13 +442,17 @@
           <th></th>
           <th></th>
           <th>Max Bonks</th>
-          <th>Cooldown</th>
+          <th>Cooldown (s)</th>
         </tr>
         <tr>
           <td><input type="checkbox" id="raidEnabled" checked></td>
           <td>Raid</td>
           <td><input type="number" id="raidMaxBarrageCount" value="100"></td>
           <td><input type="number" id="raidCooldown" min="0" value="0"></td>
+        </tr>
+        <tr>
+          <td colspan="3">Throw Raiding Channel's Emotes</td>
+          <td><input type="checkbox" id="raidEmotes" checked></td>
         </tr>
       </table>
     </div>
@@ -474,11 +488,11 @@
         </tr>
         <tr>
           <td>Throw Angle (Min)</td>
-          <td><input type="number" id="throwAngleMin" min="-90" value="-45"></td>
+          <td><input type="number" id="throwAngleMin" min="-90" value="-45" step="1" ></td>
         </tr>
         <tr>
           <td>Throw Angle (Max)</td>
-          <td><input type="number" id="throwAngleMax" max="90" value="45"></td>
+          <td><input type="number" id="throwAngleMax" max="90" value="45" step="1" ></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
@@ -518,10 +532,6 @@
         </tr>
         <tr>
           <td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td>OAuth Token</td>
-          <td><input type="password" id="accessToken"></td>
         </tr>
         <tr>
           <td>&nbsp;</td>

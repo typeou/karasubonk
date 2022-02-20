@@ -270,6 +270,33 @@ function connectKarasu()
                                 clearInterval(bonker);
                         }, data.data.barrageFrequency * 1000);
                         break;
+                    default:
+                        if (data.data.bonks[data.type].barrageCountOverride)
+                            data.data.barrageCount = data.data.bonks[data.type].barrageCount;
+                        if (data.data.bonks[data.type].barrageFrequencyOverride)
+                            data.data.barrageFrequency = data.data.bonks[data.type].barrageFrequency;
+                        if (data.data.bonks[data.type].throwDurationOverride)
+                            data.data.throwDuration = data.data.bonks[data.type].throwDuration;
+                        if (data.data.bonks[data.type].throwAngleMinOverride)
+                            data.data.throwAngleMin = data.data.bonks[data.type].throwAngleMin;
+                        if (data.data.bonks[data.type].throwAngleMaxOverride)
+                            data.data.throwAngleMax = data.data.bonks[data.type].throwAngleMax;
+
+                        var i = 0;
+                        const images = data.image;
+                        const weights = data.weight;
+                        const scales = data.scale;
+                        const sounds = data.sound;
+                        const volumes = data.volume;
+                        const max = Math.min(images.length, sounds.length, weights.length);
+
+                        var bonker = setInterval(function()
+                        {
+                            bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
+                            if (++i >= max)
+                                clearInterval(bonker);
+                        }, data.data.barrageFrequency * 1000);
+                        break;
                 }
             }
             socketVTube.send(JSON.stringify(request));

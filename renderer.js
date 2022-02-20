@@ -5,7 +5,7 @@ var status = 0;
 
 const statusTitle = [
     "Ready!",
-    "Not Authenticated",
+    "Authenticating...",
     "Connecting to KBonk Browser Source...",
     "Calibrating (1/2)",
     "Calibrating (2/2)",
@@ -13,22 +13,20 @@ const statusTitle = [
     "Listening for Redeem<br/>(Single)",
     "Listening for Redeem<br/>(Barrage)",
     "Waiting for Listeners...",
-    "Calibration",
-    "Authenticating..."
+    "Calibration"
 ];
 
 const statusDesc = [
     "",
-    "<p>Please provide a valid OAuth token. You may click the button below to generate one with the required scopes.</p><p>Once acquired, please paste it into the \"OAuth Token\" section of the Settings window.</p>",
+    "<p>If you haven't logged in before or access has expired, a Twitch login window will appear.</p>",
     "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source in OBS.</p><p>The KBonk Browser Source should be active with <mark>karasubonk/resources/app/bonker.html</mark> as the source file.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p><small>Your VTube Studio Source and KBonk Browser Source should be overlapping.</small></p><p>Press the <mark>Continue Calibration</mark> button below to continue to the next step.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p><small>Your VTube Studio Source and KBonk Browser Source should be overlapping.</small></p><p>Press the <mark>Confirm Calibration</mark> button below to finish calibration.</p>",
     [ "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p>" ],
     "<p>Please use the Channel Point Reward you'd like to use for single bonks.</p><p>Click the Listen button again to cancel.</p>",
     "<p>Please use the Channel Point Reward you'd like to use for barrage bonks.</p><p>Click the Listen button again to cancel.</p>",
-    "",
-    "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>",
-    ""
+    "<p>Several windows will briefly appear during this process.</p>",
+    "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>"
 ];
 
 // Counter for number of writes that are being attempted
@@ -422,6 +420,233 @@ async function openBitSounds()
         });
     }
 }
+document.querySelector('#bonksAdd').addEventListener('click', addBonk);
+
+async function addBonk()
+{
+    var newBonkNumber = 1;
+    var customBonks = await getData("customBonks");
+    if (customBonks == null)
+        customBonks = [];
+    
+    var exists;
+    do
+    {
+        exists = false;
+        for (var i = 0; i < customBonks.length; i++)
+        {
+            if (customBonks[i].name == "Custom Bonk " + newBonkNumber)
+            {
+                exists = true;
+                newBonkNumber++;
+                break;
+            }
+        }
+    } while (exists);
+
+    customBonks.push({
+        "name": "Custom Bonk " + newBonkNumber,
+        "barrageCount": 1,
+        "barrageFrequencyOverride": false,
+        "barrageFrequency": await getData("barrageFrequency"),
+        "throwDurationOverride": false,
+        "throwDuration": await getData("throwDuration"),
+        "throwAngleMinOverride": false,
+        "throwAngleMin": await getData("throwAngleMin"),
+        "throwAngleMaxOverride": false,
+        "throwAngleMax": await getData("throwAngleMax"),
+        "itemsOverride": false,
+        "items": await getData("throws"),
+        "soundsOverride": false,
+        "sounds": await getData("impacts"),
+        "impactDecalsOverride": false,
+        "impactDecals": await getData("impactDecals"),
+        "windupSoundsOverride": false,
+        "windupSounds": await getData("windupSounds"),
+        "windupDelayOverride": false,
+        "windupDelay": await getData("windupDelay")
+    });
+
+    setData("customBonks", customBonks);
+
+    bonkDetails("Custom Bonk " + newBonkNumber);
+}
+
+async function bonkDetails(customBonkName)
+{
+    var customBonks = await getData("customBonks"), index = -1;
+    for (var i = 0; i < customBonks.length; i++)
+    {
+        if (customBonks[i].name == customBonkName)
+        {
+            index = i;
+            break;
+        }
+    }
+
+    if (index != -1)
+    {
+        showPanel("bonkDetails");
+
+        const bonkDetailsTable = document.querySelector("#bonkDetailsTable");
+
+        // Bonk Name
+        bonkDetailsTable.querySelector(".bonkName").value = customBonks[index].name;
+        bonkDetailsTable.querySelector(".bonkName").addEventListener("change", () => {
+            customBonks[index].name = bonkDetailsTable.querySelector(".bonkName").value;
+            setData("customBonks", customBonks);
+        });
+
+        // Barrage Count
+        bonkDetailsTable.querySelector(".barrageCount").value = customBonks[index].barrageCount;
+        bonkDetailsTable.querySelector(".barrageCount").addEventListener("change", () => {
+            customBonks[index].barrageCount = parseInt(bonkDetailsTable.querySelector(".barrageCount").value);
+            setData("customBonks", customBonks);
+        });
+
+        // Barrage Frequency
+        bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked = customBonks[index].barrageFrequencyOverride;
+        bonkDetailsTable.querySelector(".barrageFrequencyOverride").addEventListener("change", () => {
+            customBonks[index].barrageFrequencyOverride = bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".barrageFrequency").value = customBonks[index].barrageFrequency;
+        bonkDetailsTable.querySelector(".barrageFrequency").addEventListener("change", () => {
+            customBonks[index].barrageFrequency = parseFloat(bonkDetailsTable.querySelector(".barrageFrequency").value);
+            setData("customBonks", customBonks);
+        });
+
+        // Throw Duration
+        bonkDetailsTable.querySelector(".throwDurationOverride").checked = customBonks[index].throwDurationOverride;
+        bonkDetailsTable.querySelector(".throwDurationOverride").addEventListener("change", () => {
+            customBonks[index].throwDurationOverride = bonkDetailsTable.querySelector(".throwDurationOverride").checked;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".throwDuration").value = customBonks[index].throwDuration;
+        bonkDetailsTable.querySelector(".throwDuration").addEventListener("change", () => {
+            customBonks[index].throwDuration = parseFloat(bonkDetailsTable.querySelector(".throwDuration").value);
+            setData("customBonks", customBonks);
+        });
+
+        // Throw Angle Min
+        bonkDetailsTable.querySelector(".throwAngleMinOverride").checked = customBonks[index].throwAngleMinOverride;
+        bonkDetailsTable.querySelector(".throwAngleMinOverride").addEventListener("change", () => {
+            customBonks[index].throwAngleMinOverride = bonkDetailsTable.querySelector(".throwAngleMinOverride").checked;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".throwAngleMin").value = customBonks[index].throwAngleMin;
+        bonkDetailsTable.querySelector(".throwAngleMin").addEventListener("change", () => {
+            customBonks[index].throwAngleMin = parseInt(bonkDetailsTable.querySelector(".throwAngleMin").value);
+            setData("customBonks", customBonks);
+        });
+
+        // Throw Angle Max
+        bonkDetailsTable.querySelector(".throwAngleMaxOverride").checked = customBonks[index].throwAngleMaxOverride;
+        bonkDetailsTable.querySelector(".throwAngleMaxOverride").addEventListener("change", () => {
+            customBonks[index].throwAngleMaxOverride = bonkDetailsTable.querySelector(".throwAngleMaxOverride").checked;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".throwAngleMax").value = customBonks[index].throwAngleMax;
+        bonkDetailsTable.querySelector(".throwAngleMax").addEventListener("change", () => {
+            customBonks[index].throwAngleMax = parseInt(bonkDetailsTable.querySelector(".throwAngleMax").value);
+            setData("customBonks", customBonks);
+        });
+
+        // Items
+        bonkDetailsTable.querySelector(".itemsOverride").checked = customBonks[index].itemsOverride;
+        bonkDetailsTable.querySelector(".itemsOverride").addEventListener("change", () => {
+            customBonks[index].itemsOverride = bonkDetailsTable.querySelector(".itemsOverride").checked;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".items").addEventListener("click", () => {
+
+        });
+
+        // Sounds
+        bonkDetailsTable.querySelector(".soundsOverride").checked = customBonks[index].soundsOverride;
+        bonkDetailsTable.querySelector(".soundsOverride").addEventListener("change", () => {
+            customBonks[index].soundsOverride = bonkDetailsTable.querySelector(".soundsOverride").checked;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".sounds").addEventListener("click", () => {
+
+        });
+
+        // Impact Decals
+        bonkDetailsTable.querySelector(".impactDecalsOverride").checked = customBonks[index].impactDecalsOverride;
+        bonkDetailsTable.querySelector(".impactDecalsOverride").addEventListener("change", () => {
+            customBonks[index].impactDecalsOverride = bonkDetailsTable.querySelector(".impactDecalsOverride").checked;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".impactDecals").addEventListener("click", () => {
+
+        });
+
+        // Windup Sounds
+        bonkDetailsTable.querySelector(".windupSoundsOverride").checked = customBonks[index].windupSoundsOverride;
+        bonkDetailsTable.querySelector(".windupSoundsOverride").addEventListener("change", () => {
+            customBonks[index].windupSoundsOverride = bonkDetailsTable.querySelector(".windupSoundsOverride").checked;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".windupSounds").addEventListener("click", () => {
+
+        });
+
+        // Windup Delay
+        bonkDetailsTable.querySelector(".windupDelayOverride").checked = customBonks[index].windupDelayOverride;
+        bonkDetailsTable.querySelector(".windupDelayOverride").addEventListener("change", () => {
+            customBonks[index].windupDelayOverride = bonkDetailsTable.querySelector(".windupDelayOverride").checked;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".windupDelay").value = customBonks[index].windupDelay;
+        bonkDetailsTable.querySelector(".windupDelay").addEventListener("change", () => {
+            customBonks[index].windupDelay = parseFloat(bonkDetailsTable.querySelector(".windupDelay").value);
+            setData("customBonks", customBonks);
+        });
+    }
+}
+
+async function openBonks()
+{
+    var customBonks = await getData("customBonks");
+
+    document.querySelectorAll(".customBonkRow").forEach(element => { if (element.id != "bonkRow") element.remove(); });
+
+    if (customBonks == null)
+        setData("customBonks", []);
+    else
+    {
+        customBonks.forEach((_, index) =>
+        {
+            var row = document.querySelector("#customBonkRow").cloneNode(true);
+            row.id = "";
+            row.classList.add("customBonkRow");
+            row.removeAttribute("hidden");
+            document.querySelector("#bonksTable").appendChild(row);
+
+            row.querySelector(".bonkDetailsButton").addEventListener("click", () => {
+                bonkDetails(customBonks[index].name);
+            });
+
+            row.querySelector(".bonkName").value = customBonks[index].name;
+
+            row.querySelector(".bonkDelete").addEventListener("click", () => {
+                customBonks.splice(index, 1);
+                setData("customBonks", customBonks);
+                row.remove();
+            });
+        });
+    }
+}
 
 document.querySelector('#single').addEventListener('click', () => { ipcRenderer.send('single'); });
 document.querySelector('#startCalibrate').addEventListener('click', () => { ipcRenderer.send('startCalibrate'); });
@@ -430,7 +655,6 @@ document.querySelector('#cancelCalibrate').addEventListener('click', () => { ipc
 document.querySelector('#barrage').addEventListener('click', () => { ipcRenderer.send('barrage'); });
 document.querySelector('#bits').addEventListener('click', () => { ipcRenderer.send('bits'); });
 document.querySelector('#raid').addEventListener('click', () => { ipcRenderer.send('raid'); });
-document.querySelector("#oAuthLink").addEventListener('click', () => { ipcRenderer.send('oauth'); });
 
 ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
 
@@ -443,11 +667,6 @@ async function setStatus(_, message)
         document.querySelector("#statusDesc").innerHTML = statusDesc[status];
     else
         document.querySelector("#statusDesc").innerHTML = statusDesc[status][0] + await getData("portVTubeStudio") + statusDesc[status][1];
-
-    if (status == 1)
-        document.querySelector("#oAuthButton").classList.remove("hide");
-    else
-        document.querySelector("#oAuthButton").classList.add("hide");
 
     if (status == 3 || status == 4 || status == 9)
     {
@@ -487,17 +706,12 @@ async function loadData(field)
 
 window.onload = function()
 {
-    loadData("singleRedeemEnabled");
-    loadData("barrageRedeemEnabled");
     loadData("singleCommandEnabled");
     loadData("barrageCommandEnabled");
     loadData("subEnabled");
     loadData("subGiftEnabled");
     loadData("bitsEnabled");
     loadData("raidEnabled");
-
-    loadData("singleRedeemID");
-    loadData("barrageRedeemID");
 
     loadData("singleCommandTitle");
     loadData("barrageCommandTitle");
@@ -506,8 +720,6 @@ window.onload = function()
     loadData("bitsMaxBarrageCount");
     loadData("raidMaxBarrageCount");
 
-    loadData("singleRedeemCooldown");
-    loadData("barrageRedeemCooldown");
     loadData("singleCommandCooldown");
     loadData("barrageCommandCooldown");
     loadData("subCooldown");
@@ -529,20 +741,14 @@ window.onload = function()
     loadData("volume");
     loadData("portThrower");
     loadData("portVTubeStudio");
-    loadData("accessToken");
 }
 
-document.querySelector("#singleRedeemEnabled").addEventListener("change", () => setData("singleRedeemEnabled", document.querySelector("#singleRedeemEnabled").checked));
-document.querySelector("#barrageRedeemEnabled").addEventListener("change", () => setData("barrageRedeemEnabled", document.querySelector("#barrageRedeemEnabled").checked));
 document.querySelector("#singleCommandEnabled").addEventListener("change", () => setData("singleCommandEnabled", document.querySelector("#singleCommandEnabled").checked));
 document.querySelector("#barrageCommandEnabled").addEventListener("change", () => setData("barrageCommandEnabled", document.querySelector("#barrageCommandEnabled").checked));
 document.querySelector("#subEnabled").addEventListener("change", () => setData("subEnabled", document.querySelector("#subEnabled").checked));
 document.querySelector("#subGiftEnabled").addEventListener("change", () => setData("subGiftEnabled", document.querySelector("#subGiftEnabled").checked));
 document.querySelector("#bitsEnabled").addEventListener("change", () => setData("bitsEnabled", document.querySelector("#bitsEnabled").checked));
 document.querySelector("#raidEnabled").addEventListener("change", () => setData("raidEnabled", document.querySelector("#raidEnabled").checked));
-
-document.querySelector("#singleRedeemID").addEventListener("click", () => { ipcRenderer.send('listenSingle'); });
-document.querySelector("#barrageRedeemID").addEventListener("click", () => { ipcRenderer.send('listenBarrage'); });
 
 document.querySelector("#singleCommandTitle").addEventListener("change", () => setData("singleCommandTitle", document.querySelector("#singleCommandTitle").value));
 document.querySelector("#barrageCommandTitle").addEventListener("change", () => setData("barrageCommandTitle", document.querySelector("#barrageCommandTitle").value));
@@ -551,8 +757,6 @@ document.querySelector("#subGiftType").addEventListener("change", () => setData(
 document.querySelector("#bitsMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#bitsMaxBarrageCount"), 0, null); setData("bitsMaxBarrageCount", parseInt(document.querySelector("#bitsMaxBarrageCount").value)) });
 document.querySelector("#raidMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#raidMaxBarrageCount"), 0, null); setData("raidMaxBarrageCount", parseInt(document.querySelector("#raidMaxBarrageCount").value)) });
 
-document.querySelector("#singleRedeemCooldown").addEventListener("change", () => { clampValue(document.querySelector("#singleRedeemCooldown"), 0, null); setData("singleRedeemCooldown", parseFloat(document.querySelector("#singleRedeemCooldown").value)) });
-document.querySelector("#barrageRedeemCooldown").addEventListener("change", () => { clampValue(document.querySelector("#barrageRedeemCooldown"), 0, null); setData("barrageRedeemCooldown", parseFloat(document.querySelector("#barrageRedeemCooldown").value)) });
 document.querySelector("#singleCommandCooldown").addEventListener("change", () => { clampValue(document.querySelector("#singleCommandCooldown"), 0, null); setData("singleCommandCooldown", parseFloat(document.querySelector("#singleCommandCooldown").value)) });
 document.querySelector("#barrageCommandCooldown").addEventListener("change", () => { clampValue(document.querySelector("#barrageCommandCooldown"), 0, null); setData("barrageCommandCooldown", parseFloat(document.querySelector("#barrageCommandCooldown").value)) });
 document.querySelector("#subCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subCooldown"), 0, null); setData("subCooldown", parseFloat(document.querySelector("#subCooldown").value)) });
@@ -593,7 +797,6 @@ document.querySelector("#delay").addEventListener("change", () => { clampValue(d
 document.querySelector("#volume").addEventListener("change", () => { clampValue(document.querySelector("#volume"), 0, 1); setData("volume", parseFloat(document.querySelector("#volume").value)) });
 document.querySelector("#portThrower").addEventListener("change", () => setData("portThrower", parseInt(document.querySelector("#portThrower").value)));
 document.querySelector("#portVTubeStudio").addEventListener("change", () => setData("portVTubeStudio", parseInt(document.querySelector("#portVTubeStudio").value)));
-document.querySelector("#accessToken").addEventListener("change", () => setData("accessToken", document.querySelector("#accessToken").value));
 
 function clampValue(node, min, max)
 {
@@ -639,7 +842,7 @@ function setData(field, value)
 
 async function setPorts()
 {
-    fs.writeFileSync(__dirname + "/ports.js", "var ports = [ " + await getData("portThrower") + ", " + await getData("portVTubeStudio") + " ];");
+    fs.writeFileSync(__dirname + "/ports.js", "const ports = [ " + await getData("portThrower") + ", " + await getData("portVTubeStudio") + " ];");
 }
 
 document.querySelector('#HelpButton').addEventListener('click', () => { showPanel("help"); });
@@ -711,6 +914,8 @@ function openPanel(panel)
         openSounds();
     else if (panel == "bitSounds")
         openBitSounds();
+    else if (panel == "bonks")
+        openBonks();
 
     currentPanel = document.querySelector("#" + panel);
 
@@ -754,7 +959,7 @@ function openPanel(panel)
 // In response to raid event from main process.
 // Do the HTTP request here, since it's already a browser of sorts, and send the response back.
 ipcRenderer.on("raid", (event, message) => { getRaidEmotes(event, message); });
-async function getRaidEmotes(_, raider)
+function getRaidEmotes(_, data)
 {
   var channelEmotes = new XMLHttpRequest();
   channelEmotes.onreadystatechange = function() {
@@ -765,8 +970,14 @@ async function getRaidEmotes(_, raider)
       }
   };
   // Open the request and send it.
-  channelEmotes.open("GET", "https://api.twitch.tv/helix/chat/emotes?broadcaster_id=" + raider, true);
-  channelEmotes.setRequestHeader("Authorization", "Bearer " + await getData("accessToken"));
+  channelEmotes.open("GET", "https://api.twitch.tv/helix/chat/emotes?broadcaster_id=" + data[0], true);
+  channelEmotes.setRequestHeader("Authorization", "Bearer " + data[1]);
   channelEmotes.setRequestHeader("Client-Id", "u4rwa52hwkkgyoyow0t3gywxyv54pg");
   channelEmotes.send();
+}
+
+async function testItem(index)
+{
+    const throws = await getData("throws");
+    ipcRenderer.send('testItem', throws[index]);
 }
