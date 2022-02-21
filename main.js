@@ -1,12 +1,17 @@
-const { app, Menu, Tray, BrowserWindow, ipcMain } = require('electron');
-const { PubSubClient } = require('twitch-pubsub-client');
-const { ChatClient } = require('twitch-chat-client');
+const { app, Menu, Tray, BrowserWindow, ipcMain } = require("electron");
+const { ApiClient } = require("@twurple/api");
+const { PubSubClient } = require("@twurple/pubsub");
+const { ChatClient } = require("@twurple/chat");
+const { ElectronAuthProvider } = require("@twurple/auth-electron");
+const fs = require("fs");
 
 var mainWindow;
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 750,
+    width: 1024,
+    height: 768,
+    minWidth: 1024,
+    minHeight: 768,
     icon: __dirname + "/icon.ico",
     webPreferences: {
       nodeIntegration: true,
@@ -14,16 +19,16 @@ const createWindow = () => {
       enableRemoteModule: true
     }
   })
+  
+  mainWindow.loadFile("index.html")
 
-  mainWindow.setResizable(false);
-  mainWindow.loadFile('index.html')
-
-  mainWindow.on('restore', () => {
-    mainWindow.setSkipTaskbar(false)
+  // Minimizing to and restoring from tray
+  mainWindow.on("minimize", () => {
+    mainWindow.setSkipTaskbar(true)
   });
 
-  mainWindow.on('minimize', () => {
-    mainWindow.setSkipTaskbar(true)
+  mainWindow.on("restore", () => {
+    mainWindow.setSkipTaskbar(false)
   });
 }
 
@@ -31,26 +36,92 @@ var tray = null;
 app.whenReady().then(() => {
   tray = new Tray(__dirname + "/icon.ico");
   var contextMenu = Menu.buildFromTemplate([
-    { label: 'Open', click: () => { mainWindow.restore(); } },
-    { label: 'Quit', role: 'quit' }
+    { label: "Open", click: () => { mainWindow.restore(); } },
+    { label: "Quit", role: "quit" }
   ]);
   tray.setContextMenu(contextMenu)
   tray.on("click", () => { mainWindow.restore(); });
 
   createWindow();
 
-  app.on('activate', () => {
+  app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
-})
+});
 
-var open = true;
+app.on("window-all-closed", () => {
+  exiting = true;
+  if (process.platform !== "darwin") app.quit()
+});
+
+// --------------
+// Authentication
+// --------------
+
+var authProvider, token, apiClient, chatClient, userID, authenticated = false, authenticating = false, listenersActive = false;
+
+// Retry authorization every 3 seconds
+setInterval(() => {
+  if (!authenticated && !authenticating)
+    authenticate();
+}, 3000);
+
+// Attempt authorization
+async function authenticate() {
+  const clientId = "u4rwa52hwkkgyoyow0t3gywxyv54pg";
+  const redirectUri = "https://twitchapps.com/tokengen/&scope=chat%3Aread%20chat%3Aedit%20channel%3Aread%3Aredemptions%20channel_subscriptions%20bits%3Aread";
+
+  // Prevent retrying authentication while signing in
+  authenticating = true;
+  authProvider = new ElectronAuthProvider({ clientId, redirectUri });
+
+  // Ensure token was successfully acquired
+  token = await authProvider.getAccessToken();
+  if (token != null)
+  {
+    authenticated = true;
+    apiClient = new ApiClient({ authProvider });
+    pubSub(apiClient);
+  }
+
+  authenticating = false;
+}
+
+// Event listeners
+async function pubSub(apiClient) {
+  const pubSubClient = new PubSubClient();
+  userID = await pubSubClient.registerUserListener(authProvider);
+
+  // PubSub Event Listeners
+  console.log("Listening to Redemptions");
+  await pubSubClient.onRedemption(userID, onRedeemHandler);
+  console.log("Listening to Subs");
+  await pubSubClient.onSubscription(userID, onSubHandler);
+  console.log("Listening to Bits");
+  await pubSubClient.onBits(userID, onBitsHandler);
+
+  const user = await apiClient.helix.users.getUserById(userID);
+  chatClient = new ChatClient({ authProvider, channels: [user.name] });
+  await chatClient.connect();
+
+  // Chat Event Listeners
+  console.log("Listening to Messages");
+  chatClient.onMessage(onMessageHandler);
+  console.log("Listening to Raids");
+  chatClient.onRaid(onRaidHandler);
+
+  // Done enabling listeners
+  listenersActive = true;
+}
+
+// Periodically reporting status back to renderer
+var exiting = false;
 setInterval(() => {
   if (mainWindow != null)
   {
     var status = 0;
     if (!authenticated)
-      status = 1
+      status = 1;
     else if (!listenersActive)
       status = 8;
     else if (socket == null)
@@ -61,112 +132,41 @@ setInterval(() => {
       status = 4;
     else if (!connectedVTube)
       status = 5;
-    else if (listeningSingle)
+    else if (listening)
       status = 6;
-    else if (listeningBarrage)
-      status = 7;
     else if (calibrateStage == -1)
-      status = 9;
+      status = 7;
   
-    if (open)
+    if (!exiting)
       mainWindow.webContents.send("status", status);
   }
 }, 100);
 
-var listeningSingle = false, listeningBarrage = false;
-ipcMain.on('listenSingle', () => listenSingle());
-ipcMain.on('listenBarrage', () => listenBarrage());
-
-function listenSingle()
-{
-  listeningBarrage = false;
-  listeningSingle = !listeningSingle;
-}
-
-function listenBarrage()
-{
-  listeningSingle = false;
-  listeningBarrage = !listeningBarrage;
-}
-
-app.on('window-all-closed', () => {
-  open = false;
-  if (process.platform !== 'darwin') app.quit()
-})
-
-// Main process code
-const fs = require("fs");
+// Loading data from file
+// If no data exists, create data from default data file
 const defaultData = JSON.parse(fs.readFileSync(__dirname + "/defaultData.json", "utf8"));
 if (!fs.existsSync(__dirname + "/data.json"))
   fs.writeFileSync(__dirname + "/data.json", JSON.stringify(defaultData));
 var data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
 
-// PubSub authentication for listening to events
-const { ApiClient } = require('twitch');
-const { ElectronAuthProvider  } = require('twitch-electron-auth-provider');
-var authProvider, token, apiClient, chatClient, userID;
+// ----------------
+// Websocket Server
+// ----------------
 
-var listenersActive = false;
-async function pubSub(apiClient) {
-  const pubSubClient = new PubSubClient();
-
-  userID = await pubSubClient.registerUserListener(apiClient);
-  const user = await apiClient.helix.users.getUserById(userID);
-  chatClient = new ChatClient(authProvider, { channels: [user.name] });
-
-  console.log("Listening to Redemptions");
-  await pubSubClient.onRedemption(userID, onRedeemHandler);
-  console.log("Listening to Subs");
-  await pubSubClient.onSubscription(userID, onSubHandler);
-  console.log("Listening to Bits");
-  await pubSubClient.onBits(userID, onBitsHandler);
-
-  console.log("Listening to Messages");
-  await chatClient.connect();
-  chatClient.onMessage(onMessageHandler);
-  console.log("Listening to Raids");
-  chatClient.onRaid(onRaidHandler);
-  listenersActive = true;
-}
-
-var authenticated = false, authenticating = false;
-setInterval(() => {
-  if (!authenticated && !authenticating)
-    authenticate();
-}, 3000);
-
-async function authenticate() {
-  data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
-  const clientId = "u4rwa52hwkkgyoyow0t3gywxyv54pg";
-  const redirectUri = "https://twitchapps.com/tokengen/&scope=chat%3Aread%20chat%3Aedit%20channel%3Aread%3Aredemptions%20channel_subscriptions%20bits%3Aread";
-
-  authenticating = true;
-  authProvider = new ElectronAuthProvider({ clientId, redirectUri });
-  authenticating = false;
-
-  token = await authProvider.getAccessToken();
-  if (token != null)
-  {
-    authenticated = true;
-    authenticating = false;
-    apiClient = new ApiClient({ authProvider });
-    pubSub(apiClient);
-  }
-}
-
-// Websocket server for browser source
 const WebSocket = require("ws");
 
 const wss = new WebSocket.Server({ port: data.portThrower });
 
 var socket, connectedVTube = false;
 
-wss.on('connection', function connection(ws)
+wss.on("connection", function connection(ws)
 {
   socket = ws;
-  ws.on('message', function message(request)
+  
+  socket.on("message", function message(request)
   {
     request = JSON.parse(request);
+
     if (request.type == "calibrating")
     {
       switch (request.stage)
@@ -202,198 +202,20 @@ wss.on('connection', function connection(ws)
     else if (request.type == "status")
       connectedVTube = request.connectedVTube;
   });
-  ws.on('close', function message()
+
+  ws.on("close", function message()
   {
     socket = null;
   });
 });
 
-function getImageWeightScaleSoundVolume()
-{
-  var index;
-  do {
-    index = Math.floor(Math.random() * data.throws.length);
-  } while (!data.throws[index].enabled);
+// -----------------
+// Model Calibration
+// -----------------
 
-  var soundIndex;
-  if (hasActiveSound())
-  {
-    do {
-      soundIndex = Math.floor(Math.random() * data.impacts.length);
-    } while (!data.impacts[soundIndex].enabled);
-  }
-
-  return {
-    "location": data.throws[index].location,
-    "weight": data.throws[index].weight,
-    "scale": data.throws[index].scale,
-    "sound": data.throws[index].sound != null ? data.throws[index].sound : hasActiveSound() ? data.impacts[soundIndex].location : null,
-    "volume": data.throws[index].sound != null ? data.throws[index].volume : hasActiveSound() ? data.impacts[soundIndex].volume : 0
-  };
-}
-
-function getImagesWeightsScalesSoundsVolumes()
-{
-  var getImagesWeightsScalesSoundsVolumes = [];
-
-  for (var i = 0; i < data.barrageCount; i++)
-    getImagesWeightsScalesSoundsVolumes.push(getImageWeightScaleSoundVolume());
-
-  return getImagesWeightsScalesSoundsVolumes;
-}
-
-ipcMain.on('single', () => single());
-ipcMain.on('barrage', () => barrage());
-ipcMain.on('bits', () => onBitsHandler());
-ipcMain.on('raid', () => onRaidHandler());
-
-ipcMain.on('testItem', (event, message) => handleRaidEmotes(event, message));
-
-function testItem(_, item)
-{
-  console.log("Testing Item");
-  if (socket != null)
-  {
-    var request =
-    {
-      "type": "single",
-      "image": item.location,
-      "weight": item.weight,
-      "scale": item.scale,
-      "sound": item.sound,
-      "volume": item.volume,
-      "data": data
-    }
-    socket.send(JSON.stringify(request));
-  }
-}
-
-function single()
-{
-  console.log("Sending Single");
-  if (socket != null && hasActiveImage()) {
-    const imageWeightScaleSoundVolume = getImageWeightScaleSoundVolume();
-
-    var request =
-    {
-      "type": "single",
-      "image": imageWeightScaleSoundVolume.location,
-      "weight": imageWeightScaleSoundVolume.weight,
-      "scale": imageWeightScaleSoundVolume.scale,
-      "sound": imageWeightScaleSoundVolume.sound,
-      "volume": imageWeightScaleSoundVolume.volume,
-      "data": data
-    }
-    socket.send(JSON.stringify(request));
-  }
-}
-
-function barrage()
-{
-  console.log("Sending Barrage");
-  if (socket != null && hasActiveImage()) {
-    const imagesWeightsScalesSoundsVolumes = getImagesWeightsScalesSoundsVolumes();
-    var images = [], weights = [], scales = [], sounds = [], volumes = [];
-    for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
-      images[i] = imagesWeightsScalesSoundsVolumes[i].location;
-      weights[i] = imagesWeightsScalesSoundsVolumes[i].weight;
-      scales[i] = imagesWeightsScalesSoundsVolumes[i].scale;
-      sounds[i] = imagesWeightsScalesSoundsVolumes[i].sound;
-      volumes[i] = imagesWeightsScalesSoundsVolumes[i].volume;
-    }
-
-    var request = {
-      "type": "barrage",
-      "image": images,
-      "weight": weights,
-      "scale": scales,
-      "sound": sounds,
-      "volume": volumes,
-      "data": data
-    }
-    socket.send(JSON.stringify(request));
-  }
-}
-
-function getCustomImageWeightScaleSoundVolume(customName)
-{
-  var index;
-  if (hasActiveImageCustom(customName))
-  {
-    do {
-      index = Math.floor(Math.random() * data.throws.length);
-    } while (!data.bonks[customName].throws[index].enabled);
-  }
-  else
-  {
-    do {
-      index = Math.floor(Math.random() * data.throws.length);
-    } while (!data.throws[index].enabled);
-  }
-
-  var soundIndex;
-  if (hasActiveSoundCustom(customName))
-  {
-    do {
-      soundIndex = Math.floor(Math.random() * data.impacts.length);
-    } while (!data.bonks[customName].impacts[soundIndex].enabled);
-  }
-  else if (hasActiveSound)
-  {
-    do {
-      soundIndex = Math.floor(Math.random() * data.impacts.length);
-    } while (!data.impacts[soundIndex].enabled);
-  }
-
-  return {
-    "location": data.bonks[customName].throws[index].location,
-    "weight": data.bonks[customName].throws[index].weight,
-    "scale": data.bonks[customName].throws[index].scale,
-    "sound": data.bonks[customName].throws[index].sound != null ? data.bonks[customName].throws[index].sound : hasActiveSound() ? data.bonks[customName].impacts[soundIndex].location : null,
-    "volume": data.bonks[customName].throws[index].sound != null ? data.bonks[customName].throws[index].volume : hasActiveSound() ? data.bonks[customName].impacts[soundIndex].volume : 0
-  };
-}
-
-function getCustomImagesWeightsScalesSoundsVolumes(customName)
-{
-  var getImagesWeightsScalesSoundsVolumes = [];
-
-  for (var i = 0; i < data.bonks[customName].barrageCount; i++)
-    getImagesWeightsScalesSoundsVolumes.push(getCustomImageWeightScaleSoundVolume(customName));
-
-  return getImagesWeightsScalesSoundsVolumes;
-}
-
-function custom(customName)
-{
-  console.log("Sending Custom");
-  if (socket != null && (hasActiveImageCustom(customName) || hasActiveImage())) {
-    const imagesWeightsScalesSoundsVolumes = getCustomImagesWeightsScalesSoundsVolumes(customName);
-    var images = [], weights = [], scales = [], sounds = [], volumes = [];
-    for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
-      images[i] = imagesWeightsScalesSoundsVolumes[i].location;
-      weights[i] = imagesWeightsScalesSoundsVolumes[i].weight;
-      scales[i] = imagesWeightsScalesSoundsVolumes[i].scale;
-      sounds[i] = imagesWeightsScalesSoundsVolumes[i].sound;
-      volumes[i] = imagesWeightsScalesSoundsVolumes[i].volume;
-    }
-
-    var request = {
-      "type": customName,
-      "image": images,
-      "weight": weights,
-      "scale": scales,
-      "sound": sounds,
-      "volume": volumes,
-      "data": data
-    }
-    socket.send(JSON.stringify(request));
-  }
-}
-
-ipcMain.on('startCalibrate', () => startCalibrate());
-ipcMain.on('nextCalibrate', () => nextCalibrate());
-ipcMain.on('cancelCalibrate', () => cancelCalibrate());
+ipcMain.on("startCalibrate", () => startCalibrate());
+ipcMain.on("nextCalibrate", () => nextCalibrate());
+ipcMain.on("cancelCalibrate", () => cancelCalibrate());
 
 var calibrateStage = -2;
 function startCalibrate()
@@ -432,6 +254,238 @@ function calibrate()
   socket.send(JSON.stringify(request));
 }
 
+// -----
+// Bonks
+// -----
+
+// Acquire a random image, sound, and associated properties
+function getImageWeightScaleSoundVolume()
+{
+  var index;
+  do {
+    index = Math.floor(Math.random() * data.throws.length);
+  } while (!data.throws[index].enabled);
+
+  var soundIndex = -1;
+  if (hasActiveSound())
+  {
+    do {
+      soundIndex = Math.floor(Math.random() * data.impacts.length);
+    } while (!data.impacts[soundIndex].enabled);
+  }
+
+  return {
+    "location": data.throws[index].location,
+    "weight": data.throws[index].weight,
+    "scale": data.throws[index].scale,
+    "sound": data.throws[index].sound != null ? data.throws[index].sound : soundIndex != -1 ? data.impacts[soundIndex].location : null,
+    "volume": data.throws[index].sound != null ? data.throws[index].volume : soundIndex != -1 ? data.impacts[soundIndex].volume : 0
+  };
+}
+
+// Acquire a set of images, sounds, and associated properties for a default barrage
+function getImagesWeightsScalesSoundsVolumes()
+{
+  var getImagesWeightsScalesSoundsVolumes = [];
+
+  for (var i = 0; i < data.barrageCount; i++)
+    getImagesWeightsScalesSoundsVolumes.push(getImageWeightScaleSoundVolume());
+
+  return getImagesWeightsScalesSoundsVolumes;
+}
+
+// Test Events
+ipcMain.on("single", () => single());
+ipcMain.on("barrage", () => barrage());
+ipcMain.on("bits", () => onBitsHandler());
+ipcMain.on("raid", () => onRaidHandler());
+
+// Testing a specific item
+ipcMain.on("testItem", (event, message) => testItem(event, message));
+
+function testItem(_, item)
+{
+  console.log("Testing Item");
+  if (socket != null)
+  {
+    var soundIndex = -1;
+    if (hasActiveSound())
+    {
+      do {
+        soundIndex = Math.floor(Math.random() * data.impacts.length);
+      } while (!data.impacts[soundIndex].enabled);
+    }
+    
+    var request =
+    {
+      "type": "single",
+      "image": item.location,
+      "weight": item.weight,
+      "scale": item.scale,
+      "sound": item.sound == null && soundIndex != -1 ? data.impacts[soundIndex].location : item.sound,
+      "volume": item.volume == null && soundIndex != -1 ? data.impacts[soundIndex].volume : item.volume,
+      "data": data
+    }
+    socket.send(JSON.stringify(request));
+  }
+}
+
+// A single random bonk
+function single()
+{
+  console.log("Sending Single");
+  if (socket != null && hasActiveImage()) {
+    const imageWeightScaleSoundVolume = getImageWeightScaleSoundVolume();
+
+    var request =
+    {
+      "type": "single",
+      "image": imageWeightScaleSoundVolume.location,
+      "weight": imageWeightScaleSoundVolume.weight,
+      "scale": imageWeightScaleSoundVolume.scale,
+      "sound": imageWeightScaleSoundVolume.sound,
+      "volume": imageWeightScaleSoundVolume.volume,
+      "data": data
+    }
+    socket.send(JSON.stringify(request));
+  }
+}
+
+// A random barrage of bonks
+function barrage()
+{
+  console.log("Sending Barrage");
+  if (socket != null && hasActiveImage()) {
+    const imagesWeightsScalesSoundsVolumes = getImagesWeightsScalesSoundsVolumes();
+    var images = [], weights = [], scales = [], sounds = [], volumes = [];
+    for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
+      images[i] = imagesWeightsScalesSoundsVolumes[i].location;
+      weights[i] = imagesWeightsScalesSoundsVolumes[i].weight;
+      scales[i] = imagesWeightsScalesSoundsVolumes[i].scale;
+      sounds[i] = imagesWeightsScalesSoundsVolumes[i].sound;
+      volumes[i] = imagesWeightsScalesSoundsVolumes[i].volume;
+    }
+
+    var request = {
+      "type": "barrage",
+      "image": images,
+      "weight": weights,
+      "scale": scales,
+      "sound": sounds,
+      "volume": volumes,
+      "data": data
+    }
+    socket.send(JSON.stringify(request));
+  }
+}
+
+// Acquire an image, sound, and associated properties for a custom bonk
+function getCustomImageWeightScaleSoundVolume(customName)
+{
+  var index;
+  if (hasActiveImageCustom(customName))
+  {
+    do {
+      index = Math.floor(Math.random() * data.throws.length);
+    } while (!data.customBonks[customName].throws[index].enabled);
+  }
+  else
+  {
+    do {
+      index = Math.floor(Math.random() * data.throws.length);
+    } while (!data.throws[index].enabled);
+  }
+
+  var soundIndex = -1;
+  if (hasActiveSoundCustom(customName))
+  {
+    do {
+      soundIndex = Math.floor(Math.random() * data.impacts.length);
+    } while (!data.customBonks[customName].impacts[soundIndex].enabled);
+  }
+  else if (hasActiveSound)
+  {
+    do {
+      soundIndex = Math.floor(Math.random() * data.impacts.length);
+    } while (!data.impacts[soundIndex].enabled);
+  }
+
+  var impactDecalIndex = -1;
+  if (hasActiveImpactDecal(customName))
+  {
+    do {
+      impactDecalIndex = Math.floor(Math.random() * data.customBonks[customName].impactDecals.length);
+    } while (!data.customBonks[customName].impactDecals[impactDecalIndex].enabled);
+  }
+
+  var windupSoundIndex = -1;
+  if (hasActiveWindupSound(customName))
+  {
+    do {
+      windupSoundIndex = Math.floor(Math.random() * data.customBonks[customName].windupSounds.length);
+    } while (!data.customBonks[customName].windupSounds[windupSoundIndex].enabled);
+  }
+
+  return {
+    "location": data.customBonks[customName].throws[index].location,
+    "weight": data.customBonks[customName].throws[index].weight,
+    "scale": data.customBonks[customName].throws[index].scale,
+    "sound": data.customBonks[customName].throws[index].sound != null ? data.customBonks[customName].throws[index].sound : soundIndex != -1 ? data.customBonks[customName].impacts[soundIndex].location : null,
+    "volume": data.customBonks[customName].throws[index].sound != null ? data.customBonks[customName].throws[index].volume : soundIndex != -1 ? data.customBonks[customName].impacts[soundIndex].volume : 0,
+    "impactDecal": impactDecalIndex != -1 ? data.customBonks[customName].impactDecals[impactDecalIndex] : null,
+    "windupSound": windupSoundIndex != -1 ? data.customBonks[customName].windupSounds[windupSoundIndex] : null
+  };
+}
+
+// Acquire a set of images, sounds, and associated properties for a custom bonk
+function getCustomImagesWeightsScalesSoundsVolumes(customName)
+{
+  var getImagesWeightsScalesSoundsVolumes = [];
+
+  for (var i = 0; i < data.customBonks[customName].barrageCount; i++)
+    getImagesWeightsScalesSoundsVolumes.push(getCustomImageWeightScaleSoundVolume(customName));
+
+  return getImagesWeightsScalesSoundsVolumes;
+}
+
+ipcMain.on("testCustomBonk", (_, message) => custom(message));
+
+// A custom bonk test
+function custom(customName)
+{
+  console.log("Sending Custom");
+  if (socket != null && (hasActiveImageCustom(customName) || hasActiveImage())) {
+    const imagesWeightsScalesSoundsVolumes = getCustomImagesWeightsScalesSoundsVolumes(customName);
+    var images = [], weights = [], scales = [], sounds = [], volumes = [], impactDecals = [], windupSounds = [];
+    for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
+      images[i] = imagesWeightsScalesSoundsVolumes[i].location;
+      weights[i] = imagesWeightsScalesSoundsVolumes[i].weight;
+      scales[i] = imagesWeightsScalesSoundsVolumes[i].scale;
+      sounds[i] = imagesWeightsScalesSoundsVolumes[i].sound;
+      volumes[i] = imagesWeightsScalesSoundsVolumes[i].volume;
+      impactDecals[i] = imagesWeightsScalesSoundsVolumes[i].impactDecal;
+      windupSounds[i] = imagesWeightsScalesSoundsVolumes[i].windupSound;
+    }
+
+    var request = {
+      "type": customName,
+      "image": images,
+      "weight": weights,
+      "scale": scales,
+      "sound": sounds,
+      "volume": volumes,
+      "impactDecal": impactDecals,
+      "windupSound": windupSounds,
+      "data": data
+    }
+    socket.send(JSON.stringify(request));
+  }
+}
+
+// ----
+// Data
+// ----
+
 ipcMain.on("setData", (_, arg) =>
 {
   setData(arg[0], arg[1], true);
@@ -445,71 +499,195 @@ function setData(field, value, external)
     mainWindow.webContents.send("doneWriting");
 }
 
-var canSingleCommand = true, canBarrageCommand = true;
+function hasActiveImage()
+{
+  if (data.throws == null || data.throws.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.throws.length; i++)
+  {
+    if (data.throws[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
+}
+
+function hasActiveImageCustom(customName)
+{
+  if (data.customBonks[customName].throws == null || data.customBonks[customName].throws.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.customBonks[customName].throws.length; i++)
+  {
+    if (data.customBonks[customName].throws[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
+}
+
+function hasActiveImpactDecal(customName)
+{
+  if (data.customBonks[customName].impactDecals == null || data.customBonks[customName].impactDecals.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.customBonks[customName].impactDecals.length; i++)
+  {
+    if (data.customBonks[customName].impactDecals[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
+}
+
+function hasActiveWindupSound(customName)
+{
+  if (data.customBonks[customName].windupSounds == null || data.customBonks[customName].windupSounds.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.customBonks[customName].windupSounds.length; i++)
+  {
+    if (data.customBonks[customName].windupSounds[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
+}
+
+function hasActiveSound()
+{
+  if (data.impacts == null || data.impacts.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.impacts.length; i++)
+  {
+    if (data.impacts[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
+}
+
+function hasActiveSoundCustom(customName)
+{
+  if (data.customBonks[customName].impacts == null || data.customBonks[customName].impacts.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.customBonks[customName].impacts.length; i++)
+  {
+    if (data.customBonks[customName].impacts[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
+}
+
+function hasActiveBitSound()
+{
+  if (data.bitImpacts == null || data.bitImpacts.length == 0)
+    return false;
+
+  var active = false;
+  for (var i = 0; i < data.bitImpacts.length; i++)
+  {
+    if (data.bitImpacts[i].enabled)
+    {
+      active = true;
+      break;
+    }
+  }
+  return active;
+}
+
+// --------------
+// Event Handlers
+// --------------
+
+var commandCooldowns = {};
 function onMessageHandler(_, _, message)
 {
   console.log("Received Message");
-  if (canSingleCommand && data.singleCommandEnabled && message.toLowerCase() == data.singleCommandTitle.toLowerCase())
+
+  if (data.commands != null)
   {
-    single();
-    if (data.singleCommandCooldown > 0)
+    for (var i = 0; i < data.commands.length; i++)
     {
-      canSingleCommand = false;
-      setTimeout(() => { canSingleCommand = true; }, data.singleCommandCooldown * 1000);
-    }
-  }
-  else if (canBarrageCommand && data.barrageCommandEnabled && message.toLowerCase() == data.barrageCommandTitle.toLowerCase())
-  {
-    barrage();
-    if (data.barrageCommandCooldown > 0)
-    {
-      canBarrageCommand = false;
-      setTimeout(() => { canBarrageCommand = true; }, data.barrageCommandCooldown * 1000);
+      if (data.commands[i].name != "" && data.commands[i].name.toLowerCase() == message.toLowerCase() && commandCooldowns[data.commands[i].name.toLowerCase()] == null)
+      {
+        switch (data.commands[i].bonkType)
+        {
+          case "single":
+            single();
+            break;
+          case "barrage":
+            barrage();
+            break;
+          default:
+            custom(data.redeems[i].bonkType);
+            break;
+        }
+
+        commandCooldowns[data.commands[i].name.toLowerCase()] = true;
+        setTimeout(() => { delete commandCooldowns[data.commands[i].name.toLowerCase()]; }, data.commands[i].cooldown * 1000);
+        break;
+      }
     }
   }
 }
 
-var canSingleRedeem = true, canBarrageRedeem = true
+ipcMain.on("listenRedeemStart", () => { listening = true; });
+ipcMain.on("listenRedeemCancel", () => { listening = false; });
+
+var listening = false;
 async function onRedeemHandler(redemptionMessage)
 {
   const reward = await apiClient.helix.channelPoints.getCustomRewardById(redemptionMessage.channelId, redemptionMessage.rewardId);
-  console.log(reward.title);
 
-  if (listeningSingle)
+  if (listening)
   {
-    setData("singleRedeemID", redemptionMessage.rewardId, false);
-    listeningSingle = false;
+    mainWindow.webContents.send("redeemData", [ redemptionMessage.rewardId, reward.title ] );
+    listening = false;
   }
-  else if (listeningBarrage)
+  else if (data.redeems != null)
   {
-    setData("barrageRedeemID", redemptionMessage.rewardId, false);
-    listeningBarrage = false;
-  }
-  else
-  {
-    switch (redemptionMessage.rewardId) {
-      case data.singleRedeemID:
-        if (canSingleRedeem && data.singleRedeemEnabled)
+    for (var i = 0; i < data.redeems.length; i++)
+    {
+      if (data.redeems[i].id == redemptionMessage.rewardId)
+      {
+        switch (data.redeems[i].bonkType)
         {
-          single();
-          if (data.singleRedeemCooldown > 0)
-          {
-            canSingleRedeem = false;
-            setTimeout(() => { canSingleRedeem = true; }, data.singleRedeemCooldown * 1000);
-          }
+          case "single":
+            single();
+            break;
+          case "barrage":
+            barrage();
+            break;
+          default:
+            custom(data.redeems[i].bonkType);
+            break;
         }
+
         break;
-      case data.barrageRedeemID:
-        if (canBarrageRedeem && data.barrageRedeemEnabled)
-        {
-          barrage();
-          if (data.barrageRedeemCooldown > 0)
-          {
-            canBarrageRedeem = false;
-            setTimeout(() => { canBarrageRedeem = true; }, data.barrageRedeemCooldown * 1000);
-          }
-        }
-        break;
+      }
     }
   }
 }
@@ -517,25 +695,46 @@ async function onRedeemHandler(redemptionMessage)
 var canSub = true, canSubGift = true;
 function onSubHandler(subMessage)
 {
-  if (canSub && data.subEnabled && !subMessage.isGift) {
-    if (data.subType == "barrage")
-      barrage();
-    else
-      single();
+  if (canSub && data.subEnabled && !subMessage.isGift)
+  {
+    switch (data.subBonkType)
+    {
+      case "single":
+        single();
+        break;
+      case "barrage":
+        barrage();
+        break;
+      default:
+        custom(data.subBonkType);
+        break;
+    }
+
     if (data.subCooldown > 0)
     {
       canSub = false;
       setTimeout(() => { canSub = true; }, data.subCooldown * 1000);
     }
-  } else if (canSubGift && data.subGiftEnabled && subMessage.isGift) {
-    if (data.subGiftType == "barrage")
-      barrage();
-    else
-      single();
+  }
+  else if (canSubGift && data.subGiftEnabled && subMessage.isGift)
+  {
+    switch (data.subGiftBonkType)
+    {
+      case "single":
+        single();
+        break;
+      case "barrage":
+        barrage();
+        break;
+      default:
+        custom(data.subGiftBonkType);
+        break;
+    }
+
     if (data.subGiftCooldown > 0)
     {
       canSubGift = false;
-      setTimeout(() => { canSub = true; }, data.subGiftCooldown * 1000);
+      setTimeout(() => { canSubGift = true; }, data.subGiftCooldown * 1000);
     }
   }
 }
@@ -699,7 +898,7 @@ async function onRaidHandler(_, raider, raidInfo)
   }
 }
 
-ipcMain.on('emotes', (event, message) => handleRaidEmotes(event, message));
+ipcMain.on("emotes", (event, message) => handleRaidEmotes(event, message));
 
 function handleRaidEmotes(_, emotes)
 {
@@ -746,89 +945,4 @@ function handleRaidEmotes(_, emotes)
     else
       barrage();
   }
-}
-
-function hasActiveImage()
-{
-  if (data.throws == null || data.throws.length == 0)
-    return false;
-
-  var active = false;
-  for (var i = 0; i < data.throws.length; i++)
-  {
-    if (data.throws[i].enabled)
-    {
-      active = true;
-      break;
-    }
-  }
-  return active;
-}
-
-function hasActiveImageCustom(customName)
-{
-  if (data.bonks[customName].throws == null || data.bonks[customName].throws.length == 0)
-    return false;
-
-  var active = false;
-  for (var i = 0; i < data.bonks[customName].throws.length; i++)
-  {
-    if (data.bonks[customName].throws[i].enabled)
-    {
-      active = true;
-      break;
-    }
-  }
-  return active;
-}
-
-function hasActiveSound()
-{
-  if (data.impacts == null || data.impacts.length == 0)
-    return false;
-
-  var active = false;
-  for (var i = 0; i < data.impacts.length; i++)
-  {
-    if (data.impacts[i].enabled)
-    {
-      active = true;
-      break;
-    }
-  }
-  return active;
-}
-
-function hasActiveSoundCustom(customName)
-{
-  if (data.bonks[customName].impacts == null || data.bonks[customName].impacts.length == 0)
-    return false;
-
-  var active = false;
-  for (var i = 0; i < data.bonks[customName].impacts.length; i++)
-  {
-    if (data.bonks[customName].impacts[i].enabled)
-    {
-      active = true;
-      break;
-    }
-  }
-  return active;
-}
-
-function hasActiveBitSound()
-{
-  if (data.bitImpacts == null || data.bitImpacts.length == 0)
-    return false;
-
-  var active = false;
-  for (var i = 0; i < data.bitImpacts.length; i++)
-  {
-    if (data.bitImpacts[i].enabled)
-    {
-      active = true;
-      break;
-    }
-  }
-  return active;
 }

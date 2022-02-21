@@ -252,7 +252,7 @@ function connectKarasu()
                 switch(data.type)
                 {
                     case "single":
-                        bonk(data.image, data.weight, data.scale, data.sound, data.volume, data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
+                        bonk(data.image, data.weight, data.scale, data.sound, data.volume, data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null, null, 0);
                         break;
                     case "barrage":
                         var i = 0;
@@ -265,35 +265,38 @@ function connectKarasu()
 
                         var bonker = setInterval(function()
                         {
-                            bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
+                            bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null, null, 0);
                             if (++i >= max)
                                 clearInterval(bonker);
                         }, data.data.barrageFrequency * 1000);
                         break;
                     default:
-                        if (data.data.bonks[data.type].barrageCountOverride)
-                            data.data.barrageCount = data.data.bonks[data.type].barrageCount;
-                        if (data.data.bonks[data.type].barrageFrequencyOverride)
-                            data.data.barrageFrequency = data.data.bonks[data.type].barrageFrequency;
-                        if (data.data.bonks[data.type].throwDurationOverride)
-                            data.data.throwDuration = data.data.bonks[data.type].throwDuration;
-                        if (data.data.bonks[data.type].throwAngleMinOverride)
-                            data.data.throwAngleMin = data.data.bonks[data.type].throwAngleMin;
-                        if (data.data.bonks[data.type].throwAngleMaxOverride)
-                            data.data.throwAngleMax = data.data.bonks[data.type].throwAngleMax;
+                        if (data.data.customBonks[data.type].barrageCountOverride)
+                            data.data.barrageCount = data.data.customBonks[data.type].barrageCount;
+                        if (data.data.customBonks[data.type].barrageFrequencyOverride)
+                            data.data.barrageFrequency = data.data.customBonks[data.type].barrageFrequency;
+                        if (data.data.customBonks[data.type].throwDurationOverride)
+                            data.data.throwDuration = data.data.customBonks[data.type].throwDuration;
+                        if (data.data.customBonks[data.type].throwAngleOverride)
+                        {
+                            data.data.throwAngleMin = data.data.customBonks[data.type].throwAngleMin;
+                            data.data.throwAngleMax = data.data.customBonks[data.type].throwAngleMax;
+                        }
 
                         var i = 0;
-                        const images = data.image;
-                        const weights = data.weight;
-                        const scales = data.scale;
-                        const sounds = data.sound;
-                        const volumes = data.volume;
-                        const max = Math.min(images.length, sounds.length, weights.length);
+                        const cImages = data.image;
+                        const cWeights = data.weight;
+                        const cScales = data.scale;
+                        const cSounds = data.sound;
+                        const cVolumes = data.volume;
+                        const cImpactDecals = data.impactDecal;
+                        const cWindupSounds = data.windupSound;
+                        const cMax = Math.min(cImages.length, cSounds.length, cWeights.length, cImpactDecals.length, cWindupSounds.length);
 
                         var bonker = setInterval(function()
                         {
-                            bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax);
-                            if (++i >= max)
+                            bonk(cImages[i], cWeights[i], cScales[i], cSounds[i], cVolumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, cImpactDecals[i], cWindupSounds[i], data.data.customBonks[data.type].windupDelay);
+                            if (++i >= cMax)
                                 clearInterval(bonker);
                         }, data.data.barrageFrequency * 1000);
                         break;
@@ -425,7 +428,7 @@ setInterval(() => {
     }
 }, 1000);
 
-function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax)
+function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, impactDecal, windupSound, windupDelay)
 {
     if (vTubeIsOpen)
     {
@@ -450,16 +453,40 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                 const sizeScale = data.itemScaleMin + (((pos.size + 100) / 200) * (data.itemScaleMax - data.itemScaleMin));
                 const eyeState = data.closeEyes ? 1 : (data.openEyes ? 2 : 0);
 
+                var audio, canPlayAudio;
                 if (sound != null)
                 {
-                    var audio = new Audio();
+                    audio = new Audio();
                     audio.src = sound.substr(0, sound.indexOf("/") + 1) + encodeURIComponent(sound.substr(sound.indexOf("/") + 1));
                     audio.volume = ((weight / 2) + 0.5) * volume * data.volume;
-                    var canPlayAudio = false;
+                    canPlayAudio = false;
                     audio.oncanplaythrough = function() { canPlayAudio = true; }
                 }
                 else
                     canPlayAudio = true;
+
+                var windup, canPlayWindup;
+                if (windupSound != null)
+                {
+                    windup = new Audio();
+                    windup.src = windupSound.location.substr(0, windupSound.location.indexOf("/") + 1) + encodeURIComponent(windupSound.location.substr(windupSound.location.indexOf("/") + 1));
+                    windup.volume = ((weight / 2) + 0.5) * windupSound.volume * data.volume;
+                    canPlayWindup = false;
+                    windup.oncanplaythrough = function() { canPlayWindup = true; }
+                }
+                else
+                    canPlayWindup = true;
+
+                var impact, canShowImpact;
+                if (impactDecal != null)
+                {
+                    impact = new Image();
+                    impact.src = "decals/" + encodeURIComponent(impact.location.substr(7));
+                    canShowImpact = false;
+                    impact.onload = function() { canShowImpact = true; }
+                }
+                else
+                    canShowImpact = true;
 
                 var img = new Image();
                 if (image.startsWith("https://static-cdn.jtvnw.net/emoticons/v1/"))
@@ -467,54 +494,60 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                 else
                     img.src = "throws/" + encodeURIComponent(image.substr(7));
 
-                img.onload = function()
+                img.onload = async function()
                 {
-                    var pivot = document.createElement("div");
-                    pivot.classList.add("thrown");
-                    pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
-                    pivot.style.top = (window.innerHeight * yPos) - (img.height * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
-                    pivot.style.transform = "rotate(" + angle + "deg)";
-                    var movement = document.createElement("div");
-                    movement.classList.add("animated");
-                    var animName = "throw" + (fromLeft ? "Left" : "Right");
-                    movement.style.animationName = animName;
-                    movement.style.animationDuration = data.throwDuration + "s";
-                    movement.style.animationDelay = (data.delay / 1000) + "s";
-                    var thrown = document.createElement("img");
-                    thrown.classList.add("animated");
-                    thrown.src = image;
-                    thrown.style.width = img.width * scale * sizeScale + "px";
-                    thrown.style.height = img.height * scale * sizeScale + "px";
-                    var animName = "spin" + (Math.random() < 0.5 ? "Clockwise " : "CounterClockwise ");
-                    thrown.style.animation = animName + ((Math.random() * 0.4) + 0.1) + "s";
-                    thrown.style.animationIterationCount = "infinite";
-                    
-                    movement.appendChild(thrown);
-                    pivot.appendChild(movement);
-                    document.querySelector("body").appendChild(pivot);
-
-
                     // Don't do anything until both image and audio are ready
-                    if (canPlayAudio)
-                    {
+                    while (!canPlayAudio || !canPlayWindup || !canShowImpact)
+                        await new Promise(resolve => setTimeout(resolve, 10));
+                    
+                    if (windupSound != null)
+                        windup.play();
+                        
+                    setTimeout(() => {
+                        var pivot = document.createElement("div");
+                        pivot.classList.add("thrown");
+                        pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
+                        pivot.style.top = (window.innerHeight * yPos) - (img.height * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
+                        pivot.style.transform = "rotate(" + angle + "deg)";
+                        var movement = document.createElement("div");
+                        movement.classList.add("animated");
+                        var animName = "throw" + (fromLeft ? "Left" : "Right");
+                        movement.style.animationName = animName;
+                        movement.style.animationDuration = data.throwDuration + "s";
+                        movement.style.animationDelay = (data.delay / 1000) + "s";
+                        var thrown = document.createElement("img");
+                        thrown.classList.add("animated");
+                        thrown.src = image;
+                        thrown.style.width = img.width * scale * sizeScale + "px";
+                        thrown.style.height = img.height * scale * sizeScale + "px";
+                        var animName = "spin" + (Math.random() < 0.5 ? "Clockwise " : "CounterClockwise ");
+                        thrown.style.animation = animName + ((Math.random() * 0.4) + 0.1) + "s";
+                        thrown.style.animationIterationCount = "infinite";
+                        
+                        movement.appendChild(thrown);
+                        pivot.appendChild(movement);
+                        document.querySelector("body").appendChild(pivot);
+                        
                         setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, eyeState); }, data.throwDuration * 500, data.throwAngleMin, data.throwAngleMax);
-
+                    
                         if (sound != null)
                             setTimeout(function() { audio.play(); }, (data.throwDuration * 500) + data.delay);
+                    
+                        if (impactDecal != null)
+                            setTimeout(function() {
+                                var hit = document.createElement("img");
+                                hit.classList.add("thrown");
+                                pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
+                                pivot.style.top = (window.innerHeight * yPos) - (img.height * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
+                                hit.src = impact;
+                                hit.style.width = impact.width * impactDecal.scale * sizeScale + "px";
+                                hit.style.height = impact.height * impactDecal.scale * sizeScale + "px";
+
+                                setTimeout(function() { document.querySelector("body").removeChild(hit); }, impactDecal.duration * 1000);
+                            }, (data.throwDuration * 500) + data.delay);
                         
                         setTimeout(function() { document.querySelector("body").removeChild(pivot); }, (data.throwDuration * 1000) + data.delay);
-                    }
-                    else
-                    {
-                        audio.oncanplaythrough = function()
-                        {
-                            setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, eyeState); }, data.throwDuration * 500, data.throwAngleMin, data.throwAngleMax);
-
-                            setTimeout(function() { audio.play(); }, (data.throwDuration * 500) + data.delay);
-                            
-                            setTimeout(function() { document.querySelector("body").removeChild(pivot); }, (data.throwDuration * 1000) + data.delay);
-                        }
-                    }
+                    }, windupDelay * 1000);
                 }
             }
         }

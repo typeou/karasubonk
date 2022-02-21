@@ -1,5 +1,9 @@
-const { ipcRenderer, app } = require('electron');
+const { ipcRenderer, app } = require("electron");
 const fs = require("fs");
+
+// ------
+// Status
+// ------
 
 var status = 0;
 
@@ -10,10 +14,9 @@ const statusTitle = [
     "Calibrating (1/2)",
     "Calibrating (2/2)",
     "Connecting to VTube Studio...",
-    "Listening for Redeem<br/>(Single)",
-    "Listening for Redeem<br/>(Barrage)",
-    "Waiting for Listeners...",
-    "Calibration"
+    "Listening for Redeem",
+    "Calibration",
+    "Waiting for Listeners..."
 ];
 
 const statusDesc = [
@@ -23,20 +26,40 @@ const statusDesc = [
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p><small>Your VTube Studio Source and KBonk Browser Source should be overlapping.</small></p><p>Press the <mark>Continue Calibration</mark> button below to continue to the next step.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p><small>Your VTube Studio Source and KBonk Browser Source should be overlapping.</small></p><p>Press the <mark>Confirm Calibration</mark> button below to finish calibration.</p>",
     [ "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p>" ],
-    "<p>Please use the Channel Point Reward you'd like to use for single bonks.</p><p>Click the Listen button again to cancel.</p>",
-    "<p>Please use the Channel Point Reward you'd like to use for barrage bonks.</p><p>Click the Listen button again to cancel.</p>",
-    "<p>Several windows will briefly appear during this process.</p>",
-    "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>"
+    "<p>Please use the Channel Point Reward you'd like to use.</p>",
+    "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>",
+    "<p>Several windows will briefly appear during this process.</p>"
 ];
 
-// Counter for number of writes that are being attempted
-// Will only attempt to load data if not currently writing
-// Inter-process communication means this is necessary
-var isWriting = 0;
-ipcRenderer.on("doneWriting", () => {
-    if (--isWriting < 0)
-        isWriting = 0;
-});
+ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
+
+async function setStatus(_, message)
+{
+    status = message;
+    document.querySelector("#status").innerHTML = statusTitle[status];
+
+    if (status != 5)
+        document.querySelector("#statusDesc").innerHTML = statusDesc[status];
+    else
+        document.querySelector("#statusDesc").innerHTML = statusDesc[status][0] + await getData("portVTubeStudio") + statusDesc[status][1];
+
+    if (status == 3 || status == 4 || status == 9)
+    {
+        if (status == 9)
+            document.querySelector("#nextCalibrate").innerText = "Start Calibration";
+        else if (status == 3)
+            document.querySelector("#nextCalibrate").innerText = "Continue Calibration";
+        else if (status == 4)
+            document.querySelector("#nextCalibrate").innerText = "Confirm Calibration";
+        document.querySelector("#calibrateButtons").classList.remove("hide");
+    }
+    else
+        document.querySelector("#calibrateButtons").classList.add("hide");
+}
+
+// ---------
+// Libraries
+// ---------
 
 // Adding a new image to the list
 document.querySelector("#loadImage").addEventListener("change", loadImage);
@@ -45,12 +68,12 @@ async function loadImage()
 {
     // Grab the image that was just loaded
     const imageFile = document.querySelector("#loadImage").files[0];
-    // If the folder for objects doesn't exist for some reason, make it
+    // If the folder for objects doesn"t exist for some reason, make it
     if (!fs.existsSync(__dirname + "/throws/"))
         fs.mkdirSync(__dirname + "/throws/");
 
-    // Ensure that we're not overwriting any existing files with the same name
-    // If a file already exists, add an interating number to the end until it's a unique filename
+    // Ensure that we"re not overwriting any existing files with the same name
+    // If a file already exists, add an interating number to the end until it"s a unique filename
     var append = "";
     while (fs.existsSync(imageFile.path, __dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1)))
         append = append == "" ? 2 : (append + 1);
@@ -145,12 +168,12 @@ async function loadImageSound()
 {
     // Grab the image that was just loaded
     const imageFile = document.querySelector("#loadImageSound").files[0];
-    // If the folder for objects doesn't exist for some reason, make it
+    // If the folder for objects doesn"t exist for some reason, make it
     if (!fs.existsSync(__dirname + "/throws/"))
         fs.mkdirSync(__dirname + "/throws/");
 
-    // Ensure that we're not overwriting any existing files with the same name
-    // If a file already exists, add an interating number to the end until it's a unique filename
+    // Ensure that we"re not overwriting any existing files with the same name
+    // If a file already exists, add an interating number to the end until it"s a unique filename
     var append = "";
     while (fs.existsSync(imageFile.path, __dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1)))
         append = append == "" ? 2 : (append + 1);
@@ -173,6 +196,13 @@ var currentImageIndex = -1;
 async function openImageDetails()
 {
     var throws = await getData("throws");
+
+    var oldButton = document.querySelector("#testImage");
+    var newButton = document.querySelector("#testImage").cloneNode(true);
+    oldButton.after(newButton);
+    oldButton.remove();
+    document.querySelector("#testImage").addEventListener("click", () => testItem(currentImageIndex));
+
     const details = document.querySelector("#imageDetails");
 
     details.querySelector(".imageImage").src = throws[currentImageIndex].location;
@@ -216,7 +246,7 @@ async function openImageDetails()
     });
 
     details.querySelector(".imageSoundVolume").addEventListener("change", () => {
-        throws[currentImageIndex].volume = parseFloat(details.querySelector(".imageVolume").value);
+        throws[currentImageIndex].volume = parseFloat(details.querySelector(".imageSoundVolume").value);
         setData("throws", throws);
     });
 
@@ -420,52 +450,35 @@ async function openBitSounds()
         });
     }
 }
-document.querySelector('#bonksAdd').addEventListener('click', addBonk);
+document.querySelector("#bonksAdd").addEventListener("click", addBonk);
 
 async function addBonk()
 {
     var newBonkNumber = 1;
     var customBonks = await getData("customBonks");
     if (customBonks == null)
-        customBonks = [];
+        customBonks = {};
     
-    var exists;
-    do
-    {
-        exists = false;
-        for (var i = 0; i < customBonks.length; i++)
-        {
-            if (customBonks[i].name == "Custom Bonk " + newBonkNumber)
-            {
-                exists = true;
-                newBonkNumber++;
-                break;
-            }
-        }
-    } while (exists);
+    while (customBonks["Custom Bonk " + newBonkNumber] != null)
+        newBonkNumber++;
 
-    customBonks.push({
-        "name": "Custom Bonk " + newBonkNumber,
+    customBonks["Custom Bonk " + newBonkNumber] = {
         "barrageCount": 1,
         "barrageFrequencyOverride": false,
         "barrageFrequency": await getData("barrageFrequency"),
         "throwDurationOverride": false,
         "throwDuration": await getData("throwDuration"),
-        "throwAngleMinOverride": false,
+        "throwAngleOverride": false,
         "throwAngleMin": await getData("throwAngleMin"),
-        "throwAngleMaxOverride": false,
         "throwAngleMax": await getData("throwAngleMax"),
         "itemsOverride": false,
-        "items": await getData("throws"),
+        "throws": await getData("throws"),
         "soundsOverride": false,
-        "sounds": await getData("impacts"),
-        "impactDecalsOverride": false,
-        "impactDecals": await getData("impactDecals"),
-        "windupSoundsOverride": false,
-        "windupSounds": await getData("windupSounds"),
-        "windupDelayOverride": false,
-        "windupDelay": await getData("windupDelay")
-    });
+        "impacts": await getData("impacts"),
+        "impactDecals": [],
+        "windupSounds": [],
+        "windupDelay": 0
+    };
 
     setData("customBonks", customBonks);
 
@@ -474,92 +487,93 @@ async function addBonk()
 
 async function bonkDetails(customBonkName)
 {
-    var customBonks = await getData("customBonks"), index = -1;
-    for (var i = 0; i < customBonks.length; i++)
-    {
-        if (customBonks[i].name == customBonkName)
-        {
-            index = i;
-            break;
-        }
-    }
+    var customBonks = await getData("customBonks");
 
-    if (index != -1)
+    if (customBonks[customBonkName] != null)
     {
         showPanel("bonkDetails");
+
+        var oldButton = document.querySelector("#testCustomBonk");
+        var newButton = document.querySelector("#testCustomBonk").cloneNode(true);
+        oldButton.after(newButton);
+        oldButton.remove();
+        document.querySelector("#testCustomBonk").addEventListener("click", () => testCustomBonk(customBonkName));
 
         const bonkDetailsTable = document.querySelector("#bonkDetailsTable");
 
         // Bonk Name
-        bonkDetailsTable.querySelector(".bonkName").value = customBonks[index].name;
+        bonkDetailsTable.querySelector(".bonkName").value = customBonkName;
         bonkDetailsTable.querySelector(".bonkName").addEventListener("change", () => {
-            customBonks[index].name = bonkDetailsTable.querySelector(".bonkName").value;
+            if (customBonks[bonkDetailsTable.querySelector(".bonkName").value] == null)
+            {
+                customBonks[bonkDetailsTable.querySelector(".bonkName").value] = customBonks[customBonkName];
+                delete customBonks[customBonkName];
+                customBonkName = bonkDetailsTable.querySelector(".bonkName").value
+            }
+            else
+            {
+                // Error: Name exists
+            }
             setData("customBonks", customBonks);
         });
 
         // Barrage Count
-        bonkDetailsTable.querySelector(".barrageCount").value = customBonks[index].barrageCount;
+        bonkDetailsTable.querySelector(".barrageCount").value = customBonks[customBonkName].barrageCount;
         bonkDetailsTable.querySelector(".barrageCount").addEventListener("change", () => {
-            customBonks[index].barrageCount = parseInt(bonkDetailsTable.querySelector(".barrageCount").value);
+            customBonks[customBonkName].barrageCount = parseInt(bonkDetailsTable.querySelector(".barrageCount").value);
             setData("customBonks", customBonks);
         });
 
         // Barrage Frequency
-        bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked = customBonks[index].barrageFrequencyOverride;
+        bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked = customBonks[customBonkName].barrageFrequencyOverride;
         bonkDetailsTable.querySelector(".barrageFrequencyOverride").addEventListener("change", () => {
-            customBonks[index].barrageFrequencyOverride = bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked;
+            customBonks[customBonkName].barrageFrequencyOverride = bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked;
             setData("customBonks", customBonks);
         });
 
-        bonkDetailsTable.querySelector(".barrageFrequency").value = customBonks[index].barrageFrequency;
+        bonkDetailsTable.querySelector(".barrageFrequency").value = customBonks[customBonkName].barrageFrequency;
         bonkDetailsTable.querySelector(".barrageFrequency").addEventListener("change", () => {
-            customBonks[index].barrageFrequency = parseFloat(bonkDetailsTable.querySelector(".barrageFrequency").value);
+            customBonks[customBonkName].barrageFrequency = parseFloat(bonkDetailsTable.querySelector(".barrageFrequency").value);
             setData("customBonks", customBonks);
         });
 
         // Throw Duration
-        bonkDetailsTable.querySelector(".throwDurationOverride").checked = customBonks[index].throwDurationOverride;
+        bonkDetailsTable.querySelector(".throwDurationOverride").checked = customBonks[customBonkName].throwDurationOverride;
         bonkDetailsTable.querySelector(".throwDurationOverride").addEventListener("change", () => {
-            customBonks[index].throwDurationOverride = bonkDetailsTable.querySelector(".throwDurationOverride").checked;
+            customBonks[customBonkName].throwDurationOverride = bonkDetailsTable.querySelector(".throwDurationOverride").checked;
             setData("customBonks", customBonks);
         });
 
-        bonkDetailsTable.querySelector(".throwDuration").value = customBonks[index].throwDuration;
+        bonkDetailsTable.querySelector(".throwDuration").value = customBonks[customBonkName].throwDuration;
         bonkDetailsTable.querySelector(".throwDuration").addEventListener("change", () => {
-            customBonks[index].throwDuration = parseFloat(bonkDetailsTable.querySelector(".throwDuration").value);
+            customBonks[customBonkName].throwDuration = parseFloat(bonkDetailsTable.querySelector(".throwDuration").value);
             setData("customBonks", customBonks);
         });
 
         // Throw Angle Min
-        bonkDetailsTable.querySelector(".throwAngleMinOverride").checked = customBonks[index].throwAngleMinOverride;
-        bonkDetailsTable.querySelector(".throwAngleMinOverride").addEventListener("change", () => {
-            customBonks[index].throwAngleMinOverride = bonkDetailsTable.querySelector(".throwAngleMinOverride").checked;
+        bonkDetailsTable.querySelector(".throwAngleOverride").checked = customBonks[customBonkName].throwAngleOverride;
+        bonkDetailsTable.querySelector(".throwAngleOverride").addEventListener("change", () => {
+            customBonks[customBonkName].throwAngleOverride = bonkDetailsTable.querySelector(".throwAngleOverride").checked;
             setData("customBonks", customBonks);
         });
 
-        bonkDetailsTable.querySelector(".throwAngleMin").value = customBonks[index].throwAngleMin;
+        bonkDetailsTable.querySelector(".throwAngleMin").value = customBonks[customBonkName].throwAngleMin;
         bonkDetailsTable.querySelector(".throwAngleMin").addEventListener("change", () => {
-            customBonks[index].throwAngleMin = parseInt(bonkDetailsTable.querySelector(".throwAngleMin").value);
+            customBonks[customBonkName].throwAngleMin = parseInt(bonkDetailsTable.querySelector(".throwAngleMin").value);
             setData("customBonks", customBonks);
         });
 
         // Throw Angle Max
-        bonkDetailsTable.querySelector(".throwAngleMaxOverride").checked = customBonks[index].throwAngleMaxOverride;
-        bonkDetailsTable.querySelector(".throwAngleMaxOverride").addEventListener("change", () => {
-            customBonks[index].throwAngleMaxOverride = bonkDetailsTable.querySelector(".throwAngleMaxOverride").checked;
-            setData("customBonks", customBonks);
-        });
-
-        bonkDetailsTable.querySelector(".throwAngleMax").value = customBonks[index].throwAngleMax;
+        bonkDetailsTable.querySelector(".throwAngleMax").value = customBonks[customBonkName].throwAngleMax;
         bonkDetailsTable.querySelector(".throwAngleMax").addEventListener("change", () => {
-            customBonks[index].throwAngleMax = parseInt(bonkDetailsTable.querySelector(".throwAngleMax").value);
+            customBonks[customBonkName].throwAngleMax = parseInt(bonkDetailsTable.querySelector(".throwAngleMax").value);
             setData("customBonks", customBonks);
         });
 
         // Items
-        bonkDetailsTable.querySelector(".itemsOverride").checked = customBonks[index].itemsOverride;
+        bonkDetailsTable.querySelector(".itemsOverride").checked = customBonks[customBonkName].itemsOverride;
         bonkDetailsTable.querySelector(".itemsOverride").addEventListener("change", () => {
-            customBonks[index].itemsOverride = bonkDetailsTable.querySelector(".itemsOverride").checked;
+            customBonks[customBonkName].itemsOverride = bonkDetailsTable.querySelector(".itemsOverride").checked;
             setData("customBonks", customBonks);
         });
 
@@ -568,9 +582,9 @@ async function bonkDetails(customBonkName)
         });
 
         // Sounds
-        bonkDetailsTable.querySelector(".soundsOverride").checked = customBonks[index].soundsOverride;
+        bonkDetailsTable.querySelector(".soundsOverride").checked = customBonks[customBonkName].soundsOverride;
         bonkDetailsTable.querySelector(".soundsOverride").addEventListener("change", () => {
-            customBonks[index].soundsOverride = bonkDetailsTable.querySelector(".soundsOverride").checked;
+            customBonks[customBonkName].soundsOverride = bonkDetailsTable.querySelector(".soundsOverride").checked;
             setData("customBonks", customBonks);
         });
 
@@ -579,37 +593,19 @@ async function bonkDetails(customBonkName)
         });
 
         // Impact Decals
-        bonkDetailsTable.querySelector(".impactDecalsOverride").checked = customBonks[index].impactDecalsOverride;
-        bonkDetailsTable.querySelector(".impactDecalsOverride").addEventListener("change", () => {
-            customBonks[index].impactDecalsOverride = bonkDetailsTable.querySelector(".impactDecalsOverride").checked;
-            setData("customBonks", customBonks);
-        });
-
         bonkDetailsTable.querySelector(".impactDecals").addEventListener("click", () => {
 
         });
 
         // Windup Sounds
-        bonkDetailsTable.querySelector(".windupSoundsOverride").checked = customBonks[index].windupSoundsOverride;
-        bonkDetailsTable.querySelector(".windupSoundsOverride").addEventListener("change", () => {
-            customBonks[index].windupSoundsOverride = bonkDetailsTable.querySelector(".windupSoundsOverride").checked;
-            setData("customBonks", customBonks);
-        });
-
         bonkDetailsTable.querySelector(".windupSounds").addEventListener("click", () => {
 
         });
 
         // Windup Delay
-        bonkDetailsTable.querySelector(".windupDelayOverride").checked = customBonks[index].windupDelayOverride;
-        bonkDetailsTable.querySelector(".windupDelayOverride").addEventListener("change", () => {
-            customBonks[index].windupDelayOverride = bonkDetailsTable.querySelector(".windupDelayOverride").checked;
-            setData("customBonks", customBonks);
-        });
-
-        bonkDetailsTable.querySelector(".windupDelay").value = customBonks[index].windupDelay;
+        bonkDetailsTable.querySelector(".windupDelay").value = customBonks[customBonkName].windupDelay;
         bonkDetailsTable.querySelector(".windupDelay").addEventListener("change", () => {
-            customBonks[index].windupDelay = parseFloat(bonkDetailsTable.querySelector(".windupDelay").value);
+            customBonks[customBonkName].windupDelay = parseFloat(bonkDetailsTable.querySelector(".windupDelay").value);
             setData("customBonks", customBonks);
         });
     }
@@ -622,66 +618,320 @@ async function openBonks()
     document.querySelectorAll(".customBonkRow").forEach(element => { if (element.id != "bonkRow") element.remove(); });
 
     if (customBonks == null)
-        setData("customBonks", []);
+        setData("customBonks", {});
     else
     {
-        customBonks.forEach((_, index) =>
+        for (const key in customBonks)
         {
-            var row = document.querySelector("#customBonkRow").cloneNode(true);
+            const row = document.querySelector("#customBonkRow").cloneNode(true);
             row.id = "";
             row.classList.add("customBonkRow");
             row.removeAttribute("hidden");
             document.querySelector("#bonksTable").appendChild(row);
 
             row.querySelector(".bonkDetailsButton").addEventListener("click", () => {
-                bonkDetails(customBonks[index].name);
+                bonkDetails(key);
             });
 
-            row.querySelector(".bonkName").value = customBonks[index].name;
+            row.querySelector(".bonkName").value = key;
 
             row.querySelector(".bonkDelete").addEventListener("click", () => {
-                customBonks.splice(index, 1);
+                delete customBonks[key];
                 setData("customBonks", customBonks);
                 row.remove();
             });
-        });
+        };
     }
 }
 
-document.querySelector('#single').addEventListener('click', () => { ipcRenderer.send('single'); });
-document.querySelector('#startCalibrate').addEventListener('click', () => { ipcRenderer.send('startCalibrate'); });
-document.querySelector('#nextCalibrate').addEventListener('click', () => { ipcRenderer.send('nextCalibrate'); });
-document.querySelector('#cancelCalibrate').addEventListener('click', () => { ipcRenderer.send('cancelCalibrate'); });
-document.querySelector('#barrage').addEventListener('click', () => { ipcRenderer.send('barrage'); });
-document.querySelector('#bits').addEventListener('click', () => { ipcRenderer.send('bits'); });
-document.querySelector('#raid').addEventListener('click', () => { ipcRenderer.send('raid'); });
+document.querySelector("#redeemAdd").addEventListener("click", newRedeem);
 
-ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
-
-async function setStatus(_, message)
+// Create a new redeem event
+async function newRedeem()
 {
-    status = message;
-    document.querySelector("#status").innerHTML = statusTitle[status];
+    var redeems = await getData("redeems");
 
-    if (status != 5)
-        document.querySelector("#statusDesc").innerHTML = statusDesc[status];
-    else
-        document.querySelector("#statusDesc").innerHTML = statusDesc[status][0] + await getData("portVTubeStudio") + statusDesc[status][1];
+    redeems.push({
+        "enabled": true,
+        "id": null,
+        "name": null,
+        "bonkType": "single"
+    });
 
-    if (status == 3 || status == 4 || status == 9)
-    {
-        if (status == 9)
-            document.querySelector("#nextCalibrate").innerText = "Start Calibration";
-        else if (status == 3)
-            document.querySelector("#nextCalibrate").innerText = "Continue Calibration";
-        else if (status == 4)
-            document.querySelector("#nextCalibrate").innerText = "Confirm Calibration";
-        document.querySelector("#calibrateButtons").classList.remove("hide");
-    }
-    else
-        document.querySelector("#calibrateButtons").classList.add("hide");
+    setData("redeems", redeems);
+
+    openEvents();
 }
 
+document.querySelector("#commandAdd").addEventListener("click", newCommand);
+
+// Create a new command event
+async function newCommand()
+{
+    var commands = await getData("commands");
+
+    commands.push({
+        "enabled": true,
+        "name": "",
+        "cooldown": 0,
+        "bonkType": "single"
+    });
+
+    setData("commands", commands);
+
+    openEvents();
+}
+
+var gettingRedeemName = false, redeemName;
+async function getRedeemName(redeemId)
+{
+    gettingRedeemName = true;
+    ipcRenderer.send("getRedeemName", redeemId);
+
+    while (gettingRedeemName)
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+    return redeemName;
+}
+
+ipcRenderer.on("redeemName", (event, message) => {
+    redeemName = message;
+    gettingRedeemName = false;
+});
+
+var gettingRedeemData = false, redeemData;
+async function getRedeemData()
+{
+    gettingRedeemData = true;
+    ipcRenderer.send("listenRedeemStart");
+
+    while (gettingRedeemData)
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+    return redeemData;
+}
+
+ipcRenderer.on("redeemData", (event, message) => {
+    redeemData = message;
+    gettingRedeemData = false;
+});
+
+async function openEvents()
+{
+    const customBonks = await getData("customBonks");
+
+    // Fill redeem rows
+    var redeems = await getData("redeems");
+
+    document.querySelectorAll(".redeemsRow").forEach(element => { element.remove(); });
+
+    if (redeems == null)
+    {
+        redeems = [];
+
+        // For those upgrading from 1.0.1 or earlier.
+        // Converts old redeem data into new format if any exists.
+        const oldSingle = await getData("singleRedeemID");
+        if (oldSingle != null && oldSingle != "")
+        {
+            redeems.push({
+                "enabled": await getData("singleRedeemEnabled"),
+                "id": oldSingle,
+                "name": await getRedeemName(oldSingle),
+                "bonkType": "single"
+            });
+        }
+
+        const oldBarrage = await getData("barrageRedeemID");
+        if (oldBarrage != null && oldBarrage != "")
+        {
+            redeems.push({
+                "enabled": await getData("barrageRedeemEnabled"),
+                "id": oldBarrage,
+                "name": await getRedeemName(oldBarrage),
+                "bonkType": "barrage"
+            });
+        }
+
+        setData("redeems", redeems);
+    }
+
+    redeems.forEach((_, index) =>
+    {
+        var row = document.querySelector("#redeemsRow").cloneNode(true);
+        row.id = "";
+        row.classList.add("redeemsRow");
+        row.removeAttribute("hidden");
+        document.querySelector("#redeemsRow").after(row);
+
+        row.querySelector(".redeemEnabled").checked = redeems[index].enabled;
+
+        row.querySelector(".redeemName").value = redeems[index].name;
+        
+        row.querySelector(".redeemID").addEventListener("click", async () => {
+            row.querySelector(".redeemName").value = "Listening...";
+            var data = await getRedeemData();
+            redeems[index].id = data[0];
+            redeems[index].name = data[1];
+            row.querySelector(".redeemName").value = data[1];
+            setData("redeems", redeems);
+        });
+
+        for (var key in customBonks)
+        {
+            var customBonk = document.createElement("option");
+            customBonk.value = key;
+            customBonk.innerText = key;
+            row.querySelector(".bonkType").appendChild(customBonk);
+        }
+
+        row.querySelector(".bonkType").value = redeems[index].bonkType;
+        row.querySelector(".bonkType").addEventListener("change", () => {
+            redeems[index].bonkType = row.querySelector(".bonkType").value;
+            setData("redeems", redeems);
+        });
+
+        row.querySelector(".redeemRemove").addEventListener("click", () => {
+            redeems.splice(index, 1);
+            setData("redeems", redeems);
+            row.remove();
+        });
+    });
+
+    // Fill command rows
+    var commands = await getData("commands");
+
+    document.querySelectorAll(".commandsRow").forEach(element => { element.remove(); });
+
+    if (commands == null)
+    {
+        commands = [];
+
+        // For those upgrading from 1.0.1 or earlier.
+        // Converts old redeem data into new format if any exists.
+        const oldSingle = await getData("singleCommandTitle");
+        if (oldSingle != null && oldSingle != "")
+        {
+            commands.push({
+                "enabled": await getData("singleCommandEnabled"),
+                "name": oldSingle,
+                "cooldown": await getData("singleCommandCooldown"),
+                "bonkType": "single"
+            });
+        }
+
+        const oldBarrage = await getData("barrageCommandTitle");
+        if (oldBarrage != null && oldBarrage != "")
+        {
+            commands.push({
+                "enabled": await getData("barrageCommandEnabled"),
+                "name": oldBarrage,
+                "cooldown": await getData("barrageCommandCooldown"),
+                "bonkType": "barrage"
+            });
+        }
+
+        setData("commands", commands);
+    }
+    
+    commands.forEach((_, index) =>
+    {
+        var row = document.querySelector("#commandsRow").cloneNode(true);
+        row.id = "";
+        row.classList.add("commandsRow");
+        row.removeAttribute("hidden");
+        document.querySelector("#commandsRow").after(row);
+
+        row.querySelector(".commandEnabled").checked = commands[index].enabled;
+
+        row.querySelector(".commandName").value = commands[index].name;
+        row.querySelector(".commandName").addEventListener("change", () => {
+            commands[index].name = row.querySelector(".commandName").value;
+            setData("commands", commands);
+        });
+
+        row.querySelector(".commandCooldown").value = commands[index].cooldown;
+        row.querySelector(".commandCooldown").addEventListener("change", () => {
+            commands[index].cooldown = row.querySelector(".commandCooldown").value;
+            setData("commands", commands);
+        });
+
+        for (var key in customBonks)
+        {
+            var customBonk = document.createElement("option");
+            customBonk.value = key;
+            customBonk.innerText = key;
+            row.querySelector(".bonkType").appendChild(customBonk);
+        }
+
+        row.querySelector(".bonkType").value = commands[index].bonkType;
+        row.querySelector(".bonkType").addEventListener("change", () => {
+            commands[index].bonkType = row.querySelector(".bonkType").value;
+            setData("commands", commands);
+        });
+
+        row.querySelector(".commandRemove").addEventListener("click", () => {
+            commands.splice(index, 1);
+            setData("commands", commands);
+            row.remove();
+        });
+    }); 
+}
+
+// ----
+// Data
+// ----
+
+const defaultData = JSON.parse(fs.readFileSync(__dirname + "/defaultData.json", "utf8"));
+
+// Counter for number of writes that are being attempted
+// Will only attempt to load data if not currently writing
+// Inter-process communication means this is necessary
+var isWriting = 0;
+ipcRenderer.on("doneWriting", () => {
+    if (--isWriting < 0)
+        isWriting = 0;
+});
+
+// Get requested data, waiting for any current writes to finish first
+async function getData(field)
+{
+    while (isWriting > 0)
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+    if (!fs.existsSync(__dirname + "/data.json"))
+        fs.writeFileSync(__dirname + "/data.json", JSON.stringify(defaultData));
+
+    var data;
+    // An error should only be thrown if the other process is in the middle of writing to the file.
+    // If so, it should finish shortly and this loop will exit.
+    while (data == null)
+    {
+        try {
+            data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
+        } catch {}
+    }
+    data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
+    return data[field];
+}
+
+// Send new data to the main process to write to file
+function setData(field, value)
+{
+    isWriting++;
+    ipcRenderer.send("setData", [ field, value ]);
+    
+    if (field == "portThrower" || field == "portVTubeStudio")
+        setPorts();
+}
+
+// If ports change, write them to the file read by the Browser Source file
+async function setPorts()
+{
+    fs.writeFileSync(__dirname + "/ports.js", "const ports = [ " + await getData("portThrower") + ", " + await getData("portVTubeStudio") + " ];");
+}
+
+// Load the requested data and apply it to the relevant settings field
 async function loadData(field)
 {
     const thisData = await getData(field);
@@ -704,28 +954,24 @@ async function loadData(field)
     }
 }
 
+// Place all settings from data into the proper location on load
 window.onload = function()
 {
-    loadData("singleCommandEnabled");
-    loadData("barrageCommandEnabled");
     loadData("subEnabled");
     loadData("subGiftEnabled");
     loadData("bitsEnabled");
     loadData("raidEnabled");
 
-    loadData("singleCommandTitle");
-    loadData("barrageCommandTitle");
     loadData("subType");
     loadData("subGiftType");
     loadData("bitsMaxBarrageCount");
     loadData("raidMaxBarrageCount");
 
-    loadData("singleCommandCooldown");
-    loadData("barrageCommandCooldown");
     loadData("subCooldown");
     loadData("subGiftCooldown");
     loadData("bitsCooldown");
     loadData("raidCooldown");
+    loadData("raidEmotes");
 
     loadData("barrageCount");
     loadData("barrageFrequency");
@@ -743,26 +989,22 @@ window.onload = function()
     loadData("portVTubeStudio");
 }
 
-document.querySelector("#singleCommandEnabled").addEventListener("change", () => setData("singleCommandEnabled", document.querySelector("#singleCommandEnabled").checked));
-document.querySelector("#barrageCommandEnabled").addEventListener("change", () => setData("barrageCommandEnabled", document.querySelector("#barrageCommandEnabled").checked));
+// Event listeners for changing settings
 document.querySelector("#subEnabled").addEventListener("change", () => setData("subEnabled", document.querySelector("#subEnabled").checked));
 document.querySelector("#subGiftEnabled").addEventListener("change", () => setData("subGiftEnabled", document.querySelector("#subGiftEnabled").checked));
 document.querySelector("#bitsEnabled").addEventListener("change", () => setData("bitsEnabled", document.querySelector("#bitsEnabled").checked));
 document.querySelector("#raidEnabled").addEventListener("change", () => setData("raidEnabled", document.querySelector("#raidEnabled").checked));
 
-document.querySelector("#singleCommandTitle").addEventListener("change", () => setData("singleCommandTitle", document.querySelector("#singleCommandTitle").value));
-document.querySelector("#barrageCommandTitle").addEventListener("change", () => setData("barrageCommandTitle", document.querySelector("#barrageCommandTitle").value));
 document.querySelector("#subType").addEventListener("change", () => setData("subType", document.querySelector("#subType").value));
 document.querySelector("#subGiftType").addEventListener("change", () => setData("subGiftType", document.querySelector("#subGiftType").value));
 document.querySelector("#bitsMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#bitsMaxBarrageCount"), 0, null); setData("bitsMaxBarrageCount", parseInt(document.querySelector("#bitsMaxBarrageCount").value)) });
 document.querySelector("#raidMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#raidMaxBarrageCount"), 0, null); setData("raidMaxBarrageCount", parseInt(document.querySelector("#raidMaxBarrageCount").value)) });
 
-document.querySelector("#singleCommandCooldown").addEventListener("change", () => { clampValue(document.querySelector("#singleCommandCooldown"), 0, null); setData("singleCommandCooldown", parseFloat(document.querySelector("#singleCommandCooldown").value)) });
-document.querySelector("#barrageCommandCooldown").addEventListener("change", () => { clampValue(document.querySelector("#barrageCommandCooldown"), 0, null); setData("barrageCommandCooldown", parseFloat(document.querySelector("#barrageCommandCooldown").value)) });
 document.querySelector("#subCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subCooldown"), 0, null); setData("subCooldown", parseFloat(document.querySelector("#subCooldown").value)) });
 document.querySelector("#subGiftCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subGiftCooldown"), 0, null); setData("subGiftCooldown", parseFloat(document.querySelector("#subGiftCooldown").value)) });
 document.querySelector("#bitsCooldown").addEventListener("change", () => { clampValue(document.querySelector("#bitsCooldown"), 0, null); setData("bitsCooldown", parseFloat(document.querySelector("#bitsCooldown").value)) });
 document.querySelector("#raidCooldown").addEventListener("change", () => { clampValue(document.querySelector("#raidCooldown"), 0, null); setData("raidCooldown", parseFloat(document.querySelector("#raidCooldown").value)) });
+document.querySelector("#raidEmotes").addEventListener("change", () => setData("raidEmotes", document.querySelector("#raidEmotes").checked));
 
 document.querySelector("#barrageCount").addEventListener("change", () => { clampValue(document.querySelector("#barrageCount"), 0, null); setData("barrageCount", parseInt(document.querySelector("#barrageCount").value)) });
 document.querySelector("#barrageFrequency").addEventListener("change", () => { clampValue(document.querySelector("#barrageFrequency"), 0, null); setData("barrageFrequency", parseFloat(document.querySelector("#barrageFrequency").value)) });
@@ -808,52 +1050,22 @@ function clampValue(node, min, max)
     node.value = val;
 }
 
-const defaultData = JSON.parse(fs.readFileSync(__dirname + "/defaultData.json", "utf8"));
-
-async function getData(field)
-{
-    while (isWriting > 0)
-        await new Promise(resolve => setTimeout(resolve, 10));
-
-    if (!fs.existsSync(__dirname + "/data.json"))
-        fs.writeFileSync(__dirname + "/data.json", JSON.stringify(defaultData));
-
-    var data;
-    // An error should only be thrown if the other process is in the middle of writing to the file.
-    // If so, it should finish shortly and this loop will exit.
-    while (data == null)
-    {
-        try {
-            data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
-        } catch {}
-    }
-    data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
-    return data[field];
-}
-
-function setData(field, value)
-{
-    isWriting++;
-    ipcRenderer.send("setData", [ field, value ]);
-    
-    if (field == "portThrower" || field == "portVTubeStudio")
-        setPorts();
-}
-
-async function setPorts()
-{
-    fs.writeFileSync(__dirname + "/ports.js", "const ports = [ " + await getData("portThrower") + ", " + await getData("portVTubeStudio") + " ];");
-}
-
-document.querySelector('#HelpButton').addEventListener('click', () => { showPanel("help"); });
-document.querySelector('#ImagesButton').addEventListener('click', () => { showPanel("images"); });
-document.querySelector('#SoundsButton').addEventListener('click', () => { showPanel("sounds"); });
-document.querySelector('#BitSoundsButton').addEventListener('click', () => { showPanel("bitSounds"); });
-document.querySelector('#BonksButton').addEventListener('click', () => { showPanel("bonks"); });
-document.querySelector('#EventsButton').addEventListener('click', () => { showPanel("events"); });
-document.querySelector('#SettingsButton').addEventListener('click', () => { showPanel("settings"); });
+// -----------------
+// Window Animations
+// -----------------
 
 var currentPanel = null, playing = false;
+
+// Window Event Listeners
+document.querySelector("#HelpButton").addEventListener("click", () => { showPanel("help"); });
+document.querySelector("#ImagesButton").addEventListener("click", () => { showPanel("images"); });
+document.querySelector("#SoundsButton").addEventListener("click", () => { showPanel("sounds"); });
+document.querySelector("#BitSoundsButton").addEventListener("click", () => { showPanel("bitSounds"); });
+document.querySelector("#BonksButton").addEventListener("click", () => { showPanel("bonks"); });
+document.querySelector("#EventsButton").addEventListener("click", () => { showPanel("events"); });
+document.querySelector("#SettingsButton").addEventListener("click", () => { showPanel("settings"); });
+
+// Closes the current panel, if one is open
 function showPanel(panel)
 {
     if (!playing)
@@ -906,6 +1118,7 @@ function showPanel(panel)
     }
 }
 
+// Opens the new panel
 function openPanel(panel)
 {
     if (panel == "images")
@@ -916,6 +1129,8 @@ function openPanel(panel)
         openBitSounds();
     else if (panel == "bonks")
         openBonks();
+    else if (panel == "events")
+        openEvents();
 
     currentPanel = document.querySelector("#" + panel);
 
@@ -957,7 +1172,7 @@ function openPanel(panel)
 }
 
 // In response to raid event from main process.
-// Do the HTTP request here, since it's already a browser of sorts, and send the response back.
+// Do the HTTP request here, since it"s already a browser of sorts, and send the response back.
 ipcRenderer.on("raid", (event, message) => { getRaidEmotes(event, message); });
 function getRaidEmotes(_, data)
 {
@@ -966,7 +1181,7 @@ function getRaidEmotes(_, data)
       if (this.readyState == 4 && this.status == 200)
       {
           const emotes = JSON.parse(this.responseText);
-          ipcRenderer.send('emotes', emotes);
+          ipcRenderer.send("emotes", emotes);
       }
   };
   // Open the request and send it.
@@ -976,8 +1191,27 @@ function getRaidEmotes(_, data)
   channelEmotes.send();
 }
 
+// -----------------------
+// Testing and Calibration
+// -----------------------
+
+document.querySelector("#single").addEventListener("click", () => { ipcRenderer.send("single"); });
+document.querySelector("#barrage").addEventListener("click", () => { ipcRenderer.send("barrage"); });
+document.querySelector("#bits").addEventListener("click", () => { ipcRenderer.send("bits"); });
+document.querySelector("#raid").addEventListener("click", () => { ipcRenderer.send("raid"); });
+
+document.querySelector("#startCalibrate").addEventListener("click", () => { ipcRenderer.send("startCalibrate"); });
+document.querySelector("#nextCalibrate").addEventListener("click", () => { ipcRenderer.send("nextCalibrate"); });
+document.querySelector("#cancelCalibrate").addEventListener("click", () => { ipcRenderer.send("cancelCalibrate"); });
+
+// Test a specific item
 async function testItem(index)
 {
     const throws = await getData("throws");
-    ipcRenderer.send('testItem', throws[index]);
+    ipcRenderer.send("testItem", throws[index]);
+}
+
+function testCustomBonk(customName)
+{
+    ipcRenderer.send("testCustomBonk", customName);
 }

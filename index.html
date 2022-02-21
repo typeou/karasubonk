@@ -139,6 +139,7 @@
     <div id="imageDetails" class="block config">
       <h2>Image Details</h2>
       <hr>
+      <button id="testImage">Test</button>
       <table id="imageDetailsTable">
         <tr>
           <td colspan="2"><img class="imageImage"></td>
@@ -172,6 +173,9 @@
         <tr>
           <td>Sound Volume</td>
           <td><input class="imageSoundVolume" type="range" min="0" max="1" step="0.1" disabled></td>
+        </tr>
+        <tr>
+          <td colspan="2"><button class="imageSoundRemove">Delete Sound</button></td>
         </tr>
       </table>
     </div>
@@ -248,6 +252,7 @@
     <div id="bonkDetails" class="block config" hidden>
       <h2>Bonk Details</h2>
       <hr>
+      <button id="testCustomBonk">Test</button>
       <table id="bonkDetailsTable">
         <tr>
           <td>Override</td>
@@ -273,12 +278,12 @@
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td><input type="checkbox" class="throwAngleMinOverride"></td>
+          <td><input type="checkbox" class="throwAngleOverride"></td>
           <td>Throw Angle (Min)</td>
           <td><input type="number" min="-90" value="-45" step="1" class="throwAngleMin"></td>
         </tr>
         <tr>
-          <td><input type="checkbox" class="throwAngleMaxOverride"></td>
+          <td></td>
           <td>Throw Angle (Max)</td>
           <td><input type="number" max="90" value="45" step="1" class="throwAngleMax"></td>
         </tr>
@@ -299,7 +304,7 @@
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td><input type="checkbox" class="impactDecalsOverride"></td>
+          <td></td>
           <td>Impact Decals</td>
           <td><button class="impactDecals">...</button></td>
         </tr>
@@ -307,12 +312,12 @@
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <td><input type="checkbox" class="windupSoundsOverride"></td>
+          <td></td>
           <td>Windup Sounds</td>
           <td><button class="windupSounds">...</button></td>
         </tr>
         <tr>
-          <td><input type="checkbox" class="windupDelayOverride"></td>
+          <td></td>
           <td>Windup Delay (s)</td>
           <td><input type="number" min="0" class="windupDelay"></td>
         </tr>
@@ -348,46 +353,59 @@
     <div id="events" class="block config" hidden>
       <h2>Events</h2>
       <hr>
-      <label for="redeemAdd">Add New Redeem:</label>
-      <button id="redeemAdd">+</button>
       <table>
+        <tr>
+          <td colspan="4">
+            <label for="redeemAdd">Add New Redeem:</label>
+            <button id="redeemAdd">+</button>
+          </td>
+        </tr>
         <tr id="redeems">
           <th></th>
           <th>Redeem Name</th>
           <th></th>
           <th>Bonk Type</th>
+          <th></th>
         </tr>
-        <tr id="redeemsRow" class="redeemsRow" hidden>
+        <tr id="redeemsRow" hidden>
           <td><input type="checkbox" class="redeemEnabled"></td>
           <td><input type="text" class="redeemName" disabled></td>
           <td><button class="redeemID">Listen</button></td>
           <td>
-            <select class="redeemType">
-              <option value="single">Single (Default)</option>
-              <option value="barrage">Barrage (Default)</option>
+            <select class="bonkType">
+              <option value="single">Single</option>
+              <option value="barrage">Barrage</option>
             </select>
           </td>
+          <td><button class="redeemRemove">X</button></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
         </tr>
         <tr>
-          <th></th>
+          <td colspan="4">
+            <label for="commandAdd">Add New Command:</label>
+            <button id="commandAdd">+</button>
+          </td>
+        </tr>
+        <tr>
           <th></th>
           <th>Command Name</th>
           <th>Cooldown (s)</th>
+          <th>Bonk Type</th>
+          <th></th>
         </tr>
-        <tr>
-          <td><input type="checkbox" id="singleCommandEnabled"></td>
-          <td>Command (Single)</td>
-          <td><input type="text" id="singleCommandTitle" value="!bonk"></td>
-          <td><input type="number" id="singleCommandCooldown" min="0" value="10"></td>
-        </tr>
-        <tr>
-          <td><input type="checkbox" id="barrageCommandEnabled"></td>
-          <td>Command (Barrage)</td>
-          <td><input type="text" id="barrageCommandTitle" value="!manybonk"></td>
-          <td><input type="number" id="barrageCommandCooldown" min="0" value="30"></td>
+        <tr id="commandsRow" hidden>
+          <td><input type="checkbox" class="commandEnabled"></td>
+          <td><input type="text" class="commandName"></td>
+          <td><input type="number" min="0" class="commandCooldown"></td>
+          <td>
+            <select class="bonkType">
+              <option value="single">Single</option>
+              <option value="barrage">Barrage</option>
+            </select>
+          </td>
+          <td><button class="commandRemove">X</button></td>
         </tr>
         <tr>
           <td>&nbsp;</td>
@@ -397,6 +415,7 @@
           <th></th>
           <th>Bonk Type</th>
           <th>Cooldown (s)</th>
+          <th></th>
         </tr>
         <tr>
           <td><input type="checkbox" id="subEnabled" checked></td>
