@@ -323,11 +323,14 @@ a {
     height: calc(100% - 32px);
     position: relative;
     clip-path: polygon(0% 0%, calc(100% - 16px) 0%, 100% 16px, 100% 100%, 0% 100%);
+    display: grid;
 }
 
 #mainWindowInner > div {
     height: 100%;
     overflow-y: scroll;
+    grid-row: 1;
+    grid-column: 1;
 }
 
 #mainWindowInner > div > div {
@@ -361,10 +364,9 @@ a {
 .imageTable {
     display: flex;
     flex-wrap: wrap;
-    position: absolute;
 }
 
-#imageRow, .imageRow, #newImage, #soundRow, .soundRow, #newSound, #bonkRow, .bonkRow, #newBonk  {
+#imageRow, .imageRow, #newImage, #soundRow, .soundRow, #newSound, .bitSoundRow, #newBitSound, #newBitSound, #bonkRow, .bonkRow, #bonksAdd  {
     margin: 16px;
     min-width: 256px;
 }
@@ -386,7 +388,7 @@ a {
     position: relative;
 }
 
-#soundRow .imageRowInner  {
+.soundRow .imageRowInner, .bitSoundRow .imageRowInner  {
     grid-template-columns: 30px auto 30px;
 }
 
@@ -452,12 +454,12 @@ a {
     grid-column: 3;
 }
 
-#soundRow .imageRowInner > .imageLabel {
+.soundRow .imageRowInner > .imageLabel, .bitSoundRow .imageRowInner > .imageLabel {
     grid-row: 1;
     grid-column: 2;
 }
 
-#soundRow .imageRowInner > .soundVolume {
+.soundRow .imageRowInner > .soundVolume, .bitSoundRow .imageRowInner > .bitSoundVolume {
     grid-row: 2;
     grid-column: 2;
     max-height: 29px;
@@ -468,12 +470,12 @@ a {
     grid-column: 4;
 }
 
-#soundRow .imageRowInner > .delete {
+.soundRow .imageRowInner > .delete, .bitSoundRow .imageRowInner > .delete {
     grid-row: 2;
     grid-column: 3;
 }
 
-#soundRow input {
+.soundRow input, .bitSoundRow input {
     position: relative;
     z-index: 0;
 }
@@ -627,13 +629,19 @@ a {
 #imageDetailsInner > p {
     width: max-content;
     min-width: 128px;
+    position: relative;
+    z-index: 1;
 }
 
 #imageDetailsInner > img {
     position: absolute;
-    left: calc(50% - 8px);
-    top: calc(50% - 8px);
-    transform: translate(-50%, -50%);
+    margin: auto;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: initial;
+    height: initial;
 }
 
 #imageSettings {
@@ -641,6 +649,7 @@ a {
     position: absolute;
     bottom: 16px;
     width: calc(100% - 32px);
+    z-index: 1;
 }
 
 #imageSettings > div {
@@ -759,10 +768,6 @@ a {
     transform: scale(1.1);
 }
 
-#eventsTable > table {
-    width: 100%;
-}
-
 .grid1 {
     grid-column: 1;
 }
@@ -832,6 +837,7 @@ a {
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+    overflow-y: initial !important;
 }
 
 #statusWindow h1 {
@@ -880,4 +886,145 @@ mark {
     padding: 0;
     height: min-content !important;
     margin: 0 16px;
+}
+
+#calibrateButtonss {
+    display: grid;
+}
+
+#nextCalibrate {
+    grid-column: 1;
+}
+
+#cancelCalibrate {
+    grid-column: 2;
+}
+
+@keyframes swipeLeftIn {
+    from {
+        clip-path: polygon(0% -32px, 0% -32px, 0% 100%, 0% 100%);
+    }
+
+    to {
+        clip-path: polygon(0% -32px, 100% -32px, 100% 100%, 0% 100%);
+    }
+}
+
+@keyframes swipeLeftOut {
+    from {
+        clip-path: polygon(0% -32px, 100% -32px, 100% 100%, 0% 100%);
+    }
+
+    to {
+        clip-path: polygon(100% -32px, 100% -32px, 100% 100%, 100% 100%);
+    }
+}
+
+@keyframes swipeRightIn {
+    from {
+        clip-path: polygon(100% -32px, 100% -32px, 100% 100%, 100% 100%);
+    }
+
+    to {
+        clip-path: polygon(0% -32px, 100% -32px, 100% 100%, 0% 100%);
+    }
+}
+
+@keyframes swipeRightOut {
+    from {
+        clip-path: polygon(0% -32px, 100% -32px, 100% 100%, 0% 100%);
+    }
+
+    to {
+        clip-path: polygon(0% -32px, 0% -32px, 0% 100%, 0% 100%);
+    }
+}
+
+@keyframes swipeDownIn {
+    from {
+        clip-path: polygon(0% -32px, 100% -32px, 100% -32px, 0% -32px);
+    }
+
+    to {
+        clip-path: polygon(0% -32px, 100% -32px, 100% 100%, 0% 100%);
+    }
+}
+
+@keyframes swipeDownOut {
+    from {
+        clip-path: polygon(0% -32px, 100% -32px, 100% 100%, 0% 100%);
+    }
+
+    to {
+        clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+    }
+}
+
+@keyframes swipeUpIn {
+    from {
+        clip-path: polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%);
+    }
+
+    to {
+        clip-path: polygon(0% -32px, 100% -32px, 100% 100%, 0% 100%);
+    }
+}
+
+@keyframes swipeUpOut {
+    from {
+        clip-path: polygon(0% -32px, 100% -32px, 100% 100%, 0% 100%);
+    }
+
+    to {
+        clip-path: polygon(0% -32px, 100% -32px, 100% -32px, 0% -32px);
+    }
+}
+
+
+.leftIn {
+    animation-name: swipeLeftIn;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+
+.leftOut {
+    animation-name: swipeLeftOut;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+
+.rightIn {
+    animation-name: swipeRightIn;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+
+.rightOut {
+    animation-name: swipeRightOut;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+
+.upIn {
+    animation-name: swipeUpIn;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+
+.upOut {
+    animation-name: swipeUpOut;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+
+.downIn {
+    animation-name: swipeDownIn;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
+}
+
+.downOut {
+    animation-name: swipeDownOut;
+    animation-duration: 0.5s;
+    animation-fill-mode: both;
 }

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; style-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; style-src 'self' 'unsafe-inline'">
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
     <title>KBonk 1.1.0 Beta</title>
     <link rel="stylesheet" type="text/css" href="style.css"></style>
@@ -58,10 +58,17 @@
             <div id="statusWindow" class="hidden">
               <h1 id="status">Status</h2>
               <div id="statusDesc">Status Description</div>
-              <div id="nextCalibrate" class="topButton">
-                <div class="overlayButton"></div>
-                <div class="innerTopButton">START CALIBRATION</div>
-                <div class="cornerTopButton"></div>
+              <div id="calibrateButtons">
+                <div id="nextCalibrate" class="topButton">
+                  <div class="overlayButton"></div>
+                  <div class="innerTopButton">START CALIBRATION</div>
+                  <div class="cornerTopButton"></div>
+                </div>
+                <div id="cancelCalibrate" class="topButton">
+                  <div class="overlayButton"></div>
+                  <div class="innerTopButton">CANCEL</div>
+                  <div class="cornerTopButton"></div>
+                </div>
               </div>
             </div>
 
@@ -205,7 +212,7 @@
             <div class="windowCorner"></div>
             <div id="imagesButton" class="sideButton">
               <div class="sideButtonInner">
-                <div class="overlayButton"></div>
+                <div class="overlayButton buttonSelected"></div>
                 <h2>Bonk Images</h2>
                 <hr>
                 <p>Bonk Image Gallery</p>
@@ -242,11 +249,11 @@
 
             <!-- IMAGE DETAILS -->
 
-            <div id="imageDetails">
-              <span id="imagesDefaultTab" class="tab firstTab">TEST</span>
+            <div id="imageDetails" class="hidden">
+              <span id="testImage" class="tab firstTab">TEST</span>
               <span class="windowBack">BACK</span>
               <div id="imageDetailsInner">
-                <img src="throws/I_C_Banana.png">
+                <img class="imageImage" src="throws/I_C_Banana.png">
                 <p class="imageLabel">IMAGE URL</p>
                 <div id="imageSettings">
                   <div id="imageSettings1">
@@ -271,7 +278,7 @@
                           <input type="text" class="imageSoundName" disabled>
                           <p>Upload</p>
                           <input id="loadImageSound" type="file" accept="audio/*">
-                          <p>Delete</p>
+                          <p>Delete Sound</p>
                           <label class="delete">
                             <button class="imageSoundRemove"></button>
                             <img src="ui/x.png" class="checkmark"></img>
@@ -286,10 +293,11 @@
 
             <!-- BONK IMAGES -->
 
-            <div id="bonkImages" class="hidden">
+            <div id="bonkImages">
               <span id="imagesBitsTab" class="tab secondTab">BITS</span>
-              <span id="imagesDefaultTab" class="tab firstTab">DEFAULT</span>
+              <span id="imagesDefaultTab" class="tab firstTab selectedTab">DEFAULT</span>
               <div id="imageTable" class="imageTable">
+                <input id="loadImage" type="file" accept="image/*" multiple hidden>
                 <div id="newImage" class="new">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
@@ -299,7 +307,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="imageRow" class="hidden">
+                <div id="imageRow" hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="checkbox">
@@ -323,7 +331,7 @@
                 </div>
               </div>
               <div id="bitImageTable" class="imageTable hidden">
-                <div id="imageRow">
+                <div class="imageRow">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="cogwheel">
@@ -336,7 +344,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="imageRow">
+                <div class="imageRow">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="cogwheel">
@@ -349,7 +357,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="imageRow">
+                <div class="imageRow">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="cogwheel">
@@ -362,7 +370,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="imageRow">
+                <div class="imageRow">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="cogwheel">
@@ -375,7 +383,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="imageRow">
+                <div class="imageRow">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="cogwheel">
@@ -395,9 +403,10 @@
 
             <div id="bonkSounds" class="hidden">
               <span id="soundsBitsTab" class="tab secondTab">BITS</span>
-              <span id="soundsDefaultTab" class="tab firstTab">DEFAULT</span>
+              <span id="soundsDefaultTab" class="tab firstTab selectedTab">DEFAULT</span>
               <div id="soundTable" class="imageTable">
                 <div id="newSound" class="new">
+                  <input id="loadSound" type="file" accept="audio/*" multiple hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <img class="imageImage" src="ui/add.png"></img>
@@ -406,7 +415,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="soundRow" >
+                <div id="soundRow" hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="checkbox">
@@ -415,7 +424,6 @@
                         <img src="ui/checkmark.png" class="checkmark">
                       </label>
                       <label class="cogwheel">
-                        <button id="bitImageAdd1"></button>
                         <img src="ui/speaker.png" class="checkmark"></img>
                       </label>
                       <p class="imageLabel">SOUND URL</p>
@@ -430,7 +438,8 @@
                 </div>
               </div>
               <div id="bitSoundTable" class="imageTable hidden">
-                <div id="newSound" class="new">
+                <div id="newBitSound" class="new">
+                  <input id="loadBitSound" type="file" accept="audio/*" multiple hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <img class="imageImage" src="ui/add.png"></img>
@@ -439,7 +448,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="soundRow">
+                <div id="bitSoundRow" hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="checkbox">
@@ -448,11 +457,10 @@
                         <img src="ui/checkmark.png" class="checkmark">
                       </label>
                       <label class="cogwheel">
-                        <button id="bitImageAdd1"></button>
                         <img src="ui/speaker.png" class="checkmark"></img>
                       </label>
                       <p class="imageLabel">SOUND URL</p>
-                      <input class="soundVolume" type="range" min="0" max="1" step="0.1">
+                      <input class="bitSoundVolume" type="range" min="0" max="1" step="0.1">
                       <label class="delete">
                         <button class="imageRemove"></button>
                         <img src="ui/x.png" class="checkmark"></img>
@@ -566,7 +574,7 @@
             <div id="customBonks" class="hidden">
               <span class="windowCorner"></span>
               <div id="bonksTable" class="imageTable">
-                <div id="newBonk" class="new">
+                <div id="bonksAdd" class="new">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <img class="imageImage" src="ui/add.png"></img>
@@ -595,19 +603,18 @@
 
             <div id="events" class="hidden">
               <span class="windowCorner"></span>
-              <span class="windowBack">BACK</span>
               <div id="eventsTable">
                 <div class="header">
                   <div class="headerInner">
                     Redeems
-                    <img src="ui/add30.png">
+                    <img id="redeemAdd" src="ui/add30.png">
                   </div>
                 </div>
 
                 <div class="header">
                   <div class="headerInner">
                     Commands
-                    <img src="ui/add30.png">
+                    <img id="commandAdd" src="ui/add30.png">
                   </div>
                 </div>
 
@@ -625,7 +632,7 @@
 
                 <!-- Subscription -->
                 <label class="checkbox">
-                  <input type="checkbox" class="" checked>
+                  <input type="checkbox" id="subEnabled" checked>
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
@@ -643,7 +650,7 @@
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
                 <p>Gift Subscription</p>
-                <select id="subType">
+                <select id="subGiftType">
                   <option value="single">Single</option>
                   <option value="barrage" selected>Barrage</option>
                 </select>
