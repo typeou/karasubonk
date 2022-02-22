@@ -17,7 +17,9 @@ const createWindow = () => {
       nodeIntegration: true,
       contextIsolation: false,
       enableRemoteModule: true
-    }
+    },
+    autoHideMenuBar: true,
+    useContentSize: true
   })
   
   mainWindow.loadFile("index.html")

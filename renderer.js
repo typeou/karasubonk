@@ -1,4 +1,4 @@
-const { ipcRenderer, app } = require("electron");
+const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
 // ------
@@ -120,7 +120,7 @@ async function openImages()
                     "weight": throws[index][1],
                     "scale": throws[index][2],
                     "sound": throws[index][3],
-                    "volume": throws[index][4],
+                    "volume": throws[index][4] == null ? 1 : throws[index][4],
                     "enabled": throws[index][5]
                 };
                 setData("throws", throws);
