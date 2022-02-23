@@ -102,7 +102,7 @@ body > div {
 }
 
 #headerStatus > h2 {
-    font-size: 32px;
+    font-size: 30px;
     margin: 0;
     font-weight: normal;
     font-family: 'Cascadia Code', 'Consolas', 'Courier New', Courier, monospace;
@@ -168,7 +168,7 @@ body > div {
     left: 0;
     bottom: 0;
     margin: 8px;
-    height: 48px;
+    height: 40px;
 }
 
 #itchLink {
@@ -1070,7 +1070,7 @@ mark {
 }
 
 #eventsTable, .redeemsRow, .commandsRow {
-    grid-template-columns: 70px 240px 96px 96px 32px;
+    grid-template-columns: 70px 228px 104px 104px 32px;
 }
 
 .redeemsRow p, .commandsRow p {
@@ -1158,4 +1158,25 @@ mark {
 
 #redeemAdd, #commandAdd {
     cursor: pointer;
+}
+
+.selectAll {
+    position: relative;
+    width: 100%;
+    margin-top: -32px;
+}
+
+.selectAll > div {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: grid;
+    gap: 8px;
+    padding: 8px 16px;
+    line-height: 32px;
+}
+
+.selectAll > div > * {
+    grid-row: 1;
+    margin: 0;
 }
