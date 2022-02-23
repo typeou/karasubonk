@@ -784,7 +784,7 @@ document.querySelector("#loadImageSound").addEventListener("change", loadImageSo
 async function loadImageSound()
 {
     // Grab the image that was just loaded
-    const imageFile = document.querySelector("#loadImageSound").files[0];
+    var soundFile = document.querySelector("#loadImageSound").files[0];
     // If the folder for objects doesn"t exist for some reason, make it
     if (!fs.existsSync(__dirname + "/impacts/"))
         fs.mkdirSync(__dirname + "/impacts/");
@@ -792,13 +792,13 @@ async function loadImageSound()
     // Ensure that we"re not overwriting any existing files with the same name
     // If a file already exists, add an interating number to the end until it"s a unique filename
     var append = "";
-    if (imageFile.path != __dirname + "\\impacts\\" + imageFile.name)
-        while (fs.existsSync(imageFile.path, __dirname + "/impacts/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
+    if (soundFile.path != __dirname + "\\impacts\\" + soundFile.name)
+        while (fs.existsSync( __dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
             append = append == "" ? 2 : (append + 1);
-    var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
+    var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
     // Make a copy of the file into the local folder
-    fs.copyFileSync(imageFile.path, __dirname + "/impacts/" + filename);
+    fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + filename);
     
     // Get the existing images, add the new image, update the data, and refresh the images page
     var throws = await getData("throws");
@@ -866,11 +866,8 @@ async function openImageDetails()
 
     details.querySelector(".imageSoundRemove").addEventListener("click", () => {
         throws[currentImageIndex].sound = null;
-        throws[currentImageIndex].volume = null;
         setData("throws", throws);
         details.querySelector(".imageSoundName").value = null;
-        details.querySelector(".imageSoundVolume").value = null;
-        details.querySelector(".imageSoundVolume").disabled = "disabled";
         details.querySelector(".imageSoundRemove").disabled = "disabled";
     });
 
@@ -1126,23 +1123,17 @@ async function bonkDetails(customBonkName)
         showPanel("bonkDetails", true);
 
         // Copy new elements to remove all old listeners
-        var oldButton = document.querySelector("#testCustomBonk");
-        var newButton = oldButton.cloneNode(true);
-        oldButton.after(newButton);
-        oldButton.remove();
-        
         var oldTable = document.querySelector("#bonkDetailsTable");
         var newTable = oldTable.cloneNode(true);
         oldTable.after(newTable);
         oldTable.remove();
-
-        document.querySelector("#testCustomBonk").addEventListener("click", () => testCustomBonk(customBonkName));
 
         const bonkDetailsTable = document.querySelector("#bonkDetailsTable");
 
         // Bonk Name
         bonkDetailsTable.querySelector(".bonkName").value = customBonkName;
         bonkDetailsTable.querySelector(".bonkName").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             if (customBonks[bonkDetailsTable.querySelector(".bonkName").value] == null)
             {
                 customBonks[bonkDetailsTable.querySelector(".bonkName").value] = customBonks[customBonkName];
@@ -1181,7 +1172,8 @@ async function bonkDetails(customBonkName)
 
         // Barrage Count
         bonkDetailsTable.querySelector(".barrageCount").value = customBonks[customBonkName].barrageCount;
-        bonkDetailsTable.querySelector(".barrageCount").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".barrageCount").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].barrageCount = parseInt(bonkDetailsTable.querySelector(".barrageCount").value);
             setData("customBonks", customBonks);
         });
@@ -1189,14 +1181,16 @@ async function bonkDetails(customBonkName)
         // Barrage Frequency
         bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked = customBonks[customBonkName].barrageFrequencyOverride;
         bonkDetailsTable.querySelector(".barrageFrequency").disabled = !customBonks[customBonkName].barrageFrequencyOverride;
-        bonkDetailsTable.querySelector(".barrageFrequencyOverride").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".barrageFrequencyOverride").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].barrageFrequencyOverride = bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked;
             bonkDetailsTable.querySelector(".barrageFrequency").disabled = !customBonks[customBonkName].barrageFrequencyOverride;
             setData("customBonks", customBonks);
         });
 
         bonkDetailsTable.querySelector(".barrageFrequency").value = customBonks[customBonkName].barrageFrequency;
-        bonkDetailsTable.querySelector(".barrageFrequency").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".barrageFrequency").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].barrageFrequency = parseFloat(bonkDetailsTable.querySelector(".barrageFrequency").value);
             setData("customBonks", customBonks);
         });
@@ -1204,14 +1198,16 @@ async function bonkDetails(customBonkName)
         // Throw Duration
         bonkDetailsTable.querySelector(".throwDurationOverride").checked = customBonks[customBonkName].throwDurationOverride;
         bonkDetailsTable.querySelector(".throwDuration").disabled = !customBonks[customBonkName].throwDurationOverride;
-        bonkDetailsTable.querySelector(".throwDurationOverride").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".throwDurationOverride").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].throwDurationOverride = bonkDetailsTable.querySelector(".throwDurationOverride").checked;
             bonkDetailsTable.querySelector(".throwDuration").disabled = !customBonks[customBonkName].throwDurationOverride;
             setData("customBonks", customBonks);
         });
 
         bonkDetailsTable.querySelector(".throwDuration").value = customBonks[customBonkName].throwDuration;
-        bonkDetailsTable.querySelector(".throwDuration").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".throwDuration").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].throwDuration = parseFloat(bonkDetailsTable.querySelector(".throwDuration").value);
             setData("customBonks", customBonks);
         });
@@ -1220,7 +1216,8 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".throwAngleOverride").checked = customBonks[customBonkName].throwAngleOverride;
         bonkDetailsTable.querySelector(".throwAngleMin").disabled = !customBonks[customBonkName].throwAngleOverride;
         bonkDetailsTable.querySelector(".throwAngleMax").disabled = !customBonks[customBonkName].throwAngleOverride;
-        bonkDetailsTable.querySelector(".throwAngleOverride").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".throwAngleOverride").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].throwAngleOverride = bonkDetailsTable.querySelector(".throwAngleOverride").checked;
             bonkDetailsTable.querySelector(".throwAngleMin").disabled = !customBonks[customBonkName].throwAngleOverride;
             bonkDetailsTable.querySelector(".throwAngleMax").disabled = !customBonks[customBonkName].throwAngleOverride;
@@ -1228,14 +1225,16 @@ async function bonkDetails(customBonkName)
         });
 
         bonkDetailsTable.querySelector(".throwAngleMin").value = customBonks[customBonkName].throwAngleMin;
-        bonkDetailsTable.querySelector(".throwAngleMin").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".throwAngleMin").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].throwAngleMin = parseInt(bonkDetailsTable.querySelector(".throwAngleMin").value);
             setData("customBonks", customBonks);
         });
 
         // Throw Angle Max
         bonkDetailsTable.querySelector(".throwAngleMax").value = customBonks[customBonkName].throwAngleMax;
-        bonkDetailsTable.querySelector(".throwAngleMax").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".throwAngleMax").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].throwAngleMax = parseInt(bonkDetailsTable.querySelector(".throwAngleMax").value);
             setData("customBonks", customBonks);
         });
@@ -1243,7 +1242,8 @@ async function bonkDetails(customBonkName)
         // Items
         bonkDetailsTable.querySelector(".imagesOverride").checked = customBonks[customBonkName].itemsOverride;
         bonkDetailsTable.querySelector(".images").disabled = !customBonks[customBonkName].itemsOverride;
-        bonkDetailsTable.querySelector(".imagesOverride").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".imagesOverride").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].itemsOverride = bonkDetailsTable.querySelector(".imagesOverride").checked;
             bonkDetailsTable.querySelector(".images").disabled = !customBonks[customBonkName].itemsOverride;
             setData("customBonks", customBonks);
@@ -1260,7 +1260,8 @@ async function bonkDetails(customBonkName)
         // Sounds
         bonkDetailsTable.querySelector(".soundsOverride").checked = customBonks[customBonkName].soundsOverride;
         bonkDetailsTable.querySelector(".sounds").disabled = !customBonks[customBonkName].soundsOverride;
-        bonkDetailsTable.querySelector(".soundsOverride").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".soundsOverride").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].soundsOverride = bonkDetailsTable.querySelector(".soundsOverride").checked;
             bonkDetailsTable.querySelector(".sounds").disabled = !customBonks[customBonkName].soundsOverride;
             setData("customBonks", customBonks);
@@ -1288,7 +1289,8 @@ async function bonkDetails(customBonkName)
 
         // Windup Delay
         bonkDetailsTable.querySelector(".windupDelay").value = customBonks[customBonkName].windupDelay;
-        bonkDetailsTable.querySelector(".windupDelay").addEventListener("change", () => {
+        bonkDetailsTable.querySelector(".windupDelay").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
             customBonks[customBonkName].windupDelay = parseFloat(bonkDetailsTable.querySelector(".windupDelay").value);
             setData("customBonks", customBonks);
         });

@@ -281,7 +281,7 @@ function getImageWeightScaleSoundVolume()
     "weight": data.throws[index].weight,
     "scale": data.throws[index].scale,
     "sound": data.throws[index].sound != null ? data.throws[index].sound : soundIndex != -1 ? data.impacts[soundIndex].location : null,
-    "volume": data.throws[index].sound != null ? data.throws[index].volume : soundIndex != -1 ? data.impacts[soundIndex].volume : 0
+    "volume": data.throws[index].volume * (soundIndex != -1 ? data.impacts[soundIndex].volume : 1)
   };
 }
 
@@ -403,7 +403,7 @@ function getCustomImageWeightScaleSoundVolume(customName)
   {
     do {
       soundIndex = Math.floor(Math.random() * data.impacts.length);
-    } while (!data.customBonks[customName].impacts[soundIndex].enabled);
+    } while (!data.impacts[soundIndex].customs.includes(customName));
   }
   else if (hasActiveSound())
   {
@@ -432,8 +432,8 @@ function getCustomImageWeightScaleSoundVolume(customName)
     "location": data.throws[index].location,
     "weight": data.throws[index].weight,
     "scale": data.throws[index].scale,
-    "sound": data.throws[index].sound != null ? data.throws[index].sound : soundIndex != -1 ? data.impacts[soundIndex].location : null,
-    "volume": data.throws[index].volume,
+    "sound": data.throws[index].sound != null ? data.throws[index].sound : (soundIndex != -1 ? data.impacts[soundIndex].location : null),
+    "volume": data.throws[index].volume * (soundIndex != -1 ? data.impacts[soundIndex].volume : 1),
     "impactDecal": impactDecalIndex != -1 ? data.customBonks[customName].impactDecals[impactDecalIndex] : null,
     "windupSound": windupSoundIndex != -1 ? data.customBonks[customName].windupSounds[windupSoundIndex] : null
   };
@@ -728,6 +728,7 @@ function onSubHandler(subMessage)
   {
     switch (data.subGiftBonkType)
     {
+
       case "single":
         single();
         break;
