@@ -605,13 +605,13 @@ function hasActiveSoundCustom(customName)
 
 function hasActiveBitSound()
 {
-  if (data.bitImpacts == null || data.bitImpacts.length == 0)
+  if (data.impacts == null || data.impacts.length == 0)
     return false;
 
   var active = false;
-  for (var i = 0; i < data.bitImpacts.length; i++)
+  for (var i = 0; i < data.impacts.length; i++)
   {
-    if (data.bitImpacts[i].enabled)
+    if (data.impacts[i].bits)
     {
       active = true;
       break;
@@ -833,18 +833,8 @@ function onBitsHandler(bitsMessage)
         {
           var soundIndex;
           do {
-            soundIndex = Math.floor(Math.random() * data.bitImpacts.length);
-          } while (!data.bitImpacts[soundIndex].enabled);
-
-          sounds.push(data.bitImpacts[soundIndex].location);
-          volumes.push(data.bitImpacts[soundIndex].volume);
-        }
-        else if (hasActiveSound())
-        {
-          var soundIndex;
-          do {
             soundIndex = Math.floor(Math.random() * data.impacts.length);
-          } while (!data.impacts[soundIndex].enabled);
+          } while (!data.impacts[soundIndex].bits);
 
           sounds.push(data.impacts[soundIndex].location);
           volumes.push(data.impacts[soundIndex].volume);

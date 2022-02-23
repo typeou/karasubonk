@@ -17,7 +17,7 @@
         <h1>KBonk</h1>
       </div>
       <div id="headerStatus">
-        <h2>Status</h2>
+        <h2 id="headerStatusInner">Status</h2>
       </div>
     </div>
     <div id="body">
@@ -169,36 +169,46 @@
 
             <!-- TEST BONKS -->
 
-            <div id="testBonks"  class="hidden">
-              <div class="testContainer">
-                <div id="testSingle" class="topButton">
-                  <div class="overlayButton"></div>
-                  <div class="innerTopButton">SINGLE</div>
-                  <div class="cornerTopButton"></div>
+            <div id="testBonks" class="hidden">
+              <div id="testBonksTable">
+                <div class="testContainer">
+                  <div id="testSingle" class="topButton">
+                    <div class="overlayButton"></div>
+                    <div class="innerTopButton">SINGLE</div>
+                    <div class="cornerTopButton"></div>
+                  </div>
                 </div>
-              </div>
-
-              <div class="testContainer">
-                <div id="testBarrage" class="topButton">
-                  <div class="overlayButton"></div>
-                  <div class="innerTopButton">BARRAGE</div>
-                  <div class="cornerTopButton"></div>
+  
+                <div class="testContainer">
+                  <div id="testBarrage" class="topButton">
+                    <div class="overlayButton"></div>
+                    <div class="innerTopButton">BARRAGE</div>
+                    <div class="cornerTopButton"></div>
+                  </div>
                 </div>
-              </div>
-
-              <div class="testContainer">
-                <div id="testBits" class="topButton">
-                  <div class="overlayButton"></div>
-                  <div class="innerTopButton">BITS</div>
-                  <div class="cornerTopButton"></div>
+  
+                <div class="testContainer">
+                  <div id="testBits" class="topButton">
+                    <div class="overlayButton"></div>
+                    <div class="innerTopButton">BITS</div>
+                    <div class="cornerTopButton"></div>
+                  </div>
                 </div>
-              </div>
-
-              <div class="testContainer">
-                <div id="testRaid" class="topButton">
-                  <div class="overlayButton"></div>
-                  <div class="innerTopButton">RAID</div>
-                  <div class="cornerTopButton"></div>
+  
+                <div class="testContainer">
+                  <div id="testRaid" class="topButton">
+                    <div class="overlayButton"></div>
+                    <div class="innerTopButton">RAID</div>
+                    <div class="cornerTopButton"></div>
+                  </div>
+                </div>
+  
+                <div id="testCustom" class="testContainer" hidden>
+                  <div class="topButton">
+                    <div class="overlayButton"></div>
+                    <div class="innerTopButton">CUSTOM CUSTOM CUSTOM CUSTOM CUSTOM CUSTOM</div>
+                    <div class="cornerTopButton"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -278,11 +288,13 @@
                           <input type="text" class="imageSoundName" disabled>
                           <p>Upload</p>
                           <input id="loadImageSound" type="file" accept="audio/*">
-                          <p>Delete Sound</p>
-                          <label class="delete">
-                            <button class="imageSoundRemove"></button>
-                            <img src="ui/x.png" class="checkmark"></img>
-                          </label>
+                          <div class="deleteSound grid 1-2">
+                            <p class="grid1">Delete Sound</p>
+                            <label class="delete grid2">
+                              <button class="imageSoundRemove"></button>
+                              <img src="ui/x.png" class="checkmark"></img>
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -329,6 +341,20 @@
                     </div>
                   </div>
                 </div>
+                <div id="imageRowCustom" hidden>
+                  <div class="imageRowShadow">
+                    <div class="imageRowInner">
+                      <label class="checkbox">
+                        <input type="checkbox" class="imageEnabled" checked>
+                        <div class="checkHover"></div>
+                        <img src="ui/checkmark.png" class="checkmark">
+                      </label>
+                      <img class="imageImage" src="throws/I_C_Banana.png"></img>
+                      <p class="imageLabel">IMAGE URL</p>
+                      <div class="imageRowHover"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div id="bitImageTable" class="imageTable hidden">
                 <div class="imageRow">
@@ -340,6 +366,10 @@
                       </label>
                       <img class="imageImage" src="throws/1.png"></img>
                       <p class="imageLabel">1 BIT</p>
+                      <div>
+                        <p>Scale</p>
+                        <input class="bitImageScale" type="number" min="0" value="1.5">
+                      </div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
@@ -353,6 +383,11 @@
                       </label>
                       <img class="imageImage" src="throws/100.png"></img>
                       <p class="imageLabel">100 BITS</p>
+                      <div>
+                        <p>Scale</p>
+                        <input class="bitImageScale" type="number" min="0" value="1.5">
+                      </div>
+                      <div class="imageRowHover"></div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
@@ -366,6 +401,11 @@
                       </label>
                       <img class="imageImage" src="throws/1000.png"></img>
                       <p class="imageLabel">1000 BITS</p>
+                      <div>
+                        <p>Scale</p>
+                        <input class="bitImageScale" type="number" min="0" value="1.5">
+                      </div>
+                      <div class="imageRowHover"></div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
@@ -379,6 +419,11 @@
                       </label>
                       <img class="imageImage" src="throws/5000.png"></img>
                       <p class="imageLabel">5000 BITS</p>
+                      <div>
+                        <p>Scale</p>
+                        <input class="bitImageScale" type="number" min="0" value="1.5">
+                      </div>
+                      <div class="imageRowHover"></div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
@@ -392,6 +437,16 @@
                       </label>
                       <img class="imageImage" src="throws/10000.png"></img>
                       <p class="imageLabel">10000 BITS</p>
+                      <div>
+                        <p>Scale</p>
+                        <input class="bitImageScale" type="number" min="0" value="1.5">
+                      </div>
+                      <div class="imageRowHover"></div>
+                      <div>
+                        <p>Scale</p>
+                        <input class="bitImageScale" type="number" min="0" value="1.5">
+                      </div>
+                      <div class="imageRowHover"></div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
@@ -457,14 +512,8 @@
                         <img src="ui/checkmark.png" class="checkmark">
                       </label>
                       <label class="cogwheel">
-                        <img src="ui/speaker.png" class="checkmark"></img>
                       </label>
                       <p class="imageLabel">SOUND URL</p>
-                      <input class="bitSoundVolume" type="range" min="0" max="1" step="0.1">
-                      <label class="delete">
-                        <button class="imageRemove"></button>
-                        <img src="ui/x.png" class="checkmark"></img>
-                      </label>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
@@ -475,9 +524,16 @@
             <!-- BONK DETAILS -->
 
             <div id="bonkDetails" class="hidden">
-              <span class="windowCorner"></span>
+              <span id="testCustomBonk" class="tab firstTab">TEST</span>
               <span class="windowBack">BACK</span>
               <div id="bonkDetailsTable">
+                <div class="header">
+                  <div class="headerInner">
+                    Custom Bonk Name
+                  </div>
+                </div>
+                <input type="text" min="0" step="1" class="bonkName grid1-3">
+
                 <div class="header">
                   <div class="headerInner">
                     Setting Overrides
@@ -488,7 +544,7 @@
                 <input type="number" min="0" step="1" class="barrageCount">
 
                 <label class="checkbox grid1">
-                  <input type="checkbox" class="imageEnabled" checked>
+                  <input type="checkbox" class="barrageFrequencyOverride" checked>
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
@@ -496,7 +552,7 @@
                 <input type="number" min="0" step="1" class="barrageFrequency grid3">
 
                 <label class="checkbox grid1">
-                  <input type="checkbox" class="imageEnabled" checked>
+                  <input type="checkbox" class="throwDurationOverride" checked>
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
@@ -504,26 +560,16 @@
                 <input type="number" min="0" step="1" class="throwDuration grid3">
 
                 <label class="checkbox grid1">
-                  <input type="checkbox" class="imageEnabled" checked>
+                  <input type="checkbox" class="throwAngleOverride" checked>
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
                 <p class="grid2">Throw Angle (Min)</p>
                 <input type="number" min="-90" value="-45" step="1" class="throwAngleMin grid3">
 
-                <label class="checkbox grid1">
-                  <input type="checkbox" class="imageEnabled" checked>
-                  <div class="checkHover"></div>
-                  <img src="ui/checkmark.png" class="checkmark">
-                </label>
                 <p class="grid2">Throw Angle (Max)</p>
                 <input type="number" min="90" value="45" step="1" class="throwAngleMax grid3">
 
-                <label class="checkbox grid1">
-                  <input type="checkbox" class="imageEnabled" checked>
-                  <div class="checkHover"></div>
-                  <img src="ui/checkmark.png" class="checkmark">
-                </label>
                 <p class="grid2">Windup Delay (s)</p>
                 <input type="number" min="0" value="0" class="windupDelay grid3">
 
@@ -544,26 +590,16 @@
                 <button class="images grid3">Gallery</button>
 
                 <label class="checkbox grid1">
-                  <input type="checkbox" class="" checked>
+                  <input type="checkbox" class="soundsOverride" checked>
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
                 <p class="grid2">Bonk Sounds</p>
                 <button class="sounds grid3">Gallery</button>
 
-                <label class="checkbox grid1">
-                  <input type="checkbox" class="imageEnabled" checked>
-                  <div class="checkHover"></div>
-                  <img src="ui/checkmark.png" class="checkmark">
-                </label>
                 <p class="grid2">Impact Decals</p>
                 <button class="impactDecals grid3">Gallery</button>
 
-                <label class="checkbox grid1">
-                  <input type="checkbox" class="imageEnabled" checked>
-                  <div class="checkHover"></div>
-                  <img src="ui/checkmark.png" class="checkmark">
-                </label>
                 <p class="grid2">Windup Sounds</p>
                 <button class="windupSounds grid3">Gallery</button>
               </div>
@@ -583,10 +619,10 @@
                     </div>
                   </div>
                 </div>
-                <div id="bonkRow">
+                <div id="customBonkRow" hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
-                      <img class="imageImage" src="ui/cog64.png"></img>
+                      <img class="imageImage bonkDetailsButton" src="ui/cog64.png"></img>
                       <p class="imageLabel">BONK NAME</p>
                       <label class="delete">
                         <button class="imageRemove"></button>
@@ -610,6 +646,28 @@
                     <img id="redeemAdd" src="ui/add30.png">
                   </div>
                 </div>
+                <b class="grid1">Enabled</b>
+                <b class="grid2">Redeem Name</b>
+                <b class="grid4">Bonk Type</b>
+                <div id="redeemsRow" class="hidden">
+                  <label class="checkbox grid1">
+                    <input type="checkbox" class="redeemEnabled" checked>
+                    <div class="checkHover"></div>
+                    <img src="ui/checkmark.png" class="checkmark">
+                  </label>
+                  <p class="redeemName grid2">Redeem Name</p>
+                  <button class="redeemID grid3">Listen</button>
+                  <select class="bonkType grid4">
+                    <option value="single">Single</option>
+                    <option value="barrage">Barrage</option>
+                  </select>
+                  <label class="delete grid5">
+                    <button class="imageRemove redeemRemove"></button>
+                    <img src="ui/x.png" class="checkmark"></img>
+                  </label>
+                </div>
+
+                <br/>
 
                 <div class="header">
                   <div class="headerInner">
@@ -617,6 +675,29 @@
                     <img id="commandAdd" src="ui/add30.png">
                   </div>
                 </div>
+                <b class="grid1">Enabled</b>
+                <b class="grid2">Command Name</b>
+                <b class="grid3">Bonk Type</b>
+                <b class="grid4">Cooldown</b>
+                <div id="commandsRow" class="hidden">
+                  <label class="checkbox grid1">
+                    <input type="checkbox" class="commandEnabled" checked>
+                    <div class="checkHover"></div>
+                    <img src="ui/checkmark.png" class="checkmark">
+                  </label>
+                  <input type="text" class="commandName grid2">
+                  <select class="bonkType grid3">
+                    <option value="single">Single</option>
+                    <option value="barrage">Barrage</option>
+                  </select>
+                  <input type="number" min="0" class="commandCooldown grid4">
+                  <label class="delete grid5">
+                    <button class="imageRemove commandRemove"></button>
+                    <img src="ui/x.png" class="checkmark"></img>
+                  </label>
+                </div>
+
+                <br/>
 
                 <div class="header">
                   <div class="headerInner">
@@ -631,30 +712,30 @@
                 <b class="grid4">Cooldown (s)</b>
 
                 <!-- Subscription -->
-                <label class="checkbox">
+                <label class="checkbox grid1">
                   <input type="checkbox" id="subEnabled" checked>
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
-                <p>Subscription</p>
-                <select id="subType">
+                <p class="grid2">Subscription</p>
+                <select id="subType" class="grid3">
                   <option value="single">Single</option>
                   <option value="barrage" selected>Barrage</option>
                 </select>
-                <input type="number" id="subCooldown" min="0" value="0">
+                <input type="number" id="subCooldown" class="grid4" min="0" value="0">
 
                 <!-- Gift Subscription -->
-                <label class="checkbox">
+                <label class="checkbox grid1">
                   <input type="checkbox" id="subGiftEnabled" checked>
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
-                <p>Gift Subscription</p>
-                <select id="subGiftType">
+                <p class="grid2">Gift Subscription</p>
+                <select id="subGiftType" class="grid3">
                   <option value="single">Single</option>
                   <option value="barrage" selected>Barrage</option>
                 </select>
-                <input type="number" id="subGiftCooldown" min="0" value="0">
+                <input type="number" id="subGiftCooldown" class="grid4" min="0" value="0">
 
                 <br/>
   

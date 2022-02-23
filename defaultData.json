@@ -124,7 +124,7 @@
             "enabled": true
         }
     ],
-    "bitBonkThrows": {
+    "bitThrows": {
         "one": {
             "location": "throws/1.png",
             "scale": 1.5
