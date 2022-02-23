@@ -371,7 +371,7 @@ a {
     flex-wrap: wrap;
 }
 
-#imageRow, .imageRow, #newImage, #soundRow, .soundRow, #newSound, .bitSoundRow, #newBitSound, #newBitSound, #customBonkRow, .customBonkRow, #bonksAdd  {
+.row {
     margin: 16px;
     min-width: 256px;
 }
@@ -848,7 +848,11 @@ a {
 }
 
 #nextCalibrate {
-    width: 512px !important;
+    width: 384px !important;
+}
+
+#help {
+    position: absolute;
 }
 
 #statusWindow {
@@ -913,7 +917,7 @@ mark {
     margin: 0 16px;
 }
 
-#calibrateButtonss {
+#calibrateButtons {
     display: grid;
 }
 
@@ -1119,4 +1123,39 @@ mark {
     grid-column: 2;
     height: 16px;
     width: 64px;
+}
+
+.decalSettings {
+    grid-column: 3;
+    grid-row: 2;
+    width: 100%;
+    display: grid;
+    grid-template-columns: min-content 36px min-content 36px;
+    gap: 8px;
+}
+
+.decalSettings > * {
+    grid-row: 1;
+}
+
+.decalSettings > img, #bitImageTable .imageRowInner > div > img {
+    margin: auto;
+    display: block;
+    height: 16px;
+}
+
+.decalSettings > input, #bitImageTable .imageRowInner > div > input {
+    margin: auto 0;
+    display: block;
+    height: 16px;
+}
+
+.decalSettings > input::-webkit-outer-spin-button,
+.decalSettings > input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#redeemAdd, #commandAdd {
+    cursor: pointer;
 }

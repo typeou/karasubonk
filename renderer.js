@@ -23,8 +23,8 @@ const statusDesc = [
     "",
     "<p>If you haven't logged in before or access has expired, a Twitch login window will appear.</p>",
     "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source in OBS.</p><p>The KBonk Browser Source should be active with <mark>karasubonk/resources/app/bonker.html</mark> as the source file.</p>",
-    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p><small>Your VTube Studio Source and KBonk Browser Source should be overlapping.</small></p><p>Press the <mark>Continue Calibration</mark> button below to continue to the next step.</p>",
-    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p><small>Your VTube Studio Source and KBonk Browser Source should be overlapping.</small></p><p>Press the <mark>Confirm Calibration</mark> button below to finish calibration.</p>",
+    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Continue Calibration</mark> button below to continue to the next step.</p>",
+    "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Confirm Calibration</mark> button below to finish calibration.</p>",
     [ "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p>" ],
     "<p>Please use the Channel Point Reward you'd like to use.</p>",
     "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>",
@@ -37,7 +37,7 @@ async function setStatus(_, message)
 {
     status = message;
     document.querySelector("#status").innerHTML = statusTitle[status];
-    document.querySelector("#headerStatusInner").innerHTML = statusTitle[status];
+    document.querySelector("#headerStatusInner").innerHTML = statusTitle[status] + (status != 0 ? " (Click)" : "");
 
     if (status == 0)
     {
@@ -63,14 +63,14 @@ async function setStatus(_, message)
     else
         document.querySelector("#statusDesc").innerHTML = statusDesc[status][0] + await getData("portVTubeStudio") + statusDesc[status][1];
 
-    if (status == 3 || status == 4 || status == 9)
+    if (status == 3 || status == 4 || status == 7)
     {
-        if (status == 9)
-            document.querySelector("#nextCalibrate").innerText = "Start Calibration";
+        if (status == 7)
+            document.querySelector("#nextCalibrate").querySelector(".innerTopButton").innerText = "Start Calibration";
         else if (status == 3)
-            document.querySelector("#nextCalibrate").innerText = "Continue Calibration";
+            document.querySelector("#nextCalibrate").querySelector(".innerTopButton").innerText = "Continue Calibration";
         else if (status == 4)
-            document.querySelector("#nextCalibrate").innerText = "Confirm Calibration";
+            document.querySelector("#nextCalibrate").querySelector(".innerTopButton").innerText = "Confirm Calibration";
         document.querySelector("#calibrateButtons").classList.remove("hidden");
     }
     else
@@ -114,7 +114,8 @@ async function loadImage()
             "weight": 1.0,
             "scale": 1.0,
             "sound": null,
-            "volume": 1.0
+            "volume": 1.0,
+            "customs": []
         });
     }
     setData("throws", throws);
@@ -124,7 +125,7 @@ async function loadImage()
     document.querySelector("#loadImage").value = null;
 }
 
-async function openImages(customName)
+async function openImages()
 {
     var throws = await getData("throws");
 
@@ -138,11 +139,7 @@ async function openImages(customName)
         {
             if (fs.existsSync(__dirname + "/" + throws[index].location))
             {
-                var row;
-                if (customName == null)
-                    row = document.querySelector("#imageRow").cloneNode(true);
-                else
-                    row = document.querySelector("#imageRowCustom").cloneNode(true);
+                var row = document.querySelector("#imageRow").cloneNode(true);
                 row.removeAttribute("id");
                 row.classList.add("imageRow");
                 row.removeAttribute("hidden");
@@ -152,37 +149,23 @@ async function openImages(customName)
     
                 row.querySelector(".imageImage").src = throws[index].location;
 
-                if (customName == null)
-                {
-                    row.querySelector(".imageEnabled").checked = throws[index].enabled;
-                    row.querySelector(".imageEnabled").addEventListener("change", () => {
-                        throws[index].enabled = row.querySelector(".imageEnabled").checked;
-                        setData("throws", throws);
-                    });
-    
-                    row.querySelector(".imageDetails").addEventListener("click", () => {
-                        currentImageIndex = index;
-                        openImageDetails();
-                        showPanel("imageDetails");
-                    });
-    
-                    row.querySelector(".imageRemove").addEventListener("click", () => {
-                        throws.splice(index, 1);
-                        setData("throws", throws);
-                        openImages();
-                    });
-                }
-                else
-                {
-                    row.querySelector(".imageEnabled").checked = throws[index].customs.includes(customName);
-                    row.querySelector(".imageEnabled").addEventListener("change", () => {
-                        if (!row.querySelector(".imageEnabled").checked && throws[index].customs.includes(customName))
-                            throws[index].customs.splice(throws[index].customs.indexOf(customName), 1);
-                        else if (!row.querySelector(".imageEnabled").checked && !throws[index].customs.includes(customName))
-                            throws[index].customs.push(customName);
-                        setData("throws", throws);
-                    });
-                }
+                row.querySelector(".imageEnabled").checked = throws[index].enabled;
+                row.querySelector(".imageEnabled").addEventListener("change", () => {
+                    throws[index].enabled = row.querySelector(".imageEnabled").checked;
+                    setData("throws", throws);
+                });
+
+                row.querySelector(".imageDetails").addEventListener("click", () => {
+                    currentImageIndex = index;
+                    openImageDetails();
+                    showPanel("imageDetails", true);
+                });
+
+                row.querySelector(".imageRemove").addEventListener("click", () => {
+                    throws.splice(index, 1);
+                    setData("throws", throws);
+                    openImages();
+                });
             }
             else
             {
@@ -193,6 +176,438 @@ async function openImages(customName)
     }
 }
 
+async function loadImageCustom(customName)
+{
+    var throws = await getData("throws");
+    var files = document.querySelector("#loadImageCustom").files;
+    for (var i = 0; i < files.length; i++)
+    {
+        // Grab the image that was just loaded
+        var imageFile = files[i];
+        // If the folder for objects doesn't exist for some reason, make it
+        if (!fs.existsSync(__dirname + "/throws/"))
+            fs.mkdirSync(__dirname + "/throws/");
+    
+        // Ensure that we're not overwriting any existing files with the same name
+        // If a file already exists, add an interating number to the end until it"s a unique filename
+        var append = "";
+        while (fs.existsSync(__dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
+            append = append == "" ? 2 : (append + 1);
+        var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
+    
+        // Make a copy of the file into the local folder
+        fs.copyFileSync(imageFile.path, __dirname + "/throws/" + filename);
+        
+        // Add the new image, update the data, and refresh the images page
+        throws.unshift({
+            "enabled": false,
+            "location": "throws/" + filename,
+            "weight": 1.0,
+            "scale": 1.0,
+            "sound": null,
+            "volume": 1.0,
+            "customs": [ customName ]
+        });
+    }
+    setData("throws", throws);
+    openImagesCustom(customName);
+    
+    // Reset the image upload
+    document.querySelector("#loadImageCustom").value = null;
+}
+
+async function openImagesCustom(customName)
+{
+    // Refresh table to remove old event listeners
+    var oldTable = document.querySelector("#imageTableCustom");
+    var newTable = oldTable.cloneNode(true);
+    oldTable.after(newTable);
+    oldTable.remove();
+
+    document.querySelector("#newImageCustom").addEventListener("click", () => { document.querySelector("#loadImageCustom").click(); });
+    document.querySelector("#loadImageCustom").addEventListener("change", () => { loadImageCustom(customName); });
+    
+    var throws = await getData("throws");
+
+    document.querySelector("#imageTableCustom").querySelectorAll(".imageRow").forEach((element) => { element.remove(); });
+
+    if (throws == null)
+        setData("throws", []);
+    else
+    {
+        throws.forEach((_, index) =>
+        {
+            if (fs.existsSync(__dirname + "/" + throws[index].location))
+            {
+                var row = document.querySelector("#imageRowCustom").cloneNode(true);
+                row.removeAttribute("id");
+                row.classList.add("imageRow");
+                row.removeAttribute("hidden");
+                document.querySelector("#imageTableCustom").appendChild(row);
+
+                row.querySelector(".imageLabel").innerText = throws[index].location.substr(throws[index].location.lastIndexOf('/') + 1);
+    
+                row.querySelector(".imageImage").src = throws[index].location;
+
+                row.querySelector(".imageEnabled").checked = throws[index].customs.includes(customName);
+                row.querySelector(".imageEnabled").addEventListener("change", () => {
+                    if (!row.querySelector(".imageEnabled").checked && throws[index].customs.includes(customName))
+                        throws[index].customs.splice(throws[index].customs.indexOf(customName), 1);
+                    else if (row.querySelector(".imageEnabled").checked && !throws[index].customs.includes(customName))
+                        throws[index].customs.push(customName);
+                    setData("throws", throws);
+                });
+            }
+            else
+            {
+                throws.splice(index, 1);
+                setData("throws", throws);
+            }
+        });
+    }
+}
+
+async function loadSoundCustom(customName)
+{
+    var impacts = await getData("impacts");
+    var files = document.querySelector("#loadSoundCustom").files;
+    for (var i = 0; i < files.length; i++)
+    {
+        var soundFile = files[i];
+        if (!fs.existsSync(__dirname + "/impacts/"))
+            fs.mkdirSync(__dirname + "/impacts/");
+
+        var append = "";
+        while (fs.existsSync( __dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+            append = append == "" ? 2 : (append + 1);
+        var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
+
+        fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + filename);
+
+        impacts.unshift({
+            "location": "impacts/" + filename,
+            "volume": 1.0,
+            "enabled": false,
+            "customs": [ customName ]
+        });
+    }
+    setData("impacts", impacts);
+    openSoundsCustom(customName);
+    
+    document.querySelector("#loadSoundCustom").value = null;
+}
+
+async function openSoundsCustom(customName)
+{
+    // Refresh table to remove old event listeners
+    var oldTable = document.querySelector("#soundTableCustom");
+    var newTable = oldTable.cloneNode(true);
+    oldTable.after(newTable);
+    oldTable.remove();
+
+    document.querySelector("#newSoundCustom").addEventListener("click", () => { document.querySelector("#loadSoundCustom").click(); });
+    document.querySelector("#loadSoundCustom").addEventListener("change", () => { loadSoundCustom(customName); });
+
+    var impacts = await getData("impacts");
+    
+    document.querySelector("#soundTableCustom").querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
+
+    if (impacts == null)
+        setData("impacts", []);
+    else
+    {
+        impacts.forEach((_, index) =>
+        {
+            if (fs.existsSync(__dirname + "/" + impacts[index].location))
+            {
+                var row = document.querySelector("#soundRowCustom").cloneNode(true);
+                row.removeAttribute("id");
+                row.classList.add("soundRow");
+                row.removeAttribute("hidden");
+                row.querySelector(".imageLabel").innerText = impacts[index].location.substr(impacts[index].location.lastIndexOf('/') + 1);
+                document.querySelector("#soundTableCustom").appendChild(row);
+
+                row.querySelector(".imageEnabled").checked = impacts[index].customs.includes(customName);
+                row.querySelector(".imageEnabled").addEventListener("change", () => {
+                    if (!row.querySelector(".imageEnabled").checked && impacts[index].customs.includes(customName))
+                        impacts[index].customs.splice(impacts[index].customs.indexOf(customName), 1);
+                    else if (row.querySelector(".imageEnabled").checked && !impacts[index].customs.includes(customName))
+                        impacts[index].customs.push(customName);
+                    setData("impacts", impacts);
+                });
+            }
+            else
+            {
+                impacts.splice(index, 1);
+                setData("impacts", impacts);
+            }
+        });
+    }
+}
+
+async function loadImpactDecal(customName)
+{
+    var customBonks = await getData("customBonks");
+    var files = document.querySelector("#loadImpactDecal").files;
+    for (var i = 0; i < files.length; i++)
+    {
+        var imageFile = files[i];
+        if (!fs.existsSync(__dirname + "/decals/"))
+            fs.mkdirSync(__dirname + "/decals/");
+
+        var append = "";
+        while (fs.existsSync(__dirname + "/decals/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
+            append = append == "" ? 2 : (append + 1);
+        var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
+
+        fs.copyFileSync(imageFile.path, __dirname + "/decals/" + filename);
+
+        customBonks[customName].impactDecals.unshift({
+            "location": "decals/" + filename,
+            "duration": 0.25,
+            "scale": 1,
+            "enabled": true
+        });
+    }
+    setData("customBonks", customBonks);
+    openImpactDecals(customName);
+    
+    document.querySelector("#loadImpactDecal").value = null;
+}
+
+async function openImpactDecals(customName)
+{
+    // Refresh table to remove old event listeners
+    var oldTable = document.querySelector("#impactDecalsTable");
+    var newTable = oldTable.cloneNode(true);
+    oldTable.after(newTable);
+    oldTable.remove();
+
+    document.querySelector("#newImpactDecal").addEventListener("click", () => { document.querySelector("#loadImpactDecal").click(); });
+    document.querySelector("#loadImpactDecal").addEventListener("change", () => { loadImpactDecal(customName) });
+
+    var customBonks = await getData("customBonks");
+    
+    document.querySelector("#impactDecalsTable").querySelectorAll(".imageRow").forEach((element) => { element.remove(); });
+
+    customBonks[customName].impactDecals.forEach((_, index) =>
+    {
+        if (fs.existsSync(__dirname + "/" + customBonks[customName].impactDecals[index].location))
+        {
+            var row = document.querySelector("#impactDecalRow").cloneNode(true);
+            row.removeAttribute("id");
+            row.classList.add("imageRow");
+            row.removeAttribute("hidden");
+            row.querySelector(".imageLabel").innerText = customBonks[customName].impactDecals[index].location.substr(customBonks[customName].impactDecals[index].location.lastIndexOf('/') + 1);
+            document.querySelector("#impactDecalsTable").appendChild(row);
+
+            row.querySelector(".imageImage").src = customBonks[customName].impactDecals[index].location;
+
+            row.querySelector(".imageRemove").addEventListener("click", () => {
+                customBonks[customName].impactDecals.splice(index, 1);
+                setData("customBonks", customBonks);
+                openImpactDecals(customName);
+            });
+
+            row.querySelector(".imageEnabled").checked = customBonks[customName].impactDecals[index].enabled;
+            row.querySelector(".imageEnabled").addEventListener("change", () => {
+                customBonks[customName].impactDecals[index].enabled = row.querySelector(".imageEnabled").checked;
+                setData("customBonks", customBonks);
+            });
+
+            row.querySelector(".decalDuration").value = customBonks[customName].impactDecals[index].duration;
+            row.querySelector(".decalDuration").addEventListener("change", () => {
+                row.querySelector(".decalDuration").value = clampValue(row.querySelector(".duration"), 0, null);
+                customBonks[customName].impactDecals[index].duration = parseFloat(row.querySelector(".decalDuration").value);
+                setData("customBonks", customBonks);
+            });
+
+            row.querySelector(".decalScale").value = customBonks[customName].impactDecals[index].scale;
+            row.querySelector(".decalScale").addEventListener("change", () => {
+                row.querySelector(".decalScale").value = clampValue(row.querySelector(".decalScale"), 0, null);
+                customBonks[customName].impactDecals[index].scale = parseFloat(row.querySelector(".decalScale").value);
+                setData("customBonks", customBonks);
+            });
+        }
+        else
+        {
+            customBonks[customName].impactDecals.splice(index, 1);
+            setData("customBonks", customBonks);
+        }
+    });
+}
+
+async function loadWindupSound(customName)
+{
+    var customBonks = await getData("customBonks");
+    var files = document.querySelector("#loadWindupSound").files;
+    for (var i = 0; i < files.length; i++)
+    {
+        var soundFile = files[i];
+        if (!fs.existsSync(__dirname + "/windups/"))
+            fs.mkdirSync(__dirname + "/windups/");
+
+        var append = "";
+        while (fs.existsSync(__dirname + "/windups/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+            append = append == "" ? 2 : (append + 1);
+        var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
+
+        fs.copyFileSync(soundFile.path, __dirname + "/windups/" + filename);
+
+        customBonks[customName].windupSounds.unshift({
+            "location": "windups/" + filename,
+            "volume": 1.0,
+            "enabled": true
+        });
+    }
+    setData("customBonks", customBonks);
+    openWindupSounds(customName);
+    
+    document.querySelector("#loadWindupSound").value = null;
+}
+
+async function openWindupSounds(customName)
+{
+    // Refresh table to remove old event listeners
+    var oldTable = document.querySelector("#windupSoundTable");
+    var newTable = oldTable.cloneNode(true);
+    oldTable.after(newTable);
+    oldTable.remove();
+
+    document.querySelector("#newWindupSound").addEventListener("click", () => { document.querySelector("#loadWindupSound").click(); });
+    document.querySelector("#loadWindupSound").addEventListener("change", () => { loadWindupSound(customName) });
+
+    var customBonks = await getData("customBonks");
+    
+    document.querySelector("#windupSoundTable").querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
+
+    customBonks[customName].windupSounds.forEach((_, index) =>
+    {
+        if (fs.existsSync(__dirname + "/" + customBonks[customName].windupSounds[index].location))
+        {
+            var row = document.querySelector("#windupSoundRow").cloneNode(true);
+            row.removeAttribute("id");
+            row.classList.add("soundRow");
+            row.removeAttribute("hidden");
+            row.querySelector(".imageLabel").innerText = customBonks[customName].windupSounds[index].location.substr(customBonks[customName].windupSounds[index].location.lastIndexOf('/') + 1);
+            document.querySelector("#windupSoundTable").appendChild(row);
+
+            row.querySelector(".imageRemove").addEventListener("click", () => {
+                customBonks[customName].windupSounds.splice(index, 1);
+                setData("customBonks", customBonks);
+                openWindupSounds(customName);
+            });
+
+            row.querySelector(".imageEnabled").checked = customBonks[customName].windupSounds[index].enabled;
+            row.querySelector(".imageEnabled").addEventListener("change", () => {
+                customBonks[customName].windupSounds[index].enabled = row.querySelector(".imageEnabled").checked;
+                setData("customBonks", customBonks);
+            });
+
+            row.querySelector(".soundVolume").value = customBonks[customName].windupSounds[index].volume;
+            row.querySelector(".soundVolume").addEventListener("change", () => {
+                row.querySelector(".soundVolume").value = clampValue(row.querySelector(".soundVolume"), 0, 1);
+                customBonks[customName].windupSounds[index].volume = parseFloat(row.querySelector(".soundVolume").value);
+                setData("customBonks", customBonks);
+            });
+        }
+        else
+        {
+            customBonks[customName].windupSounds.splice(index, 1);
+            setData("customBonks", customBonks);
+        }
+    });
+}
+
+document.querySelector("#bit1").querySelector(".bitImageScale").addEventListener("change", async () => {
+    var bitThrows = await getData("bitThrows");
+    bitThrows.one.scale = parseFloat(document.querySelector("#bit1").querySelector(".bitImageScale").value);
+    setData("bitThrows", bitThrows);
+});
+document.querySelector("#bitImageAdd1").addEventListener("click", () => { document.querySelector("#loadBitImageone").click(); });
+document.querySelector("#loadBitImageone").addEventListener("change", () => { loadBitImage("one") });
+
+document.querySelector("#bit100").querySelector(".bitImageScale").addEventListener("change", async () => {
+    var bitThrows = await getData("bitThrows");
+    bitThrows.oneHundred.scale = parseFloat(document.querySelector("#bit100").querySelector(".bitImageScale").value);
+    setData("bitThrows", bitThrows);
+});
+document.querySelector("#bitImageAdd100").addEventListener("click", () => { document.querySelector("#loadBitImageoneHundred").click(); });
+document.querySelector("#loadBitImageoneHundred").addEventListener("change", () => { loadBitImage("oneHundred") });
+
+document.querySelector("#bit1000").querySelector(".bitImageScale").addEventListener("change", async () => {
+    var bitThrows = await getData("bitThrows");
+    bitThrows.oneThousand.scale = parseFloat(document.querySelector("#bit1000").querySelector(".bitImageScale").value);
+    setData("bitThrows", bitThrows);
+});
+document.querySelector("#bitImageAdd1000").addEventListener("click", () => { document.querySelector("#loadBitImageoneThousand").click(); });
+document.querySelector("#loadBitImageoneThousand").addEventListener("change", () => { loadBitImage("oneThousand") });
+
+document.querySelector("#bit5000").querySelector(".bitImageScale").addEventListener("change", async () => {
+    var bitThrows = await getData("bitThrows");
+    bitThrows.fiveThousand.scale = parseFloat(document.querySelector("#bit5000").querySelector(".bitImageScale").value);
+    setData("bitThrows", bitThrows);
+});
+document.querySelector("#bitImageAdd5000").addEventListener("click", () => { document.querySelector("#loadBitImagefiveThousand").click(); });
+document.querySelector("#loadBitImagefiveThousand").addEventListener("change", () => { loadBitImage("fiveThousand") });
+
+document.querySelector("#bit10000").querySelector(".bitImageScale").addEventListener("change", async () => {
+    var bitThrows = await getData("bitThrows");
+    bitThrows.tenThousand.scale = parseFloat(document.querySelector("#bit10000").querySelector(".bitImageScale").value);
+    setData("bitThrows", bitThrows);
+});
+document.querySelector("#bitImageAdd10000").addEventListener("click", () => { document.querySelector("#loadBitImagetenThousand").click(); });
+document.querySelector("#loadBitImagetenThousand").addEventListener("change", () => { loadBitImage("tenThousand") });
+
+async function loadBitImage(key)
+{
+    var bitThrows = await getData("bitThrows");
+    var files = document.querySelector("#loadBitImage" + key).files;
+    // Grab the image that was just loaded
+    var imageFile = files[0];
+    // If the folder for objects doesn't exist for some reason, make it
+    if (!fs.existsSync(__dirname + "/throws/"))
+        fs.mkdirSync(__dirname + "/throws/");
+
+    // Ensure that we're not overwriting any existing files with the same name
+    // If a file already exists, add an interating number to the end until it"s a unique filename
+    var append = "";
+    while (fs.existsSync(__dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
+        append = append == "" ? 2 : (append + 1);
+    var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
+
+    // Make a copy of the file into the local folder
+    fs.copyFileSync(imageFile.path, __dirname + "/throws/" + filename);
+    
+    // Add the new image, update the data, and refresh the images page
+    bitThrows[key].location = "throws/" + filename;
+    setData("bitThrows", bitThrows);
+    openBitImages();
+    
+    // Reset the image upload
+    document.querySelector("#loadBitImage" + key).value = null;
+}
+
+async function openBitImages()
+{
+    var bitThrows = await getData("bitThrows");
+
+    document.querySelector("#bit1").querySelector(".imageImage").src = bitThrows.one.location;
+    document.querySelector("#bit1").querySelector(".bitImageScale").value = bitThrows.one.scale;
+
+    document.querySelector("#bit100").querySelector(".imageImage").src = bitThrows.oneHundred.location;
+    document.querySelector("#bit100").querySelector(".bitImageScale").value = bitThrows.oneHundred.scale;
+
+    document.querySelector("#bit1000").querySelector(".imageImage").src = bitThrows.oneThousand.location;
+    document.querySelector("#bit1000").querySelector(".bitImageScale").value = bitThrows.oneThousand.scale;
+
+    document.querySelector("#bit5000").querySelector(".imageImage").src = bitThrows.fiveThousand.location;
+    document.querySelector("#bit5000").querySelector(".bitImageScale").value = bitThrows.fiveThousand.scale;
+
+    document.querySelector("#bit10000").querySelector(".imageImage").src = bitThrows.tenThousand.location;
+    document.querySelector("#bit10000").querySelector(".bitImageScale").value = bitThrows.tenThousand.scale;
+}
+
 document.querySelector("#loadImageSound").addEventListener("change", loadImageSound);
 
 async function loadImageSound()
@@ -200,22 +615,22 @@ async function loadImageSound()
     // Grab the image that was just loaded
     const imageFile = document.querySelector("#loadImageSound").files[0];
     // If the folder for objects doesn"t exist for some reason, make it
-    if (!fs.existsSync(__dirname + "/throws/"))
-        fs.mkdirSync(__dirname + "/throws/");
+    if (!fs.existsSync(__dirname + "/impacts/"))
+        fs.mkdirSync(__dirname + "/impacts/");
 
     // Ensure that we"re not overwriting any existing files with the same name
     // If a file already exists, add an interating number to the end until it"s a unique filename
     var append = "";
-    while (fs.existsSync(imageFile.path, __dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1)))
+    while (fs.existsSync(imageFile.path, __dirname + "/impacts/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
         append = append == "" ? 2 : (append + 1);
-    //imageFile.name = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".") + 1);
+    var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
 
     // Make a copy of the file into the local folder
-    fs.copyFileSync(imageFile.path, __dirname + "/throws/" + imageFile.name);
+    fs.copyFileSync(imageFile.path, __dirname + "/impacts/" + filename);
     
     // Get the existing images, add the new image, update the data, and refresh the images page
     var throws = await getData("throws");
-    throws[currentImageIndex].sound = "impacts/" + soundFile.name;
+    throws[currentImageIndex].sound = "impacts/" + filename;
     setData("throws", throws);
     
     // Reset the image upload
@@ -303,7 +718,7 @@ async function loadSound()
             fs.mkdirSync(__dirname + "/impacts/");
 
         var append = "";
-        while (fs.existsSync( __dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf(".") + 1)))
+        while (fs.existsSync( __dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
             append = append == "" ? 2 : (append + 1);
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
@@ -312,7 +727,9 @@ async function loadSound()
         impacts.unshift({
             "location": "impacts/" + filename,
             "volume": 1.0,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         });
     }
     setData("impacts", impacts);
@@ -345,7 +762,7 @@ async function openSounds()
                 row.querySelector(".imageRemove").addEventListener("click", () => {
                     impacts.splice(index, 1);
                     setData("impacts", impacts);
-                    row.remove();
+                    openSounds();
                 });
 
                 row.querySelector(".imageEnabled").checked = impacts[index].enabled;
@@ -384,7 +801,7 @@ async function loadBitSound()
             fs.mkdirSync(__dirname + "/impacts/");
 
         var append = "";
-        while (fs.existsSync(__dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf(".") + 1)))
+        while (fs.existsSync(__dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
             append = append == "" ? 2 : (append + 1);
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
@@ -462,9 +879,7 @@ async function addBonk()
         "throwAngleMin": await getData("throwAngleMin"),
         "throwAngleMax": await getData("throwAngleMax"),
         "itemsOverride": false,
-        "throws": await getData("throws"),
         "soundsOverride": false,
-        "impacts": await getData("impacts"),
         "impactDecals": [],
         "windupSounds": [],
         "windupDelay": 0
@@ -472,7 +887,19 @@ async function addBonk()
 
     setData("customBonks", customBonks);
 
-    bonkDetails("Custom Bonk " + newBonkNumber);
+    var throws = await getData("throws");
+    for (var i = 0; i < throws.length; i++)
+        if (throws[i].enabled)
+            throws[i].customs.push("Custom Bonk " + newBonkNumber);
+    setData("throws", throws);
+
+    var impacts = await getData("impacts");
+    for (var i = 0; i < impacts.length; i++)
+        if (impacts[i].enabled)
+            impacts[i].customs.push("Custom Bonk " + newBonkNumber);
+    setData("impacts", impacts);
+    
+    openBonks();
 }
 
 async function bonkDetails(customBonkName)
@@ -481,7 +908,7 @@ async function bonkDetails(customBonkName)
 
     if (customBonks[customBonkName] != null)
     {
-        showPanel("bonkDetails");
+        showPanel("bonkDetails", true);
 
         // Copy new elements to remove all old listeners
         var oldButton = document.querySelector("#testCustomBonk");
@@ -515,6 +942,7 @@ async function bonkDetails(customBonkName)
                         throws[i].customs.push(bonkDetailsTable.querySelector(".bonkName").value);
                     }
                 }
+                setData("throws", throws);
 
                 var impacts = await getData("impacts");
                 for (var i = 0; i < impacts.length; i++)
@@ -525,6 +953,7 @@ async function bonkDetails(customBonkName)
                         impacts[i].customs.push(bonkDetailsTable.querySelector(".bonkName").value);
                     }
                 }
+                setData("impacts", impacts);
 
                 customBonkName = bonkDetailsTable.querySelector(".bonkName").value;
             }
@@ -608,7 +1037,8 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".images").addEventListener("click", () => {
             if (!bonkDetailsTable.querySelector(".images").disabled)
             {
-                
+                openImagesCustom(customBonkName);
+                showPanel("bonkImagesCustom", true);
             }
         });
 
@@ -624,18 +1054,21 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".sounds").addEventListener("click", () => {
             if (!bonkDetailsTable.querySelector(".sounds").disabled)
             {
-
+                openSoundsCustom(customBonkName);
+                showPanel("bonkSoundsCustom", true);
             }
         });
 
         // Impact Decals
         bonkDetailsTable.querySelector(".impactDecals").addEventListener("click", () => {
-
+            openImpactDecals(customBonkName);
+            showPanel("impactDecals", true);
         });
 
         // Windup Sounds
         bonkDetailsTable.querySelector(".windupSounds").addEventListener("click", () => {
-
+            openWindupSounds(customBonkName);
+            showPanel("windupSounds", true);
         });
 
         // Windup Delay
@@ -671,10 +1104,52 @@ async function openBonks()
 
             row.querySelector(".imageLabel").innerText = key;
 
-            row.querySelector(".imageRemove").addEventListener("click", () => {
+            row.querySelector(".imageRemove").addEventListener("click", async () => {
                 delete customBonks[key];
                 setData("customBonks", customBonks);
-                row.remove();
+
+                var throws = await getData("throws");
+                for (var i = 0; i < throws.length; i++)
+                {
+                    if (throws[i].customs.includes(key))
+                        throws[i].customs.splice(throws[i].customs.indexOf(key), 1);
+                }
+                setData("throws", throws);
+
+                var impacts = await getData("impacts");
+                for (var i = 0; i < impacts.length; i++)
+                {
+                    if (impacts[i].customs.includes(key))
+                        impacts[i].customs.splice(impacts[i].customs.indexOf(key), 1);
+                }
+
+                setData("impacts", impacts);
+
+                var eventType = await getData("redeems");
+                for (var i = 0; i < eventType.length; i++)
+                {
+                    if (eventType[i].bonkType == key)
+                        eventType[i].bonkType = "single";
+                }
+                setData("redeems", eventType);
+
+                eventType = await getData("commands");
+                for (var i = 0; i < eventType.length; i++)
+                {
+                    if (eventType[i].bonkType == key)
+                        eventType[i].bonkType = "single";
+                }
+                setData("commands", eventType);
+
+                eventType = await getData("subType");
+                if (eventType == key)
+                    setData("subType", "barrage");
+
+                eventType = await getData("subGiftType");
+                if (eventType == key)
+                    setData("subGiftType", "barrage");
+
+                openBonks();
             });
         };
     }
@@ -760,10 +1235,11 @@ ipcRenderer.on("redeemName", (event, message) => {
     gettingRedeemName = false;
 });
 
-var gettingRedeemData = false, redeemData;
+var gettingRedeemData = false, redeemData, cancelledGetRedeemData = false;
 async function getRedeemData()
 {
     gettingRedeemData = true;
+    cancelledGetRedeemData = false;
     ipcRenderer.send("listenRedeemStart");
 
     while (gettingRedeemData)
@@ -799,12 +1275,30 @@ async function openEvents()
         row.querySelector(".redeemName").innerHTML = redeems[index].name == null ? "<b class=\"errorText\">Unassigned</b>" : redeems[index].name;
         
         row.querySelector(".redeemID").addEventListener("click", async () => {
-            row.querySelector(".redeemName").value = "Listening...";
+            row.querySelector(".redeemID").classList.add("hidden");
+            row.querySelector(".redeemCancel").classList.remove("hidden");
+            row.querySelector(".redeemName").innerText = "Listening...";
             var data = await getRedeemData();
-            redeems[index].id = data[0];
-            redeems[index].name = data[1];
-            row.querySelector(".redeemName").value = data[1];
-            setData("redeems", redeems);
+            if (!cancelledGetRedeemData)
+            {
+                row.querySelector(".redeemID").classList.remove("hidden");
+                row.querySelector(".redeemCancel").classList.add("hidden");
+                redeems[index].id = data[0];
+                redeems[index].name = data[1];
+                row.querySelector(".redeemName").innerText = data[1];
+                setData("redeems", redeems);
+            }
+        });
+        
+        row.querySelector(".redeemCancel").addEventListener("click", async () => {
+            row.querySelector(".redeemID").classList.remove("hidden");
+            row.querySelector(".redeemCancel").classList.add("hidden");
+            
+            row.querySelector(".redeemName").innerHTML = redeems[index].name == null ? "<b class=\"errorText\">Unassigned</b>" : redeems[index].name;
+
+            cancelledGetRedeemData = true;
+            gettingRedeemData = false;
+            ipcRenderer.send("listenRedeemCancel");
         });
 
         for (var key in customBonks)
@@ -824,7 +1318,7 @@ async function openEvents()
         row.querySelector(".redeemRemove").addEventListener("click", () => {
             redeems.splice(index, 1);
             setData("redeems", redeems);
-            row.remove();
+            openEvents();
         });
     });
 
@@ -872,7 +1366,7 @@ async function openEvents()
         row.querySelector(".commandRemove").addEventListener("click", () => {
             commands.splice(index, 1);
             setData("commands", commands);
-            row.remove();
+            openEvents();
         });
     }); 
 }
@@ -1175,12 +1669,13 @@ function clampValue(node, min, max)
 
 var currentPanel = document.querySelector("#bonkImages"), playing = false;
 openImages();
+openBitImages();
 
 // Window Event Listeners
 document.querySelector("#header").addEventListener("click", () => { showPanelLarge("statusWindow"); });
 
 document.querySelector("#helpButton").addEventListener("click", () => { showPanelLarge("help"); });
-document.querySelector("#calibrateButton").addEventListener("click", () => { showPanelLarge("statusWindow"); });
+document.querySelector("#calibrateButton").addEventListener("click", () => { showPanelLarge("statusWindow", true); });
 document.querySelector("#settingsButton").addEventListener("click", () => { showPanelLarge("settings"); });
 document.querySelector("#testBonksButton").addEventListener("click", () => { showPanelLarge("testBonks"); });
 
@@ -1256,6 +1751,9 @@ function back()
         removeAll(document.querySelector("#wideWindow"));
         document.querySelector("#wideWindow").classList.add(anim + "Out");
 
+        if (currentPanelLarge.id == "statusWindow" && (status == 3 || status == 4 || status == 7))
+            ipcRenderer.send("cancelCalibrate");
+
         playingLarge = true;
         setTimeout(() => {
             currentPanelLarge.classList.add("hidden");
@@ -1265,10 +1763,10 @@ function back()
         }, 500);
     }
     else if (panelStack.length > 0)
-        showPanel(panelStack.pop());
+        showPanel(panelStack.pop(), false);
 }
 
-function showPanel(panel)
+function showPanel(panel, stack)
 {
     if (!playing)
     {
@@ -1301,9 +1799,11 @@ function showPanel(panel)
                 oldPanel.classList.add("hidden");
             }, 500);
 
-            if (panel != "imageDetails" && panel != "bonkDetails")
-            {
+            if (stack == null)
                 panelStack = [];
+
+            if (stack == null || !stack)
+            {
 
                 document.querySelector("#sideBar").querySelectorAll(".overlayButton").forEach((element) => { element.classList.remove("buttonSelected"); });
     
@@ -1329,7 +1829,7 @@ function showPanel(panel)
                     openEvents();
                 }
             }
-            else
+            else if (stack)
                 panelStack.push(oldPanel.id);
 
             currentPanel = document.querySelector("#" + panel);
@@ -1346,7 +1846,7 @@ function showPanel(panel)
 
 var currentPanelLarge, playingLarge = false, openPanelLarge = false;
 
-function showPanelLarge(panel)
+function showPanelLarge(panel, calibrate)
 {
     if (!playingLarge)
     {
@@ -1388,6 +1888,9 @@ function showPanelLarge(panel)
             {
                 if (oldPanel != null)
                 {
+                    if (oldPanel.id == "statusWindow" && (status == 3 || status == 4 || status == 7))
+                        ipcRenderer.send("cancelCalibrate");
+
                     removeAll(oldPanel);
                     oldPanel.classList.add(anim + "Out");
                     setTimeout(() => {
@@ -1403,7 +1906,7 @@ function showPanelLarge(panel)
                 playingLarge = false;
             }, 500);
         }
-        else
+        else if (calibrate == null || !calibrate)
             back();
     }
 }
@@ -1439,7 +1942,7 @@ document.querySelector("#testRaid").addEventListener("click", () => { ipcRendere
 
 document.querySelector("#calibrateButton").addEventListener("click", () => { ipcRenderer.send("startCalibrate"); });
 document.querySelector("#nextCalibrate").addEventListener("click", () => { ipcRenderer.send("nextCalibrate"); });
-document.querySelector("#cancelCalibrate").addEventListener("click", () => { ipcRenderer.send("cancelCalibrate"); });
+document.querySelector("#cancelCalibrate").addEventListener("click", () => { ipcRenderer.send("cancelCalibrate"); back(); });
 
 // Test a specific item
 async function testItem(index)

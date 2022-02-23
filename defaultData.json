@@ -3,70 +3,130 @@
     "portVTubeStudio": 8001,
     "throws": [
         {
+            "enabled": true,
+            "location": "throws/water_bottle.png",
+            "weight": 1,
+            "scale": 1,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/K_Energy.png",
+            "weight": 1,
+            "scale": 1,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
             "location": "throws/I_C_Banana.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_Cherry.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_Grapes.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_GreenGrapes.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_Lemon.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_Mulberry.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
+        },
+        {
+            "location": "throws/I_C_Nut.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_Orange.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_Pear.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
+        },
+        {
+            "location": "throws/I_C_Pie.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_Pineapple.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_Strawberry.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/I_C_Watermellon.png",
             "weight": 1,
             "scale": 3,
-            "enabled": true
+            "sound": null,
+            "enabled": true,
+            "customs": []
         },
         {
             "location": "throws/gnome.png",
@@ -74,54 +134,73 @@
             "scale": 1,
             "sound": "impacts/gnome.mp3",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "customs": []
         }
     ],
     "impacts": [
         {
             "location": "impacts/Seq 2.1 Hit #1 96 HK1.wav",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         },
         {
             "location": "impacts/Seq 2.1 Hit #2 96 HK1.wav",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         },
         {
             "location": "impacts/Seq 2.1 Hit #3 96 HK1.wav",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         },
         {
             "location": "impacts/Seq 2.27 Hit #1 96 HK1.wav",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         },
         {
             "location": "impacts/Seq 2.27 Hit #2 96 HK1.wav",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         },
         {
             "location": "impacts/Seq 2.27 Hit #3 96 HK1.wav",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         },
         {
             "location": "impacts/Seq1.15 Hit #1 96 HK1.wav",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         },
         {
             "location": "impacts/Seq1.15 Hit #2 96 HK1.wav",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         },
         {
             "location": "impacts/Seq1.15 Hit #3 96 HK1.wav",
             "volume": 1,
-            "enabled": true
+            "enabled": true,
+            "bits": true,
+            "customs": []
         }
     ],
     "bitThrows": {
@@ -144,6 +223,23 @@
         "tenThousand": {
             "location": "throws/10000.png",
             "scale": 1.5
+        }
+    },
+    "customBonks": {
+        "Hydrate": {
+            "barrageCount": 10,
+            "barrageFrequencyOverride": false,
+            "barrageFrequency": 0.1,
+            "throwDurationOverride": false,
+            "throwDuration": 0.8,
+            "throwAngleOverride": false,
+            "throwAngleMin": -45,
+            "throwAngleMax": 45,
+            "itemsOverride": true,
+            "soundsOverride": false,
+            "impactDecals": [],
+            "windupSounds": [],
+            "windupDelay": 0
         }
     }
 }

@@ -325,7 +325,7 @@ function testItem(_, item)
       "weight": item.weight,
       "scale": item.scale,
       "sound": item.sound == null && soundIndex != -1 ? data.impacts[soundIndex].location : item.sound,
-      "volume": item.volume == null && soundIndex != -1 ? data.impacts[soundIndex].volume : item.volume,
+      "volume": item.volume,
       "data": data
     }
     socket.send(JSON.stringify(request));
@@ -385,11 +385,11 @@ function barrage()
 function getCustomImageWeightScaleSoundVolume(customName)
 {
   var index;
-  if (hasActiveImageCustom(customName))
+  if (data.customBonks[customName].itemsOverride && hasActiveImageCustom(customName))
   {
     do {
       index = Math.floor(Math.random() * data.throws.length);
-    } while (!data.customBonks[customName].throws[index].enabled);
+    } while (!data.throws[index].customs.includes(customName));
   }
   else
   {
@@ -399,13 +399,13 @@ function getCustomImageWeightScaleSoundVolume(customName)
   }
 
   var soundIndex = -1;
-  if (hasActiveSoundCustom(customName))
+  if (data.customBonks[customName].soundsOverride && hasActiveSoundCustom(customName))
   {
     do {
       soundIndex = Math.floor(Math.random() * data.impacts.length);
     } while (!data.customBonks[customName].impacts[soundIndex].enabled);
   }
-  else if (hasActiveSound)
+  else if (hasActiveSound())
   {
     do {
       soundIndex = Math.floor(Math.random() * data.impacts.length);
@@ -429,11 +429,11 @@ function getCustomImageWeightScaleSoundVolume(customName)
   }
 
   return {
-    "location": data.customBonks[customName].throws[index].location,
-    "weight": data.customBonks[customName].throws[index].weight,
-    "scale": data.customBonks[customName].throws[index].scale,
-    "sound": data.customBonks[customName].throws[index].sound != null ? data.customBonks[customName].throws[index].sound : soundIndex != -1 ? data.customBonks[customName].impacts[soundIndex].location : null,
-    "volume": data.customBonks[customName].throws[index].sound != null ? data.customBonks[customName].throws[index].volume : soundIndex != -1 ? data.customBonks[customName].impacts[soundIndex].volume : 0,
+    "location": data.throws[index].location,
+    "weight": data.throws[index].weight,
+    "scale": data.throws[index].scale,
+    "sound": data.throws[index].sound != null ? data.throws[index].sound : soundIndex != -1 ? data.impacts[soundIndex].location : null,
+    "volume": data.throws[index].volume,
     "impactDecal": impactDecalIndex != -1 ? data.customBonks[customName].impactDecals[impactDecalIndex] : null,
     "windupSound": windupSoundIndex != -1 ? data.customBonks[customName].windupSounds[windupSoundIndex] : null
   };
@@ -456,7 +456,7 @@ ipcMain.on("testCustomBonk", (_, message) => custom(message));
 function custom(customName)
 {
   console.log("Sending Custom");
-  if (socket != null && (hasActiveImageCustom(customName) || hasActiveImage())) {
+  if (socket != null && hasActiveImageCustom(customName)) {
     const imagesWeightsScalesSoundsVolumes = getCustomImagesWeightsScalesSoundsVolumes(customName);
     var images = [], weights = [], scales = [], sounds = [], volumes = [], impactDecals = [], windupSounds = [];
     for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
@@ -520,13 +520,16 @@ function hasActiveImage()
 
 function hasActiveImageCustom(customName)
 {
-  if (data.customBonks[customName].throws == null || data.customBonks[customName].throws.length == 0)
+  if (!data.customBonks[customName].itemsOverride)
+    return hasActiveImage();
+
+  if (data.throws == null || data.throws.length == 0)
     return false;
 
   var active = false;
-  for (var i = 0; i < data.customBonks[customName].throws.length; i++)
+  for (var i = 0; i < data.throws.length; i++)
   {
-    if (data.customBonks[customName].throws[i].enabled)
+    if (data.throws[i].customs.includes(customName))
     {
       active = true;
       break;
@@ -588,13 +591,16 @@ function hasActiveSound()
 
 function hasActiveSoundCustom(customName)
 {
-  if (data.customBonks[customName].impacts == null || data.customBonks[customName].impacts.length == 0)
+  if (!data.customBonks[customName].soundsOverride)
+    return hasActiveSound();
+
+  if (data.impacts == null || data.impacts.length == 0)
     return false;
 
   var active = false;
-  for (var i = 0; i < data.customBonks[customName].impacts.length; i++)
+  for (var i = 0; i < data.impacts.length; i++)
   {
-    if (data.customBonks[customName].impacts[i].enabled)
+    if (data.impacts[i].customs.includes(customName))
     {
       active = true;
       break;
@@ -745,13 +751,13 @@ var canBits = true;
 function onBitsHandler(bitsMessage)
 {
   if (bitsMessage == null || canBits && data.bitsEnabled) {
-    if (data.bitsCooldown > 0)
+    if (bitsMessage != null && data.bitsCooldown > 0)
     {
       canBits = false;
       setTimeout(() => { canBits = true; }, data.bitsCooldown * 1000);
     }
 
-    var totalBits = bitsMessage == null ? Math.floor(Math.random() * 20000) : bitsMessage.bits;
+    var totalBits = bitsMessage == null ? Math.floor(Math.random() * 15000) : bitsMessage.bits;
 
     var num10k = 0, num5k = 0, num1k = 0, num100 = 0;
     while (totalBits >= 100 && totalBits + num100 + num1k + num5k + num10k > data.bitsMaxBarrageCount)
@@ -803,29 +809,29 @@ function onBitsHandler(bitsMessage)
         switch (bitThrows.splice(Math.floor(Math.random() * bitThrows.length), 1)[0])
         {
           case 1:
-            images.push(data.bitBonkThrows.one.location);
+            images.push(data.bitThrows.one.location);
             weights.push(0.2);
-            scales.push(data.bitBonkThrows.one.scale);
+            scales.push(data.bitThrows.one.scale);
             break;
           case 100:
-            images.push(data.bitBonkThrows.oneHundred.location);
+            images.push(data.bitThrows.oneHundred.location);
             weights.push(0.4);
-            scales.push(data.bitBonkThrows.oneHundred.scale);
+            scales.push(data.bitThrows.oneHundred.scale);
             break;
           case 1000:
-            images.push(data.bitBonkThrows.oneThousand.location);
+            images.push(data.bitThrows.oneThousand.location);
             weights.push(0.6);
-            scales.push(data.bitBonkThrows.oneThousand.scale);
+            scales.push(data.bitThrows.oneThousand.scale);
             break;
           case 5000:
-            images.push(data.bitBonkThrows.fiveThousandd.location);
+            images.push(data.bitThrows.fiveThousand.location);
             weights.push(0.8);
-            scales.push(data.bitBonkThrows.fiveThousandd.scale);
+            scales.push(data.bitThrows.fiveThousand.scale);
             break;
           case 10000:
-            images.push(data.bitBonkThrows.tenThousand.location);
+            images.push(data.bitThrows.tenThousand.location);
             weights.push(1);
-            scales.push(data.bitBonkThrows.tenThousand.scale);
+            scales.push(data.bitThrows.tenThousand.scale);
             break;
         }
         
@@ -865,7 +871,7 @@ async function onRaidHandler(_, raider, raidInfo)
 {
   if (data.raidEnabled && canRaid)
   {
-    if (data.raidCooldown > 0)
+    if (raider != null && data.raidCooldown > 0)
     {
       canRaid = false;
       setTimeout(() => { canRaid = true; }, data.raidCooldown * 1000);

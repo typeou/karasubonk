@@ -53,6 +53,8 @@
             <span class="windowBack">BACK</span>
 
             <!-- HELP -->
+            <div id="help" class="hidden">
+            </div>
 
             <!-- STATUS -->
             <div id="statusWindow" class="hidden">
@@ -310,7 +312,7 @@
               <span id="imagesDefaultTab" class="tab firstTab selectedTab">DEFAULT</span>
               <div id="imageTable" class="imageTable">
                 <input id="loadImage" type="file" accept="image/*" multiple hidden>
-                <div id="newImage" class="new">
+                <div id="newImage" class="new row">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <img class="imageImage" src="ui/add.png"></img>
@@ -319,7 +321,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="imageRow" hidden>
+                <div id="imageRow" class="row" hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="checkbox">
@@ -341,25 +343,12 @@
                     </div>
                   </div>
                 </div>
-                <div id="imageRowCustom" hidden>
-                  <div class="imageRowShadow">
-                    <div class="imageRowInner">
-                      <label class="checkbox">
-                        <input type="checkbox" class="imageEnabled" checked>
-                        <div class="checkHover"></div>
-                        <img src="ui/checkmark.png" class="checkmark">
-                      </label>
-                      <img class="imageImage" src="throws/I_C_Banana.png"></img>
-                      <p class="imageLabel">IMAGE URL</p>
-                      <div class="imageRowHover"></div>
-                    </div>
-                  </div>
-                </div>
               </div>
               <div id="bitImageTable" class="imageTable hidden">
-                <div class="imageRow">
+                <div id="bit1" class="imageRow row">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
+                      <input id="loadBitImageone" type="file" accept="image/*" hidden>
                       <label class="cogwheel">
                         <button id="bitImageAdd1"></button>
                         <img src="ui/add.png" class="checkmark"></img>
@@ -367,86 +356,81 @@
                       <img class="imageImage" src="throws/1.png"></img>
                       <p class="imageLabel">1 BIT</p>
                       <div>
-                        <p>Scale</p>
+                        <img src="ui/scale.png" title="Scale">
                         <input class="bitImageScale" type="number" min="0" value="1.5">
                       </div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
                 </div>
-                <div class="imageRow">
+                <div id="bit100" class="imageRow row">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
+                      <input id="loadBitImageoneHundred" type="file" accept="image/*" hidden>
                       <label class="cogwheel">
-                        <button id="bitImageAdd1"></button>
+                        <button id="bitImageAdd100"></button>
                         <img src="ui/add.png" class="checkmark"></img>
                       </label>
                       <img class="imageImage" src="throws/100.png"></img>
                       <p class="imageLabel">100 BITS</p>
                       <div>
-                        <p>Scale</p>
+                        <img src="ui/scale.png" title="Scale" title="Scale">
                         <input class="bitImageScale" type="number" min="0" value="1.5">
                       </div>
-                      <div class="imageRowHover"></div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
                 </div>
-                <div class="imageRow">
+                <div id="bit1000" class="imageRow row">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
+                      <input id="loadBitImageoneThousand" type="file" accept="image/*" hidden>
                       <label class="cogwheel">
-                        <button id="bitImageAdd1"></button>
+                        <button id="bitImageAdd1000"></button>
                         <img src="ui/add.png" class="checkmark"></img>
                       </label>
                       <img class="imageImage" src="throws/1000.png"></img>
                       <p class="imageLabel">1000 BITS</p>
                       <div>
-                        <p>Scale</p>
+                        <img src="ui/scale.png" title="Scale">
                         <input class="bitImageScale" type="number" min="0" value="1.5">
                       </div>
-                      <div class="imageRowHover"></div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
                 </div>
-                <div class="imageRow">
+                <div id="bit5000" class="imageRow row">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
+                      <input id="loadBitImagefiveThousand" type="file" accept="image/*" hidden>
                       <label class="cogwheel">
-                        <button id="bitImageAdd1"></button>
+                        <button id="bitImageAdd5000"></button>
                         <img src="ui/add.png" class="checkmark"></img>
                       </label>
                       <img class="imageImage" src="throws/5000.png"></img>
                       <p class="imageLabel">5000 BITS</p>
                       <div>
-                        <p>Scale</p>
+                        <img src="ui/scale.png" title="Scale">
                         <input class="bitImageScale" type="number" min="0" value="1.5">
                       </div>
-                      <div class="imageRowHover"></div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
                 </div>
-                <div class="imageRow">
+                <div id="bit10000" class="imageRow row">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
+                      <input id="loadBitImagetenThousand" type="file" accept="image/*" hidden>
                       <label class="cogwheel">
-                        <button id="bitImageAdd1"></button>
+                        <button id="bitImageAdd10000"></button>
                         <img src="ui/add.png" class="checkmark"></img>
                       </label>
                       <img class="imageImage" src="throws/10000.png"></img>
                       <p class="imageLabel">10000 BITS</p>
                       <div>
-                        <p>Scale</p>
+                        <img src="ui/scale.png" title="Scale">
                         <input class="bitImageScale" type="number" min="0" value="1.5">
                       </div>
-                      <div class="imageRowHover"></div>
-                      <div>
-                        <p>Scale</p>
-                        <input class="bitImageScale" type="number" min="0" value="1.5">
-                      </div>
-                      <div class="imageRowHover"></div>
                       <div class="imageRowHover"></div>
                     </div>
                   </div>
@@ -460,7 +444,7 @@
               <span id="soundsBitsTab" class="tab secondTab">BITS</span>
               <span id="soundsDefaultTab" class="tab firstTab selectedTab">DEFAULT</span>
               <div id="soundTable" class="imageTable">
-                <div id="newSound" class="new">
+                <div id="newSound" class="new row">
                   <input id="loadSound" type="file" accept="audio/*" multiple hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
@@ -470,7 +454,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="soundRow" hidden>
+                <div id="soundRow" class="row" hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="checkbox">
@@ -493,7 +477,7 @@
                 </div>
               </div>
               <div id="bitSoundTable" class="imageTable hidden">
-                <div id="newBitSound" class="new">
+                <div id="newBitSound" class="new row">
                   <input id="loadBitSound" type="file" accept="audio/*" multiple hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
@@ -503,7 +487,7 @@
                     </div>
                   </div>
                 </div>
-                <div id="bitSoundRow" hidden>
+                <div id="bitSoundRow" class="row" hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <label class="checkbox">
@@ -511,8 +495,7 @@
                         <div class="checkHover"></div>
                         <img src="ui/checkmark.png" class="checkmark">
                       </label>
-                      <label class="cogwheel">
-                      </label>
+                      <label class="cogwheel"></label>
                       <p class="imageLabel">SOUND URL</p>
                       <div class="imageRowHover"></div>
                     </div>
@@ -570,7 +553,7 @@
                 <p class="grid2">Throw Angle (Max)</p>
                 <input type="number" min="90" value="45" step="1" class="throwAngleMax grid3">
 
-                <p class="grid2">Windup Delay (s)</p>
+                <p class="grid2">Windup Time (s)</p>
                 <input type="number" min="0" value="0" class="windupDelay grid3">
 
                 <br/>
@@ -610,7 +593,7 @@
             <div id="customBonks" class="hidden">
               <span class="windowCorner"></span>
               <div id="bonksTable" class="imageTable">
-                <div id="bonksAdd" class="new">
+                <div id="bonksAdd" class="new row">
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <img class="imageImage" src="ui/add.png"></img>
@@ -619,11 +602,157 @@
                     </div>
                   </div>
                 </div>
-                <div id="customBonkRow" hidden>
+                <div id="customBonkRow" class="row" hidden>
                   <div class="imageRowShadow">
                     <div class="imageRowInner">
                       <img class="imageImage bonkDetailsButton" src="ui/cog64.png"></img>
                       <p class="imageLabel">BONK NAME</p>
+                      <label class="delete">
+                        <button class="imageRemove"></button>
+                        <img src="ui/x.png" class="checkmark"></img>
+                      </label>
+                      <div class="imageRowHover"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CUSTOM BONK IMAGE OVERRIDES -->
+
+            <div id="bonkImagesCustom" class="hidden">
+              <span class="windowCorner"></span>
+              <span class="windowBack">BACK</span>
+              <div id="imageTableCustom" class="imageTable">
+                <input id="loadImageCustom" type="file" accept="image/*" multiple hidden>
+                <div id="newImageCustom" class="new row">
+                  <div class="imageRowShadow">
+                    <div class="imageRowInner">
+                      <img class="imageImage" src="ui/add.png"></img>
+                      <p class="imageLabel">ADD IMAGES</p>
+                      <div class="imageRowHover"></div>
+                    </div>
+                  </div>
+                </div>
+                <div id="imageRowCustom" class="row" hidden>
+                  <div class="imageRowShadow">
+                    <div class="imageRowInner">
+                      <label class="checkbox">
+                        <input type="checkbox" class="imageEnabled" checked>
+                        <div class="checkHover"></div>
+                        <img src="ui/checkmark.png" class="checkmark">
+                      </label>
+                      <img class="imageImage" src="throws/I_C_Banana.png"></img>
+                      <p class="imageLabel">IMAGE URL</p>
+                      <div class="imageRowHover"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CUSTOM BONK SOUND OVERRIDES -->
+
+            <div id="bonkSoundsCustom" class="hidden">
+              <span class="windowCorner"></span>
+              <span class="windowBack">BACK</span>
+              <div id="soundTableCustom" class="imageTable">
+                <div id="newSoundCustom" class="new row">
+                  <input id="loadSoundCustom" type="file" accept="audio/*" multiple hidden>
+                  <div class="imageRowShadow">
+                    <div class="imageRowInner">
+                      <img class="imageImage" src="ui/add.png"></img>
+                      <p class="imageLabel">ADD SOUNDS</p>
+                      <div class="imageRowHover"></div>
+                    </div>
+                  </div>
+                </div>
+                <div id="soundRowCustom" class="row" hidden>
+                  <div class="imageRowShadow">
+                    <div class="imageRowInner">
+                      <label class="checkbox">
+                        <input type="checkbox" class="imageEnabled" checked>
+                        <div class="checkHover"></div>
+                        <img src="ui/checkmark.png" class="checkmark">
+                      </label>
+                      <label class="cogwheel"></label>
+                      <p class="imageLabel">SOUND URL</p>
+                      <div class="imageRowHover"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CUSTOM IMPACT DECALS -->
+
+            <div id="impactDecals" class="hidden">
+              <span class="windowCorner"></span>
+              <span class="windowBack">BACK</span>
+              <div id="impactDecalsTable" class="imageTable">
+                <div id="newImpactDecal" class="new row">
+                  <input id="loadImpactDecal" type="file" accept="image/*" multiple hidden>
+                  <div class="imageRowShadow">
+                    <div class="imageRowInner">
+                      <img class="imageImage" src="ui/add.png"></img>
+                      <p class="imageLabel">ADD IMAGES</p>
+                      <div class="imageRowHover"></div>
+                    </div>
+                  </div>
+                </div>
+                <div id="impactDecalRow" class="row" hidden>
+                  <div class="imageRowShadow">
+                    <div class="imageRowInner">
+                      <label class="checkbox">
+                        <input type="checkbox" class="imageEnabled" checked>
+                        <div class="checkHover"></div>
+                        <img src="ui/checkmark.png" class="checkmark">
+                      </label>
+                      <img class="imageImage" src="throws/I_C_Banana.png"></img>
+                      <p class="imageLabel">IMAGE URL</p>
+                      <div class="decalSettings">
+                        <img src="ui/duration.png" title="Duration (s)">
+                        <input type="number" class="decalDuration" min="0" value="0.25">
+                        <img src="ui/scale.png" title="Scale">
+                        <input type="number" class="decalScale" min="0" value="1">
+                      </div>
+                      <label class="delete">
+                        <button class="imageRemove"></button>
+                        <img src="ui/x.png" class="checkmark"></img>
+                      </label>
+                      <div class="imageRowHover"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CUSTOM WINDUP SOUNDS -->
+
+            <div id="windupSounds" class="hidden">
+              <span class="windowCorner"></span>
+              <span class="windowBack">BACK</span>
+              <div id="windupSoundTable" class="imageTable">
+                <div id="newWindupSound" class="new row">
+                  <input id="loadWindupSound" type="file" accept="audio/*" multiple hidden>
+                  <div class="imageRowShadow">
+                    <div class="imageRowInner">
+                      <img class="imageImage" src="ui/add.png"></img>
+                      <p class="imageLabel">ADD SOUNDS</p>
+                      <div class="imageRowHover"></div>
+                    </div>
+                  </div>
+                </div>
+                <div id="windupSoundRow" class="row" hidden>
+                  <div class="imageRowShadow">
+                    <div class="imageRowInner">
+                      <label class="checkbox">
+                        <input type="checkbox" class="imageEnabled" checked>
+                        <div class="checkHover"></div>
+                        <img src="ui/checkmark.png" class="checkmark">
+                      </label>
+                      <p class="imageLabel">SOUND URL</p>
+                      <input class="soundVolume" type="range" min="0" max="1" step="0.1">
                       <label class="delete">
                         <button class="imageRemove"></button>
                         <img src="ui/x.png" class="checkmark"></img>
@@ -657,6 +786,7 @@
                   </label>
                   <p class="redeemName grid2">Redeem Name</p>
                   <button class="redeemID grid3">Listen</button>
+                  <button class="redeemCancel grid3 hidden">Cancel</button>
                   <select class="bonkType grid4">
                     <option value="single">Single</option>
                     <option value="barrage">Barrage</option>
