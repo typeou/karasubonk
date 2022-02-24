@@ -350,11 +350,12 @@ function getImageWeightScaleSoundVolume()
 }
 
 // Acquire a set of images, sounds, and associated properties for a default barrage
-function getImagesWeightsScalesSoundsVolumes()
+function getImagesWeightsScalesSoundsVolumes(customAmount)
 {
   var getImagesWeightsScalesSoundsVolumes = [];
 
-  for (var i = 0; i < data.barrageCount; i++)
+  var count = customAmount == null ? data.barrageCount : customAmount;
+  for (var i = 0; i < count; i++)
     getImagesWeightsScalesSoundsVolumes.push(getImageWeightScaleSoundVolume());
 
   return getImagesWeightsScalesSoundsVolumes;
@@ -418,11 +419,11 @@ function single()
 }
 
 // A random barrage of bonks
-function barrage()
+function barrage(customAmount)
 {
   console.log("Sending Barrage");
   if (socket != null && hasActiveImage()) {
-    const imagesWeightsScalesSoundsVolumes = getImagesWeightsScalesSoundsVolumes();
+    const imagesWeightsScalesSoundsVolumes = getImagesWeightsScalesSoundsVolumes(customAmount);
     var images = [], weights = [], scales = [], sounds = [], volumes = [];
     for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
       images[i] = imagesWeightsScalesSoundsVolumes[i].location;
@@ -957,7 +958,10 @@ async function onRaidHandler(_, raider, raidInfo)
     if (numRaiders > data.raidMaxBarrageCount)
       numRaiders = data.raidMaxBarrageCount;
   
-    mainWindow.webContents.send("raid", [ raider, token.accessToken ]);
+      if (data.raidEmotes)
+        mainWindow.webContents.send("raid", [ raider, token.accessToken ]);
+      else
+        barrage(numRaiders);
   }
 }
 

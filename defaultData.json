@@ -28,7 +28,7 @@
             "enabled": true,
             "location": "throws/I_C_Watermellon.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -37,7 +37,7 @@
             "enabled": true,
             "location": "throws/I_C_Strawberry.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -46,7 +46,7 @@
             "enabled": true,
             "location": "throws/I_C_Pineapple.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -55,7 +55,7 @@
             "enabled": true,
             "location": "throws/I_C_Pie.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -64,7 +64,7 @@
             "enabled": true,
             "location": "throws/I_C_Pear.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -73,7 +73,7 @@
             "enabled": true,
             "location": "throws/I_C_Orange.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -82,7 +82,7 @@
             "enabled": true,
             "location": "throws/I_C_Nut.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -91,7 +91,7 @@
             "enabled": true,
             "location": "throws/I_C_Mulberry.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -100,7 +100,7 @@
             "enabled": true,
             "location": "throws/I_C_Lemon.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -109,7 +109,7 @@
             "enabled": true,
             "location": "throws/I_C_GreenGrapes.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -118,7 +118,7 @@
             "enabled": true,
             "location": "throws/I_C_Grapes.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -127,7 +127,7 @@
             "enabled": true,
             "location": "throws/I_C_Cherry.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -136,7 +136,7 @@
             "enabled": true,
             "location": "throws/I_C_Banana.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 3,
             "sound": null,
             "volume": 1,
             "customs": []
@@ -145,7 +145,7 @@
             "enabled": true,
             "location": "throws/gnome.png",
             "weight": 1,
-            "scale": 1,
+            "scale": 0.5,
             "sound": "impacts/gnome.mp3",
             "volume": 1,
             "customs": []
