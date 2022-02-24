@@ -2,14 +2,14 @@
     font-family: 'Cascadia Mono';
     font-display: swap;
     unicode-range: U+000-5FF;
-    src: local('Cascadia Mono') format('woff2'), url('CascadiaMono.woff2') format('woff2');
+    src: url('CascadiaMono.woff2') format('woff2');
 }
 
 @font-face {
     font-family: 'Noto Sans';
     font-display: swap;
     unicode-range: U+000-5FF;
-    src: local('Noto Sans') format('ttf'), url('NotoSans-Regular.woff2') format('ttf');
+    src: url('NotoSans-Regular.woff2') format('woff2');
 }
 
 body {
