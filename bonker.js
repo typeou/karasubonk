@@ -263,13 +263,17 @@ function connectKarasu()
                         const volumes = data.volume;
                         const max = Math.min(images.length, sounds.length, weights.length);
 
-                        bonk(images[i++], weights[i++], scales[i++], sounds[i++], volumes[i++], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null);
-                        var bonker = setInterval(function()
+                        bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null);
+                        i++;
+                        if (i < max)
                         {
-                            bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null);
-                            if (++i >= max)
-                                clearInterval(bonker);
-                        }, data.data.barrageFrequency * 1000);
+                            var bonker = setInterval(function()
+                            {
+                                bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null);
+                                if (++i >= max)
+                                    clearInterval(bonker);
+                            }, data.data.barrageFrequency * 1000);
+                        }
                         break;
                     default:
                         if (data.data.customBonks[data.type].barrageCountOverride)
@@ -313,13 +317,17 @@ function connectKarasu()
                             windup.play();
                             
                         setTimeout(() => {
-                            bonk(cImages[i++], cWeights[i++], cScales[i++], cSounds[i++], cVolumes[i++], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, cImpactDecals[i++]);
-                            var bonker = setInterval(function()
+                            bonk(cImages[i], cWeights[i], cScales[i], cSounds[i], cVolumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, cImpactDecals[i]);
+                            i++;
+                            if (i < cMax)
                             {
-                                bonk(cImages[i], cWeights[i], cScales[i], cSounds[i], cVolumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, cImpactDecals[i]);
-                                if (++i >= cMax)
-                                    clearInterval(bonker);
-                            }, data.data.barrageFrequency * 1000);
+                                var bonker = setInterval(function()
+                                {
+                                    bonk(cImages[i], cWeights[i], cScales[i], cSounds[i], cVolumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, cImpactDecals[i]);
+                                    if (++i >= cMax)
+                                        clearInterval(bonker);
+                                }, data.data.barrageFrequency * 1000);
+                            }
                         }, data.data.customBonks[data.type].windupDelay * 1000);
                         break;
                 }
