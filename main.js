@@ -213,6 +213,7 @@ var data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
 
 
 ipcMain.on("help", () => require('electron').shell.openExternal("https://typeou.dev/#kbonkHelp"));
+ipcMain.on("link", () => require('electron').shell.openExternal("https://typeou.itch.io/karasubonk"));
 
 // ----------------
 // Websocket Server

@@ -48,6 +48,8 @@ document.querySelector("#logout").addEventListener("click", () => {
     document.querySelector("#logout").innerText = "Log in";
 });
 
+document.querySelector("#itchLink a").addEventListener("click", () => { ipcRenderer.send("link"); });
+
 ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
 
 async function setStatus(_, message)
