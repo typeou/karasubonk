@@ -31,6 +31,18 @@ const statusDesc = [
     "<p>Several windows will briefly appear during this process.</p>"
 ];
 
+ipcRenderer.on("username", (event, message) => {
+    document.querySelector("#username").classList.add("readyText");
+    document.querySelector("#username").classList.remove("errorText");
+    document.querySelector("#username").innerText = message;
+});
+document.querySelector("#logout").addEventListener("click", () => {
+    ipcRenderer.send("reauthenticate");
+    document.querySelector("#username").classList.remove("readyText");
+    document.querySelector("#username").classList.add("errorText");
+    document.querySelector("#username").innerText = "None";
+});
+
 ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
 
 async function setStatus(_, message)
@@ -763,6 +775,12 @@ async function openBitImages()
 {
     var bitThrows = await getData("bitThrows");
 
+    if (bitThrows == null)
+    {
+        bitThrows = defaultData.bitThrows;
+        setData("bitThrows", bitThrows);
+    }
+
     document.querySelector("#bit1").querySelector(".imageImage").src = bitThrows.one.location;
     document.querySelector("#bit1").querySelector(".bitImageScale").value = bitThrows.one.scale;
 
@@ -1435,23 +1453,6 @@ async function newCommand()
     openEvents();
 }
 
-var gettingRedeemName = false, redeemName;
-async function getRedeemName(redeemId)
-{
-    gettingRedeemName = true;
-    ipcRenderer.send("getRedeemName", redeemId);
-
-    while (gettingRedeemName)
-        await new Promise(resolve => setTimeout(resolve, 10));
-
-    return redeemName;
-}
-
-ipcRenderer.on("redeemName", (event, message) => {
-    redeemName = message;
-    gettingRedeemName = false;
-});
-
 var gettingRedeemData = false, redeemData, cancelledGetRedeemData = false;
 async function getRedeemData()
 {
@@ -1647,7 +1648,7 @@ async function loadData(field)
     const thisData = await getData(field);
     if (thisData != null)
     {
-        if (field.includes("Enabled"))
+        if (document.querySelector("#" + field).type == "checkbox")
             document.querySelector("#" + field).checked = thisData;
         else
         {
@@ -1665,8 +1666,128 @@ async function loadData(field)
 }
 
 // Place all settings from data into the proper location on load
-window.onload = function()
+window.onload = async function()
 {
+    // UPDATING FROM 1.0.1 OR EARLIER
+    var throws = await getData("throws");
+    for (var i = 0; i < throws.length; i++)
+    {
+        if (Array.isArray(throws[i]))
+        {
+            throws[i] = {
+                "location": throws[i][0],
+                "weight": throws[i][1],
+                "scale": throws[i][2],
+                "sound": throws[i][3],
+                "volume": throws[i][4] == null ? 1 : throws[i][4],
+                "enabled": true,
+                "customs": []
+            };
+        }
+    }
+    setData("throws", throws);
+
+    var impacts = await getData("impacts");
+    var bitImpacts = await getData("bitImpacts");
+    var hasBitImpacts = bitImpacts != null && bitImpacts.length > 0;
+    for (var i = 0; i < impacts.length; i++)
+    {
+        if (Array.isArray(impacts[i]))
+        {
+            impacts[i] = {
+                "location": impacts[i][0],
+                "volume": impacts[i][1],
+                "enabled": true,
+                "bits": !hasBitImpacts,
+                "customs": []
+            };
+        }
+    }
+    setData("impacts", impacts);
+
+    if (bitImpacts != null)
+    {
+        var impacts = await getData("impacts");
+        for (var i = 0; i < bitImpacts.length; i++)
+        {
+            impacts.push({
+                "location": bitImpacts[i][0],
+                "volume": bitImpacts[i][1],
+                "enabled": false,
+                "bits": true,
+                "customs": []
+            });
+        }
+
+        setData("bitImpacts", null);
+        setData("impacts", impacts);
+    }
+
+    var redeems = await getData("redeems");
+    if (redeems == null)
+    {
+        redeems = [];
+
+        var oldId = await getData("singleRedeemID");
+        var oldEnabled = await getData("singleRedeemEnabled");
+        if (oldId != null && oldId != "")
+        {
+            redeems.push({
+                "enabled": oldEnabled == null || !oldEnabled ? false : true,
+                "id": oldId,
+                "name": "Single",
+                "bonkType": "single"
+            });
+        }
+
+        oldId = await getData("barrageRedeemID");
+        oldEnabled = await getData("barrageRedeemEnabled");
+        if (oldId != null && oldId != "")
+        {
+            redeems.push({
+                "enabled": oldEnabled == null || !oldEnabled ? false : true,
+                "id": oldId,
+                "name": "Barrage",
+                "bonkType": "barrage"
+            });
+        }
+
+        setData("redeems", redeems);
+    }
+
+    var commands = await getData("commands");
+    if (commands == null)
+    {
+        commands = [];
+
+        var oldCommand = await getData("singleCommandTitle");
+        var oldEnabled = await getData("singleCommandEnabled");
+        if (oldCommand != null && oldCommand != "")
+        {
+            commands.push({
+                "enabled": oldEnabled == null || !oldEnabled ? false : true,
+                "name": oldCommand,
+                "cooldown": await getData("singleCommandCooldown"),
+                "bonkType": "single"
+            });
+        }
+
+        oldCommand = await getData("barrageCommandTitle");
+        oldEnabled = await getData("barrageCommandEnabled");
+        if (oldCommand != null && oldCommand != "")
+        {
+            commands.push({
+                "enabled": oldEnabled == null || !oldEnabled ? false : true,
+                "name": oldCommand,
+                "cooldown": await getData("singleCommandCooldown"),
+                "bonkType": "barrage"
+            });
+        }
+
+        setData("commands", commands);
+    }
+    // END UPDATING
+
     loadData("subEnabled");
     loadData("subGiftEnabled");
     loadData("bitsEnabled");
@@ -1697,126 +1818,9 @@ window.onload = function()
     loadData("volume");
     loadData("portThrower");
     loadData("portVTubeStudio");
-
-    update101();
-}
-
-async function update101()
-{
-    var throws = await getData("throws");
-    for (var i = 0; i < throws.length; i++)
-    {
-        if (Array.isArray(throws[i]))
-        {
-            throws[i] = {
-                "location": throws[i][0],
-                "weight": throws[i][1],
-                "scale": throws[i][2],
-                "sound": throws[i][3],
-                "volume": throws[i][4] == null ? 1 : throws[i][4],
-                "enabled": throws[i][5],
-                "customs": []
-            };
-            setData("throws", throws);
-        }
-    }
-
-    var impacts = await getData("throws");
-    for (var i = 0; i < impacts.length; i++)
-    {
-        if (Array.isArray(impacts[i]))
-        {
-            impacts[i] = {
-                "location": impacts[i][0],
-                "volume": impacts[i][1],
-                "enabled": impacts[i][2],
-                "bits": true,
-                "customs": []
-            };
-            setData("impacts", impacts);
-        }
-    }
-
-    var bitImpacts = await getData("bitImpacts");
-    if (bitImpacts != null)
-    {
-        var impacts = await getData("impacts");
-        for (var i = 0; i < bitImpacts.length; i++)
-        {
-            impacts.push({
-                "location": bitImpacts[i][0],
-                "volume": bitImpacts[i][1],
-                "enabled": false,
-                "bits": true,
-                "customs": []
-            });
-        }
-        bitImpacts = null;
-        setData("bitImpacts", bitImpacts);
-        setData("impacts", impacts);
-    }
-
-    var redeems = await getData("redeems");
-    if (redeems == null)
-    {
-        redeems = [];
-
-        const oldSingle = await getData("singleRedeemID");
-        if (oldSingle != null && oldSingle != "")
-        {
-            redeems.push({
-                "enabled": await getData("singleRedeemEnabled"),
-                "id": oldSingle,
-                "name": await getRedeemName(oldSingle),
-                "bonkType": "single"
-            });
-        }
-
-        const oldBarrage = await getData("barrageRedeemID");
-        if (oldBarrage != null && oldBarrage != "")
-        {
-            redeems.push({
-                "enabled": await getData("barrageRedeemEnabled"),
-                "id": oldBarrage,
-                "name": await getRedeemName(oldBarrage),
-                "bonkType": "barrage"
-            });
-        }
-
-        setData("redeems", redeems);
-    }
-
-    var commands = await getData("commands");
-
-    if (commands == null)
-    {
-        commands = [];
-
-        const oldSingle = await getData("singleCommandTitle");
-        if (oldSingle != null && oldSingle != "")
-        {
-            commands.push({
-                "enabled": await getData("singleCommandEnabled"),
-                "name": oldSingle,
-                "cooldown": await getData("singleCommandCooldown"),
-                "bonkType": "single"
-            });
-        }
-
-        const oldBarrage = await getData("barrageCommandTitle");
-        if (oldBarrage != null && oldBarrage != "")
-        {
-            commands.push({
-                "enabled": await getData("barrageCommandEnabled"),
-                "name": oldBarrage,
-                "cooldown": await getData("barrageCommandCooldown"),
-                "bonkType": "barrage"
-            });
-        }
-
-        setData("commands", commands);
-    }
     
+    openImages();
+    openBitImages();
 }
 
 // Event listeners for changing settings
@@ -1885,8 +1889,6 @@ function clampValue(node, min, max)
 // -----------------
 
 var currentPanel = document.querySelector("#bonkImages"), playing = false;
-openImages();
-openBitImages();
 
 // Window Event Listeners
 document.querySelector("#header").addEventListener("click", () => { showPanelLarge("statusWindow"); });

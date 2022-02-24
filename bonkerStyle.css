@@ -155,6 +155,14 @@ body {
     position: absolute;
 }
 
+.thrown image {
+    position: absolute;
+    left: -9999px;
+    right: -9999px;
+    top: -9999px;
+    bottom: -9999px;
+}
+
 .animated, .thrown {
     -webkit-animation-timing-function: linear !important;
     animation-timing-function: linear !important;

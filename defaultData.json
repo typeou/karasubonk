@@ -274,8 +274,6 @@
     "itemScaleMax": 3,
     "delay": 100,
     "volume": 0.2,
-    "singleRedeemID": "",
-    "barrageRedeemID": "",
     "throwDuration": 0.8,
     "throwAngleMin": -45,
     "throwAngleMax": 45,
@@ -302,22 +300,22 @@
     "redeems": [
         {
             "enabled": true,
-            "name": "",
+            "name": null,
             "cooldown": 0,
             "bonkType": "single",
-            "id": ""
+            "id": null
         },
         {
             "enabled": true,
-            "id": "",
-            "name": "",
+            "id": null,
+            "name": null,
             "bonkType": "barrage"
         },
         {
             "enabled": true,
-            "id": "",
-            "name": "",
-            "bonkType": "barrage"
+            "id": null,
+            "name": null,
+            "bonkType": "Hydrate"
         }
     ],
     "commands": [

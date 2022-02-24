@@ -1,4 +1,4 @@
-const { app, Menu, Tray, BrowserWindow, ipcMain } = require("electron");
+const { app, Menu, Tray, BrowserWindow, ipcMain, session } = require("electron");
 const { ApiClient } = require("@twurple/api");
 const { PubSubClient } = require("@twurple/pubsub");
 const { ChatClient } = require("@twurple/chat");
@@ -81,13 +81,30 @@ async function authenticate() {
   token = await authProvider.getAccessToken();
   if (token != null)
   {
+    loggedOut = false;
     authenticated = true;
     apiClient = new ApiClient({ authProvider });
+    var tokenInfo = await apiClient.getTokenInfo();
+    mainWindow.webContents.send("username", tokenInfo.userName);
     pubSub(apiClient);
   }
 
   authenticating = false;
 }
+
+ipcMain.on("reauthenticate", async () => {
+  if (authProvider != null)
+  {
+    // Clear cookies to allow reauthentication
+    session.defaultSession.clearStorageData([], () => {});
+    authProvider.allowUserChange();
+    authenticated = false;
+    authenticating = false;
+    removeListeners();
+  }
+});
+
+var pubSubListeners = [], chatListeners = [];
 
 // Event listeners
 async function pubSub(apiClient) {
@@ -95,25 +112,65 @@ async function pubSub(apiClient) {
   userID = await pubSubClient.registerUserListener(authProvider);
 
   // PubSub Event Listeners
-  console.log("Listening to Redemptions");
-  await pubSubClient.onRedemption(userID, onRedeemHandler);
-  console.log("Listening to Subs");
-  await pubSubClient.onSubscription(userID, onSubHandler);
-  console.log("Listening to Bits");
-  await pubSubClient.onBits(userID, onBitsHandler);
+  if (authenticated)
+  {
+    console.log("Listening to Redemptions");
+    pubSubListeners.push(await pubSubClient.onRedemption(userID, onRedeemHandler));
+  }
+  else
+    removeListeners();
+
+  if (authenticated)
+  {
+    console.log("Listening to Subs");
+    pubSubListeners.push(await pubSubClient.onSubscription(userID, onSubHandler));
+  }
+  else
+    removeListeners();
+
+  if (authenticated)
+  {
+    console.log("Listening to Bits");
+    pubSubListeners.push(await pubSubClient.onBits(userID, onBitsHandler));
+  }
+  else
+    removeListeners();
 
   const user = await apiClient.helix.users.getUserById(userID);
   chatClient = new ChatClient({ authProvider, channels: [user.name] });
   await chatClient.connect();
 
   // Chat Event Listeners
-  console.log("Listening to Messages");
-  chatClient.onMessage(onMessageHandler);
-  console.log("Listening to Raids");
-  chatClient.onRaid(onRaidHandler);
+  if (authenticated)
+  {
+    console.log("Listening to Messages");
+    chatListeners.push(chatClient.onMessage(onMessageHandler));
+  }
+  else
+    removeListeners();
+  
+  if (authenticated)
+  {
+    console.log("Listening to Raids");
+    chatListeners.push(chatClient.onRaid(onRaidHandler));
+  }
+  else
+    removeListeners();
 
   // Done enabling listeners
-  listenersActive = true;
+  if (pubSubListeners.length > 0 || chatListeners.length > 0)
+    listenersActive = true;
+}
+
+function removeListeners()
+{
+  for (var i = 0; i < pubSubListeners.length; i++)
+    pubSubListeners[i].remove();
+  pubSubListeners = [];
+  for (var i = 0; i < chatListeners.length; i++)
+    chatClient.removeListener(chatListeners[i]);
+  chatListeners = [];
+  listenersActive = false;
 }
 
 // Periodically reporting status back to renderer
@@ -450,7 +507,7 @@ function getCustomImagesWeightsScalesSoundsVolumes(customName)
   return getImagesWeightsScalesSoundsVolumes;
 }
 
-ipcMain.on("testCustomBonk", (_, message) => custom(message));
+ipcMain.on("testCustomBonk", (_, message) => { custom(message); });
 
 // A custom bonk test
 function custom(customName)

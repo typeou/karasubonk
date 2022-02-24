@@ -501,10 +501,13 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     while (!canPlayAudio || !canShowImpact)
                         await new Promise(resolve => setTimeout(resolve, 10));
 
+                    var randH = (((Math.random() * 100) - 50) * ((pos.size + 100) / 200));
+                    var randV = (((Math.random() * 100) - 50) * ((pos.size + 100) / 200));
+
                     var pivot = document.createElement("div");
                     pivot.classList.add("thrown");
-                    pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
-                    pivot.style.top = (window.innerHeight * yPos) - (img.height * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
+                    pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + randH + "px";
+                    pivot.style.top = (window.innerHeight * yPos) - (img.height * scale * sizeScale / 2) + randV + "px";
                     pivot.style.transform = "rotate(" + angle + "deg)";
                     var movement = document.createElement("div");
                     movement.classList.add("animated");
@@ -534,8 +537,8 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                         setTimeout(function() {
                             const hit = document.createElement("img");
                             hit.classList.add("thrown");
-                            hit.style.left = (window.innerWidth * xPos) - (impact.width * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
-                            hit.style.top = (window.innerHeight * yPos) - (impact.height * scale * sizeScale / 2) + ((Math.random() * 100) - 50) + "px";
+                            hit.style.left = (window.innerWidth * xPos) - (impact.width * scale * sizeScale / 2) + randH + "px";
+                            hit.style.top = (window.innerHeight * yPos) - (impact.height * scale * sizeScale / 2) + randV + "px";
                             hit.src = "decals/" + encodeURIComponent(impactDecal.location.substr(7));
                             hit.style.width = impact.width * impactDecal.scale * sizeScale + "px";
                             hit.style.height = impact.height * impactDecal.scale * sizeScale + "px";

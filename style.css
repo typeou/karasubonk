@@ -1187,3 +1187,29 @@ mark {
     top: 16px;
     z-index: 1;
 }
+
+#user {
+    position: absolute;
+    right: 296px;
+    bottom: 4px;
+    display: grid;
+    gap: 8px;
+    line-height: 32px;
+    height: 32px;
+}
+
+#user > * {
+    grid-row: 1;
+}
+
+#user > p {
+    margin: 0;
+}
+
+#logout {
+    background-color: #0C0C0C ;
+    border: 2px solid #1D1D1D;
+    color: white;
+    cursor: pointer;
+    padding: 0 8px;
+}

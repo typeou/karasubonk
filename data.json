@@ -1,1 +1,421 @@
-{"portThrower":8080,"portVTubeStudio":8001,"throws":[{"enabled":true,"location":"throws/water_bottle.png","weight":1,"scale":1,"sound":null,"volume":1,"customs":["Hydrate","Gamecube"]},{"enabled":true,"location":"throws/K_Energy.png","weight":1,"scale":1,"sound":null,"volume":1,"customs":["Hydrate","Gamecube"]},{"enabled":true,"location":"throws/I_C_Watermellon.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Strawberry.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Pineapple.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Pie.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Pear.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Orange.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Nut.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Mulberry.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Lemon.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_GreenGrapes.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Grapes.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Cherry.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/I_C_Banana.png","weight":1,"scale":3,"sound":null,"volume":1,"customs":["Gamecube"]},{"enabled":true,"location":"throws/gnome.png","weight":1,"scale":0.5,"sound":"impacts/gnome.mp3","volume":1,"customs":["Gamecube"]}],"impacts":[{"location":"impacts/gamecube-startup-2.wav","volume":0.5,"enabled":false,"customs":["Gamecube"]},{"location":"impacts/Seq1.15 Hit #3 96 HK1.wav","volume":1,"enabled":true,"bits":true,"customs":["Hydrate"]},{"location":"impacts/Seq1.15 Hit #2 96 HK1.wav","volume":1,"enabled":true,"bits":true,"customs":["Hydrate"]},{"location":"impacts/Seq1.15 Hit #1 96 HK1.wav","volume":1,"enabled":true,"bits":true,"customs":["Hydrate"]},{"location":"impacts/Seq 2.27 Hit #3 96 HK1.wav","volume":1,"enabled":true,"bits":true,"customs":["Hydrate"]},{"location":"impacts/Seq 2.27 Hit #2 96 HK1.wav","volume":1,"enabled":true,"bits":true,"customs":["Hydrate"]},{"location":"impacts/Seq 2.27 Hit #1 96 HK1.wav","volume":1,"enabled":true,"bits":true,"customs":["Hydrate"]},{"location":"impacts/Seq 2.1 Hit #3 96 HK1.wav","volume":1,"enabled":true,"bits":true,"customs":["Hydrate"]},{"location":"impacts/Seq 2.1 Hit #2 96 HK1.wav","volume":1,"enabled":true,"bits":true,"customs":["Hydrate"]},{"location":"impacts/Seq 2.1 Hit #1 96 HK1.wav","volume":1,"enabled":true,"bits":true,"customs":["Hydrate"]}],"bitThrows":{"one":{"location":"throws/1.png","scale":1.5},"oneHundred":{"location":"throws/100.png","scale":1.5},"oneThousand":{"location":"throws/1000.png","scale":1.5},"fiveThousand":{"location":"throws/5000.png","scale":1.5},"tenThousand":{"location":"throws/10000.png","scale":1.5}},"subEnabled":true,"subGiftEnabled":true,"bitsEnabled":true,"subType":"barrage","subGiftType":"barrage","bitsMaxBarrageCount":125,"subCooldown":0,"subGiftCooldown":0,"bitsCooldown":0,"barrageCount":30,"barrageFrequency":0.1,"returnSpeed":0.05,"openEyes":false,"itemScaleMin":0.25,"itemScaleMax":3,"delay":100,"volume":0.2,"4b55651e13ed4a77819c5c8585ff323aMin":[0.0020842552185058594,-0.08333271741867065],"4b55651e13ed4a77819c5c8585ff323aMax":[0.3187500238418579,-0.22592616081237793],"b9f36ad9b1c54d6bbc7457a819c67559Min":[0.02688312530517578,-0.1555403470993042],"b9f36ad9b1c54d6bbc7457a819c67559Max":[-0.0396304726600647,-4.222573757171631],"singleRedeemID":"","barrageRedeemID":"","throwDuration":0.8,"closeEyes":false,"throwAngleMin":-45,"throwAngleMax":45,"raidEnabled":true,"raidMaxBarrageCount":100,"raidCooldown":0,"customBonks":{"Hydrate":{"barrageCount":10,"barrageFrequencyOverride":false,"barrageFrequency":0.1,"throwDurationOverride":false,"throwDuration":0.8,"throwAngleOverride":false,"throwAngleMin":-45,"throwAngleMax":45,"itemsOverride":true,"soundsOverride":false,"impactDecals":[],"windupSounds":[],"windupDelay":0},"Gamecube":{"barrageCount":15,"barrageFrequencyOverride":false,"barrageFrequency":0.1,"throwDurationOverride":false,"throwDuration":10,"throwAngleOverride":false,"throwAngleMin":-45,"throwAngleMax":45,"itemsOverride":false,"soundsOverride":true,"impactDecals":[],"windupSounds":[{"location":"windups/gamecube-startup.wav","volume":1,"enabled":true}],"windupDelay":3.75}},"redeems":[{"enabled":true,"name":"Bonk","cooldown":0,"bonkType":"single","id":"f4e3f8b1-a906-4018-bc3e-76945bad7acb"},{"enabled":true,"id":"8ae69da7-f79e-47a8-898e-8e10175277f4","name":"MANY BONK","bonkType":"barrage"},{"enabled":true,"id":"1b22fd3f-2c50-4da2-8005-bf6256cc3b68","name":"Hydrate!","bonkType":"barrage"}],"commands":[{"enabled":true,"name":"!bonk","cooldown":"10","bonkType":"single"},{"enabled":true,"name":"!manybonk","cooldown":"60","bonkType":"barrage"}],"raidEmotes":true}
+{
+    "portThrower": 8080,
+    "portVTubeStudio": 8001,
+    "throws": [
+        {
+            "enabled": true,
+            "location": "throws/water_bottle.png",
+            "weight": 1,
+            "scale": 1,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Hydrate",
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/K_Energy.png",
+            "weight": 1,
+            "scale": 1,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Hydrate",
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Watermellon.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Strawberry.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Pineapple.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Pie.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Pear.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Orange.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Nut.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Mulberry.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Lemon.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_GreenGrapes.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Grapes.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Cherry.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/I_C_Banana.png",
+            "weight": 1,
+            "scale": 3,
+            "sound": null,
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "enabled": true,
+            "location": "throws/gnome.png",
+            "weight": 1,
+            "scale": 0.5,
+            "sound": "impacts/gnome.mp3",
+            "volume": 1,
+            "customs": [
+                "Gamecube"
+            ]
+        }
+    ],
+    "impacts": [
+        {
+            "location": "impacts/gamecube-startup-2.wav",
+            "volume": 0.5,
+            "enabled": false,
+            "customs": [
+                "Gamecube"
+            ]
+        },
+        {
+            "location": "impacts/Seq1.15 Hit #3 96 HK1.wav",
+            "volume": 1,
+            "enabled": true,
+            "bits": true,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
+            "location": "impacts/Seq1.15 Hit #2 96 HK1.wav",
+            "volume": 1,
+            "enabled": true,
+            "bits": true,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
+            "location": "impacts/Seq1.15 Hit #1 96 HK1.wav",
+            "volume": 1,
+            "enabled": true,
+            "bits": true,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
+            "location": "impacts/Seq 2.27 Hit #3 96 HK1.wav",
+            "volume": 1,
+            "enabled": true,
+            "bits": true,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
+            "location": "impacts/Seq 2.27 Hit #2 96 HK1.wav",
+            "volume": 1,
+            "enabled": true,
+            "bits": true,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
+            "location": "impacts/Seq 2.27 Hit #1 96 HK1.wav",
+            "volume": 1,
+            "enabled": true,
+            "bits": true,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
+            "location": "impacts/Seq 2.1 Hit #3 96 HK1.wav",
+            "volume": 1,
+            "enabled": true,
+            "bits": true,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
+            "location": "impacts/Seq 2.1 Hit #2 96 HK1.wav",
+            "volume": 1,
+            "enabled": true,
+            "bits": true,
+            "customs": [
+                "Hydrate"
+            ]
+        },
+        {
+            "location": "impacts/Seq 2.1 Hit #1 96 HK1.wav",
+            "volume": 1,
+            "enabled": true,
+            "bits": true,
+            "customs": [
+                "Hydrate"
+            ]
+        }
+    ],
+    "bitThrows": {
+        "one": {
+            "location": "throws/1.png",
+            "scale": 1.5
+        },
+        "oneHundred": {
+            "location": "throws/100.png",
+            "scale": 1.5
+        },
+        "oneThousand": {
+            "location": "throws/1000.png",
+            "scale": 1.5
+        },
+        "fiveThousand": {
+            "location": "throws/5000.png",
+            "scale": 1.5
+        },
+        "tenThousand": {
+            "location": "throws/10000.png",
+            "scale": 1.5
+        }
+    },
+    "subEnabled": true,
+    "subGiftEnabled": true,
+    "bitsEnabled": true,
+    "subType": "barrage",
+    "subGiftType": "barrage",
+    "bitsMaxBarrageCount": 125,
+    "subCooldown": 0,
+    "subGiftCooldown": 0,
+    "bitsCooldown": 0,
+    "barrageCount": 30,
+    "barrageFrequency": 0.1,
+    "returnSpeed": 0.05,
+    "openEyes": false,
+    "itemScaleMin": 0.25,
+    "itemScaleMax": 3,
+    "delay": 100,
+    "volume": 0.2,
+    "4b55651e13ed4a77819c5c8585ff323aMin": [
+        0.0020842552185058594,
+        -0.08333271741867065
+    ],
+    "4b55651e13ed4a77819c5c8585ff323aMax": [
+        0.3187500238418579,
+        -0.22592616081237793
+    ],
+    "b9f36ad9b1c54d6bbc7457a819c67559Min": [
+        0.02688312530517578,
+        -0.1555403470993042
+    ],
+    "b9f36ad9b1c54d6bbc7457a819c67559Max": [
+        -0.0396304726600647,
+        -4.222573757171631
+    ],
+    "singleRedeemID": "",
+    "barrageRedeemID": "",
+    "throwDuration": 0.8,
+    "closeEyes": false,
+    "throwAngleMin": -45,
+    "throwAngleMax": 45,
+    "raidEnabled": true,
+    "raidMaxBarrageCount": 100,
+    "raidCooldown": 0,
+    "customBonks": {
+        "Hydrate": {
+            "barrageCount": 10,
+            "barrageFrequencyOverride": false,
+            "barrageFrequency": 0.1,
+            "throwDurationOverride": false,
+            "throwDuration": 0.8,
+            "throwAngleOverride": false,
+            "throwAngleMin": -45,
+            "throwAngleMax": 45,
+            "itemsOverride": true,
+            "soundsOverride": false,
+            "impactDecals": [],
+            "windupSounds": [],
+            "windupDelay": 0
+        },
+        "Gamecube": {
+            "barrageCount": 15,
+            "barrageFrequencyOverride": false,
+            "barrageFrequency": 0.1,
+            "throwDurationOverride": false,
+            "throwDuration": 10,
+            "throwAngleOverride": false,
+            "throwAngleMin": -45,
+            "throwAngleMax": 45,
+            "itemsOverride": false,
+            "soundsOverride": true,
+            "impactDecals": [],
+            "windupSounds": [
+                {
+                    "location": "windups/gamecube-startup.wav",
+                    "volume": 1,
+                    "enabled": true
+                }
+            ],
+            "windupDelay": 3.75
+        }
+    },
+    "redeems": [
+        {
+            "enabled": true,
+            "name": "Bonk",
+            "cooldown": 0,
+            "bonkType": "single",
+            "id": "f4e3f8b1-a906-4018-bc3e-76945bad7acb"
+        },
+        {
+            "enabled": true,
+            "id": "8ae69da7-f79e-47a8-898e-8e10175277f4",
+            "name": "MANY BONK",
+            "bonkType": "barrage"
+        },
+        {
+            "enabled": true,
+            "id": "1b22fd3f-2c50-4da2-8005-bf6256cc3b68",
+            "name": "Hydrate!",
+            "bonkType": "barrage"
+        }
+    ],
+    "commands": [
+        {
+            "enabled": true,
+            "name": "!bonk",
+            "cooldown": "10",
+            "bonkType": "single"
+        },
+        {
+            "enabled": true,
+            "name": "!manybonk",
+            "cooldown": "60",
+            "bonkType": "barrage"
+        }
+    ],
+    "raidEmotes": true,
+    "c6247098ef0141d195e3fb7d49fd7fbfMin": [
+        -0.00029408931732177734,
+        -0.11097270250320435
+    ],
+    "c6247098ef0141d195e3fb7d49fd7fbfMax": [
+        0.02141094207763672,
+        -4.189207553863525
+    ]
+}
