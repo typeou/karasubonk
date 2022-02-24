@@ -695,7 +695,7 @@ async function openWindupSounds(customName)
 
             row.querySelector(".soundVolume").value = customBonks[customName].windupSounds[index].volume;
             row.querySelector(".soundVolume").addEventListener("change", () => {
-                row.querySelector(".soundVolume").value = clampValue(row.querySelector(".soundVolume"), 0, 1);
+                clampValue(row.querySelector(".soundVolume"), 0, 1);
                 customBonks[customName].windupSounds[index].volume = parseFloat(row.querySelector(".soundVolume").value);
                 setData("customBonks", customBonks);
             });
