@@ -211,12 +211,14 @@ if (!fs.existsSync(__dirname + "/data.json"))
   fs.writeFileSync(__dirname + "/data.json", JSON.stringify(defaultData));
 var data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
 
+
+ipcMain.on("help", () => require('electron').shell.openExternal("https://typeou.dev/#kbonkHelp"));
+
 // ----------------
 // Websocket Server
 // ----------------
 
 const WebSocket = require("ws");
-const { exit } = require("process");
 
 const wss = new WebSocket.Server({ port: data.portThrower });
 

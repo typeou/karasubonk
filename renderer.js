@@ -1900,7 +1900,7 @@ var currentPanel = document.querySelector("#bonkImages"), playing = false;
 // Window Event Listeners
 document.querySelector("#header").addEventListener("click", () => { showPanelLarge("statusWindow"); });
 
-document.querySelector("#helpButton").addEventListener("click", () => { showPanelLarge("help"); });
+document.querySelector("#helpButton").addEventListener("click", () => { ipcRenderer.send("help"); });
 document.querySelector("#calibrateButton").addEventListener("click", () => { showPanelLarge("statusWindow", true); });
 document.querySelector("#settingsButton").addEventListener("click", () => { showPanelLarge("settings"); });
 document.querySelector("#testBonksButton").addEventListener("click", () => { showPanelLarge("testBonks"); });
