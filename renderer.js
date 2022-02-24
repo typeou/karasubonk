@@ -574,14 +574,14 @@ async function openImpactDecals(customName)
 
             row.querySelector(".decalDuration").value = customBonks[customName].impactDecals[index].duration;
             row.querySelector(".decalDuration").addEventListener("change", () => {
-                row.querySelector(".decalDuration").value = clampValue(row.querySelector(".duration"), 0, null);
+                clampValue(row.querySelector(".decalDuration").value, 0, null);
                 customBonks[customName].impactDecals[index].duration = parseFloat(row.querySelector(".decalDuration").value);
                 setData("customBonks", customBonks);
             });
 
             row.querySelector(".decalScale").value = customBonks[customName].impactDecals[index].scale;
             row.querySelector(".decalScale").addEventListener("change", () => {
-                row.querySelector(".decalScale").value = clampValue(row.querySelector(".decalScale"), 0, null);
+                clampValue(row.querySelector(".decalScale"), 0, null);
                 customBonks[customName].impactDecals[index].scale = parseFloat(row.querySelector(".decalScale").value);
                 setData("customBonks", customBonks);
             });

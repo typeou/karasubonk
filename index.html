@@ -5,7 +5,7 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="script-src 'self'; style-src 'self' 'unsafe-inline'">
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <title>KBonk 1.1.0</title>
+    <title>KBonk 1.10</title>
     <link rel="stylesheet" type="text/css" href="style.css"></style>
   </head>
   <body>
@@ -97,13 +97,13 @@
               <p class="grid4">Global Volume</p>
               <input type="range" id="volume" class="grid5" min="0" max="1" value="0.2" step="0.1">
 
-              <p class="grid1">Barrage Frequency</p>
+              <p class="grid1">Barrage Frequency (s)</p>
               <input type="number" id="barrageFrequency" class="grid2" min="0" value="0.05">
 
-              <p class="grid4">Item Scale (Min Model Size)</p>
+              <p class="grid4">Item Scale (At Min Model Size)</p>
               <input type="number" id="itemScaleMin" class="grid5" min="0" value="0.25">
               
-              <p class="grid4">Item Scale (Max Model Size)</p>
+              <p class="grid4">Item Scale (At Max Model Size)</p>
               <input type="number" id="itemScaleMax" class="grid5" min="0" value="3">
 
               <br/>
@@ -570,7 +570,7 @@
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
-                <p class="grid2">Barrage Frequency</p>
+                <p class="grid2">Barrage Frequency (s)</p>
                 <input type="number" min="0" step="1" class="barrageFrequency grid3">
 
                 <label class="checkbox grid1">
