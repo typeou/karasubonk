@@ -9,7 +9,7 @@
     font-family: 'Noto Sans';
     font-display: swap;
     unicode-range: U+000-5FF;
-    src: local('Noto Sans') format('ttf'), url('NotoSans-Regular.ttf') format('ttf');
+    src: local('Noto Sans') format('ttf'), url('NotoSans-Regular.woff2') format('ttf');
 }
 
 body {
@@ -185,15 +185,6 @@ body > div {
     height: 40px;
 }
 
-#itchLink {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    height: 24px;
-    background-color: black;
-    padding: 8px 16px;
-}
-
 a {
     color: #77FF85;
 }
@@ -214,7 +205,7 @@ a {
 }
 
 .topButton {
-    font-family: 'Cascadia Code', 'Consolas', 'Courier New', Courier, monospace;
+    font-family: 'Cascadia Mono', 'Consolas', 'Courier New', Courier, monospace;
     font-size: 28px;
     width: 192px;
     height: 64px;
@@ -1204,20 +1195,19 @@ mark {
 
 #user {
     position: absolute;
-    right: 296px;
-    bottom: 4px;
+    right: 0;
+    bottom: 0;
     display: grid;
     gap: 8px;
-    line-height: 32px;
-    height: 32px;
 }
 
 #user > * {
     grid-row: 1;
+    margin: auto;
 }
 
-#user > p {
-    margin: 0;
+#user > button {
+    padding: 4px 8px;
 }
 
 #logout {
@@ -1226,4 +1216,9 @@ mark {
     color: white;
     cursor: pointer;
     padding: 0 8px;
+}
+
+#itchLink {
+    background-color: black;
+    padding: 8px 16px;
 }
