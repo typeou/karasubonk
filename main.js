@@ -32,6 +32,10 @@ const createWindow = () => {
   mainWindow.on("restore", () => {
     mainWindow.setSkipTaskbar(false)
   });
+
+  mainWindow.on("close", () => {
+    exiting = true;
+  });
 }
 
 var tray = null;
@@ -52,7 +56,6 @@ app.whenReady().then(() => {
 });
 
 app.on("window-all-closed", () => {
-  exiting = true;
   if (process.platform !== "darwin") app.quit()
 });
 
@@ -62,11 +65,11 @@ app.on("window-all-closed", () => {
 
 var authProvider, token, apiClient, chatClient, userID, authenticated = false, authenticating = false, listenersActive = false;
 
-// Retry authorization every 3 seconds
+// Retry authorization every second
 setInterval(() => {
   if (!authenticated && !authenticating)
     authenticate();
-}, 3000);
+}, 1000);
 
 // Attempt authorization
 async function authenticate() {
@@ -213,6 +216,7 @@ var data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
 // ----------------
 
 const WebSocket = require("ws");
+const { exit } = require("process");
 
 const wss = new WebSocket.Server({ port: data.portThrower });
 
@@ -265,6 +269,7 @@ wss.on("connection", function connection(ws)
   ws.on("close", function message()
   {
     socket = null;
+    calibrateStage = -2;
   });
 });
 

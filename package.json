@@ -1,7 +1,7 @@
 {
   "name": "karasubonk",
-  "version": "1.0.1",
-  "description": "Browser source-based item thrower for Live2D models.",
+  "version": "1.1.0",
+  "description": "Lightweight item thrower for Live2D models.",
   "main": "main.js",
   "dependencies": {
     "@twurple/api": "^5.0.18",
@@ -9,12 +9,7 @@
     "@twurple/auth-electron": "^5.0.18",
     "@twurple/chat": "^5.0.18",
     "@twurple/pubsub": "^5.0.18",
-    "electron-squirrel-startup": "^1.0.0",
-    "twitch": "^4.6.7",
-    "twitch-auth": "^4.6.7",
-    "twitch-chat-client": "^4.6.7",
-    "twitch-electron-auth-provider": "^4.6.7",
-    "twitch-pubsub-client": "^4.6.7"
+    "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.63",
@@ -22,8 +17,7 @@
     "@electron-forge/maker-rpm": "^6.0.0-beta.63",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
     "@electron-forge/maker-zip": "^6.0.0-beta.63",
-    "electron": "^16.0.8",
-    "electron-icon-builder": "^2.0.1"
+    "electron": "^16.0.10"
   },
   "scripts": {
     "start": "electron-forge start",
@@ -32,5 +26,31 @@
   },
   "author": "typeou",
   "license": "MIT",
-  "config": {}
+  "config": {
+    "forge": {
+      "packagerConfig": {},
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "karasubonk"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
+  }
 }

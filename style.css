@@ -1,3 +1,17 @@
+@font-face {
+    font-family: 'Cascadia Mono';
+    font-display: swap;
+    unicode-range: U+000-5FF;
+    src: local('Cascadia Mono') format('woff2'), url('CascadiaMono.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: 'Noto Sans';
+    font-display: swap;
+    unicode-range: U+000-5FF;
+    src: local('Noto Sans') format('ttf'), url('NotoSans-Regular.ttf') format('ttf');
+}
+
 body {
     padding: 0;
     margin: 0;
@@ -105,7 +119,7 @@ body > div {
     font-size: 30px;
     margin: 0;
     font-weight: normal;
-    font-family: 'Cascadia Code', 'Consolas', 'Courier New', Courier, monospace;
+    font-family: 'Cascadia Mono', 'Consolas', 'Courier New', Courier, monospace;
 }
 
 @keyframes ready {

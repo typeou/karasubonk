@@ -1,3 +1,10 @@
+@font-face {
+    font-family: 'Noto Sans';
+    font-display: swap;
+    unicode-range: U+000-5FF;
+    src: local('Noto Sans') format('ttf'), url('NotoSans-Regular.ttf') format('ttf');
+}
+
 @-webkit-keyframes throwLeft {
     0% {
         transform: translate(-150vw, 0vh);
@@ -143,7 +150,7 @@
 }
 
 body {
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-family: 'Noto Sans', Verdana, Geneva, Tahoma, sans-serif;
     color: white;
     -webkit-text-stroke: 3px black;
     font-weight: bold;
@@ -172,12 +179,12 @@ body {
 
 #guide {
     position: absolute;
-    top: calc(50% - 50px);
-    left: calc(50% - 50px);
-    background-color: #FF9EEB;
+    top: calc(50% - 25px);
+    left: calc(50% - 25px);
+    background-color: #FF84E3;
     opacity: 0.5;
-    width: 100px;
-    height: 100px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
 }
 
@@ -203,23 +210,23 @@ body {
     position: absolute;
     top: calc(50% + 100px);
     width: 100%;
-    opacity: 0.75;
+    opacity: 0.5;
 }
 
 #guideText p {
-    font-size: 48px;
+    font-size: 3vw;
     text-align: center;
     animation: glow 3s infinite;
 }
 
 @keyframes glow {
     0% {
-        color: #FFCEF5;
+        color: white;
     }
     50% {
-        color: #FF9EEB;
+        color: #FF84E3;
     }
     100% {
-        color: #FFCEF5;
+        color: white;
     }
 }

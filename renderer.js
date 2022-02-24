@@ -1,6 +1,8 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
+const version = 1.10;
+
 // ------
 // Status
 // ------
@@ -21,7 +23,7 @@ const statusTitle = [
 
 const statusDesc = [
     "",
-    "<p>If you haven't logged in before or access has expired, a Twitch login window will appear.</p>",
+    "<p>If you haven't logged in before or access has expired, a Twitch login window will appear.</p><p>If it doesn't appear, you may also click the \"Log in\" button below to allow the window to reappear.</p>",
     "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source in OBS.</p><p>The KBonk Browser Source should be active with <mark>karasubonk/resources/app/bonker.html</mark> as the source file.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Continue Calibration</mark> button below to continue to the next step.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Confirm Calibration</mark> button below to finish calibration.</p>",
@@ -35,12 +37,15 @@ ipcRenderer.on("username", (event, message) => {
     document.querySelector("#username").classList.add("readyText");
     document.querySelector("#username").classList.remove("errorText");
     document.querySelector("#username").innerText = message;
+    document.querySelector("#logout").innerText = "Log out";
 });
+
 document.querySelector("#logout").addEventListener("click", () => {
     ipcRenderer.send("reauthenticate");
     document.querySelector("#username").classList.remove("readyText");
     document.querySelector("#username").classList.add("errorText");
     document.querySelector("#username").innerText = "None";
+    document.querySelector("#logout").innerText = "Log in";
 });
 
 ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
@@ -1821,6 +1826,8 @@ window.onload = async function()
     
     openImages();
     openBitImages();
+
+    checkVersion();
 }
 
 // Event listeners for changing settings
@@ -1971,13 +1978,17 @@ function back()
         document.querySelector("#wideWindow").classList.add(anim + "Out");
 
         if (currentPanelLarge.id == "statusWindow" && (status == 3 || status == 4 || status == 7))
+        {
+            cancelCalibrate = true;
             ipcRenderer.send("cancelCalibrate");
+        }
 
         playingLarge = true;
         setTimeout(() => {
             currentPanelLarge.classList.add("hidden");
             currentPanelLarge = null;
             playingLarge = false;
+            cancelCalibrate = false;
             document.querySelector("#wideWindow").classList.add("hidden");
         }, 500);
     }
@@ -2063,9 +2074,9 @@ function showPanel(panel, stack)
     }
 }
 
-var currentPanelLarge, playingLarge = false, openPanelLarge = false;
+var currentPanelLarge, playingLarge = false, openPanelLarge = false, cancelCalibrate = false;
 
-function showPanelLarge(panel, calibrate)
+function showPanelLarge(panel)
 {
     if (!playingLarge)
     {
@@ -2125,7 +2136,7 @@ function showPanelLarge(panel, calibrate)
                 playingLarge = false;
             }, 500);
         }
-        else if (calibrate == null || !calibrate)
+        else
             back();
     }
 }
@@ -2150,6 +2161,22 @@ function getRaidEmotes(_, data)
   channelEmotes.send();
 }
 
+function checkVersion()
+{
+    var versionRequest = new XMLHttpRequest();
+    versionRequest.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200)
+        {
+            const latestVersion = JSON.parse(this.responseText);
+            if (latestVersion.latest > version)
+                document.querySelector("#newVersion").classList.remove("hidden");
+        }
+    };
+    // Open the request and send it.
+    versionRequest.open("GET", "https://itch.io/api/1/x/wharf/latest?target=typeou/karasubonk&channel_name=win32", true);
+    versionRequest.send();
+}
+
 // -----------------------
 // Testing and Calibration
 // -----------------------
@@ -2159,7 +2186,7 @@ document.querySelector("#testBarrage").addEventListener("click", () => { ipcRend
 document.querySelector("#testBits").addEventListener("click", () => { ipcRenderer.send("bits"); });
 document.querySelector("#testRaid").addEventListener("click", () => { ipcRenderer.send("raid"); });
 
-document.querySelector("#calibrateButton").addEventListener("click", () => { ipcRenderer.send("startCalibrate"); });
+document.querySelector("#calibrateButton").addEventListener("click", () => { if (!cancelCalibrate) ipcRenderer.send("startCalibrate"); });
 document.querySelector("#nextCalibrate").addEventListener("click", () => { ipcRenderer.send("nextCalibrate"); });
 document.querySelector("#cancelCalibrate").addEventListener("click", () => { ipcRenderer.send("cancelCalibrate"); back(); });
 
