@@ -716,7 +716,7 @@ function onMessageHandler(_, _, message)
             barrage();
             break;
           default:
-            custom(data.redeems[i].bonkType);
+            custom(data.commands[i].bonkType);
             break;
         }
 
