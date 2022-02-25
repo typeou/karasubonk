@@ -792,7 +792,7 @@ function onSubHandler(subMessage)
   }
   else if (canSubGift && data.subGiftEnabled && subMessage.isGift)
   {
-    switch (data.subGiftBonkType)
+    switch (data.subGiftType)
     {
 
       case "single":
@@ -802,7 +802,7 @@ function onSubHandler(subMessage)
         barrage();
         break;
       default:
-        custom(data.subGiftBonkType);
+        custom(data.subGiftType);
         break;
     }
 
@@ -1011,6 +1011,6 @@ function handleRaidEmotes(_, emotes)
       socket.send(JSON.stringify(request));
     }
     else
-      barrage();
+      barrage(numRaiders);
   }
 }

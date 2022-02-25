@@ -261,7 +261,7 @@
     "bitsEnabled": true,
     "subType": "barrage",
     "subGiftType": "barrage",
-    "bitsMaxBarrageCount": 125,
+    "bitsMaxBarrageCount": 50,
     "subCooldown": 0,
     "subGiftCooldown": 0,
     "bitsCooldown": 0,
@@ -274,11 +274,11 @@
     "itemScaleMax": 3,
     "delay": 100,
     "volume": 0.2,
-    "throwDuration": 0.8,
+    "throwDuration": 1,
     "throwAngleMin": -45,
     "throwAngleMax": 45,
     "raidEnabled": true,
-    "raidMaxBarrageCount": 100,
+    "raidMaxBarrageCount": 50,
     "raidCooldown": 0,
     "customBonks": {
         "Hydrate": {
@@ -287,6 +287,9 @@
             "barrageFrequency": 0.1,
             "throwDurationOverride": false,
             "throwDuration": 0.8,
+            "spinSpeedOverride": false,
+            "spinSpeedMin": 5,
+            "spinSpeedMax": 10,
             "throwAngleOverride": false,
             "throwAngleMin": -45,
             "throwAngleMax": 45,
@@ -332,5 +335,7 @@
             "bonkType": "barrage"
         }
     ],
-    "raidEmotes": true
+    "raidEmotes": true,
+    "spinSpeedMin": 5,
+    "spinSpeedMax": 10
 }

@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.10;
+const version = 1.11;
 
 // ------
 // Status
@@ -1115,6 +1115,8 @@ async function addBonk()
         "throwAngleOverride": false,
         "throwAngleMin": await getData("throwAngleMin"),
         "throwAngleMax": await getData("throwAngleMax"),
+        "spinSpeedMin": await getData("spinSpeedMin"),
+        "spinSpeedMax": await getData("spinSpeedMax"),
         "itemsOverride": false,
         "soundsOverride": false,
         "impactDecals": [],
@@ -1237,7 +1239,34 @@ async function bonkDetails(customBonkName)
             setData("customBonks", customBonks);
         });
 
-        // Throw Angle Min
+        // Spin Speed
+        bonkDetailsTable.querySelector(".spinSpeedOverride").checked = customBonks[customBonkName].spinSpeedOverride;
+        bonkDetailsTable.querySelector(".spinSpeedMin").disabled = !customBonks[customBonkName].spinSpeedOverride;
+        bonkDetailsTable.querySelector(".spinSpeedMax").disabled = !customBonks[customBonkName].spinSpeedOverride;
+        bonkDetailsTable.querySelector(".spinSpeedOverride").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
+            customBonks[customBonkName].spinSpeedOverride = bonkDetailsTable.querySelector(".spinSpeedOverride").checked;
+            bonkDetailsTable.querySelector(".spinSpeedMin").disabled = !customBonks[customBonkName].spinSpeedOverride;
+            bonkDetailsTable.querySelector(".spinSpeedMax").disabled = !customBonks[customBonkName].spinSpeedOverride;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".spinSpeedMin").value = customBonks[customBonkName].spinSpeedMin;
+        bonkDetailsTable.querySelector(".spinSpeedMin").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
+            customBonks[customBonkName].spinSpeedMin = parseFloat(bonkDetailsTable.querySelector(".spinSpeedMin").value);
+            setData("customBonks", customBonks);
+        });
+
+        // Throw Angle Max
+        bonkDetailsTable.querySelector(".spinSpeedMax").value = customBonks[customBonkName].spinSpeedMax;
+        bonkDetailsTable.querySelector(".spinSpeedMax").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
+            customBonks[customBonkName].spinSpeedMax = parseFloat(bonkDetailsTable.querySelector(".spinSpeedMax").value);
+            setData("customBonks", customBonks);
+        });
+
+        // Throw Angle
         bonkDetailsTable.querySelector(".throwAngleOverride").checked = customBonks[customBonkName].throwAngleOverride;
         bonkDetailsTable.querySelector(".throwAngleMin").disabled = !customBonks[customBonkName].throwAngleOverride;
         bonkDetailsTable.querySelector(".throwAngleMax").disabled = !customBonks[customBonkName].throwAngleOverride;
@@ -1256,7 +1285,6 @@ async function bonkDetails(customBonkName)
             setData("customBonks", customBonks);
         });
 
-        // Throw Angle Max
         bonkDetailsTable.querySelector(".throwAngleMax").value = customBonks[customBonkName].throwAngleMax;
         bonkDetailsTable.querySelector(".throwAngleMax").addEventListener("change", async () => {
             customBonks = await getData("customBonks");
@@ -1793,6 +1821,22 @@ window.onload = async function()
 
         setData("commands", commands);
     }
+
+    var customBonks = await getData("customBonks");
+    if (customBonks != null)
+    {
+        for (const key in customBonks)
+        {
+            if (customBonks[key].spinSpeedOverride == null)
+                customBonks[key].spinSpeedOverride = false;
+            if (customBonks[key].spinSpeedMin == null)
+                customBonks[key].spinSpeedMin = 5;
+            if (customBonks[key].spinSpeedMax == null)
+                customBonks[key].spinSpeedMax = 10;
+        }
+
+        setData("customBonks", customBonks);
+    }
     // END UPDATING
 
     loadData("subEnabled");
@@ -1817,6 +1861,8 @@ window.onload = async function()
     loadData("returnSpeed");
     loadData("throwAngleMin");
     loadData("throwAngleMax");
+    loadData("spinSpeedMin");
+    loadData("spinSpeedMax");
     loadData("closeEyes");
     loadData("openEyes");
     loadData("itemScaleMin");
@@ -1830,6 +1876,7 @@ window.onload = async function()
     openBitImages();
 
     checkVersion();
+    document.title += " " + version;
 }
 
 // Event listeners for changing settings
@@ -1851,10 +1898,12 @@ document.querySelector("#raidEmotes").addEventListener("change", () => setData("
 
 document.querySelector("#barrageCount").addEventListener("change", () => { clampValue(document.querySelector("#barrageCount"), 0, null); setData("barrageCount", parseInt(document.querySelector("#barrageCount").value)) });
 document.querySelector("#barrageFrequency").addEventListener("change", () => { clampValue(document.querySelector("#barrageFrequency"), 0, null); setData("barrageFrequency", parseFloat(document.querySelector("#barrageFrequency").value)) });
-document.querySelector("#throwDuration").addEventListener("change", () => { clampValue(document.querySelector("#throwDuration"), 0.5, null); setData("throwDuration", parseFloat(document.querySelector("#throwDuration").value)) });
+document.querySelector("#throwDuration").addEventListener("change", () => { clampValue(document.querySelector("#throwDuration"), 0.1, null); setData("throwDuration", parseFloat(document.querySelector("#throwDuration").value)) });
 document.querySelector("#returnSpeed").addEventListener("change", () => { clampValue(document.querySelector("#returnSpeed"), 0, null); setData("returnSpeed", parseFloat(document.querySelector("#returnSpeed").value)) });
 document.querySelector("#throwAngleMin").addEventListener("change", () => { clampValue(document.querySelector("#throwAngleMin"), -90, parseFloat(document.querySelector("#throwAngleMax").value)); setData("throwAngleMin", parseFloat(document.querySelector("#throwAngleMin").value)) });
 document.querySelector("#throwAngleMax").addEventListener("change", () => { clampValue(document.querySelector("#throwAngleMax"), parseFloat(document.querySelector("#throwAngleMin").value), null); setData("throwAngleMax", parseFloat(document.querySelector("#throwAngleMax").value)) });
+document.querySelector("#spinSpeedMin").addEventListener("change", () => { clampValue(document.querySelector("#spinSpeedMin"), 0, parseFloat(document.querySelector("#spinSpeedMax").value)); setData("spinSpeedMin", parseFloat(document.querySelector("#spinSpeedMin").value)) });
+document.querySelector("#spinSpeedMax").addEventListener("change", () => { clampValue(document.querySelector("#spinSpeedMax"), parseFloat(document.querySelector("#spinSpeedMin").value), null); setData("spinSpeedMax", parseFloat(document.querySelector("#spinSpeedMax").value)) });
 
 document.querySelector("#closeEyes").addEventListener("change", () => {
     const val = document.querySelector("#closeEyes").checked;

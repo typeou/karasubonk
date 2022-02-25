@@ -287,6 +287,11 @@ function connectKarasu()
                             data.data.throwAngleMin = data.data.customBonks[data.type].throwAngleMin;
                             data.data.throwAngleMax = data.data.customBonks[data.type].throwAngleMax;
                         }
+                        if (data.data.customBonks[data.type].spinSpeedOverride)
+                        {
+                            data.data.spinSpeedMin = data.data.customBonks[data.type].spinSpeedMin;
+                            data.data.spinSpeedMax = data.data.customBonks[data.type].spinSpeedMax;
+                        }
 
                         var i = 0;
                         const cImages = data.image;
@@ -530,9 +535,14 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     thrown.src = image;
                     thrown.style.width = img.width * scale * sizeScale + "px";
                     thrown.style.height = img.height * scale * sizeScale + "px";
-                    var animName = "spin" + (Math.random() < 0.5 ? "Clockwise " : "CounterClockwise ");
-                    thrown.style.animation = animName + ((Math.random() * 0.4) + 0.1) + "s";
-                    thrown.style.animationIterationCount = "infinite";
+                    if (data.spinSpeedMax - data.spinSpeedMin == 0)
+                        thrown.style.transform = "rotate(" + -angle + "deg)";
+                    else
+                    {
+                        var animName = "spin" + (Math.random() < 0.5 ? "Clockwise " : "CounterClockwise ");
+                        thrown.style.animation = animName + (1 / (data.spinSpeedMin + (Math.random() * (data.spinSpeedMax - data.spinSpeedMin)))) + "s";
+                        thrown.style.animationIterationCount = "infinite";
+                    }
                     
                     movement.appendChild(thrown);
                     pivot.appendChild(movement);

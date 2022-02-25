@@ -5,7 +5,7 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta http-equiv="Content-Security-Policy" content="script-src 'self'; style-src 'self' 'unsafe-inline'">
     <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'">
-    <title>KBonk 1.10</title>
+    <title>KBonk</title>
     <link rel="stylesheet" type="text/css" href="style.css"></style>
   </head>
   <body>
@@ -77,7 +77,7 @@
             <!-- SETTINGS -->
 
             <div id="settings" class="hidden">
-              <!-- BARRAGE SETTINGS -->
+              <!-- BARRAGE AND ITEM SETTINGS -->
 
               <div class="header grid1-2">
                 <div class="headerInner">
@@ -108,7 +108,7 @@
 
               <br/>
 
-              <!-- THROW SETTINGS -->
+              <!-- THROW AND MODEL SETTINGS -->
 
               <div class="header grid1-2">
                 <div class="headerInner">
@@ -123,13 +123,13 @@
               </div>
 
               <p class="grid1">Throw Duration</p>
-              <input type="number" id="throwDuration" class="grid2" min="0.5" value="1.0">
+              <input type="number" id="throwDuration" class="grid2" min="0.1" value="1.0">
 
               <p class="grid4">Model Return Speed</p>
               <input type="number" id="returnSpeed" class="grid5" min="0" value="0.05">
 
-              <p class="grid1">Throw Angle (Min)</p>
-              <input type="number" id="throwAngleMin" class="grid2" min="-90" value="-45" step="1" >
+              <p class="grid1">Spin Speed (Min)</p>
+              <input type="number" id="spinSpeedMin" class="grid2" min="0" value="5" step="0.1">
 
               <p class="grid4">Close Eyes on Hit</p>
               <label class="checkbox grid5">
@@ -138,8 +138,8 @@
                 <img src="ui/checkmark.png" class="checkmark">
               </label>
               
-              <p class="grid1">Throw Angle (Max)</p>
-              <input type="number" id="throwAngleMax" class="grid2" max="90" value="45" step="1" >
+              <p class="grid1">Spin Speed (Max)</p>
+              <input type="number" id="spinSpeedMax" class="grid2" min="0" value="10" step="0.1">
               
               <p class="grid4">Open Eyes on Hit</p>
               <label class="checkbox grid5">
@@ -147,6 +147,15 @@
                 <div class="checkHover"></div>
                 <img src="ui/checkmark.png" class="checkmark">
               </label>
+
+              <p class="grid1">Throw Angle (Min)</p>
+              <input type="number" id="throwAngleMin" class="grid2" min="-90" value="-45" step="1">
+
+              <p class="grid1">Throw Angle (Max)</p>
+              <input type="number" id="throwAngleMax" class="grid2" max="90" value="45" step="1">
+
+              <!-- EMPTY DIV FOR SPACING -->
+              <div class="grid2"></div>
 
               <br/>
 
@@ -580,6 +589,17 @@
                 </label>
                 <p class="grid2">Throw Duration</p>
                 <input type="number" min="0" step="1" class="throwDuration grid3">
+
+                <label class="checkbox grid1">
+                  <input type="checkbox" class="spinSpeedOverride" checked>
+                  <div class="checkHover"></div>
+                  <img src="ui/checkmark.png" class="checkmark">
+                </label>
+                <p class="grid2">Spin Speed (Min)</p>
+                <input type="number" min="0" value="-45" step="1" class="spinSpeedMin grid3">
+
+                <p class="grid2">Spin Speed (Max)</p>
+                <input type="number" min="0" value="45" step="1" class="spinSpeedMax grid3">
 
                 <label class="checkbox grid1">
                   <input type="checkbox" class="throwAngleOverride" checked>
