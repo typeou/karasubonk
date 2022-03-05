@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.12;
+const version = 1.13;
 
 // ------
 // Status
@@ -18,7 +18,8 @@ const statusTitle = [
     "Connecting to VTube Studio...",
     "Listening for Redeem...",
     "Calibration",
-    "Activating Event Listeners..."
+    "Activating Event Listeners...",
+    "Error: Port In Use"
 ];
 
 const statusDesc = [
@@ -30,7 +31,8 @@ const statusDesc = [
     [ "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p>" ],
     "<p>Please use the Channel Point Reward you'd like to use.</p>",
     "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>",
-    "<p>Several windows will briefly appear during this process.</p>"
+    "<p>Several windows will briefly appear during this process.</p>",
+    [ "<p>The port <mark>", "</mark> is already in use. Another process may be using this port.</p><p>Try changing the Browser Source Port in Settings, under Advanced Settings.</p><p>It should be some number between 1024 and 65535.</p>"]
 ];
 
 ipcRenderer.on("username", (event, message) => {
@@ -64,7 +66,7 @@ async function setStatus(_, message)
         document.querySelector("#headerStatus").classList.remove("workingText");
         document.querySelector("#headerStatus").classList.add("readyText");
     }
-    else if (status == 1 || status == 2 || status == 5 || status == 8)
+    else if (status == 9)
     {
         document.querySelector("#headerStatus").classList.add("errorText");
         document.querySelector("#headerStatus").classList.remove("workingText");
@@ -77,10 +79,12 @@ async function setStatus(_, message)
         document.querySelector("#headerStatus").classList.remove("readyText");
     }
 
-    if (status != 5)
-        document.querySelector("#statusDesc").innerHTML = statusDesc[status];
-    else
+    if (status == 5)
         document.querySelector("#statusDesc").innerHTML = statusDesc[status][0] + await getData("portVTubeStudio") + statusDesc[status][1];
+    else if (status == 9)
+        document.querySelector("#statusDesc").innerHTML = statusDesc[status][0] + await getData("portThrower") + statusDesc[status][1];
+    else
+        document.querySelector("#statusDesc").innerHTML = statusDesc[status];
 
     if (status == 3 || status == 4 || status == 7)
     {
@@ -1822,6 +1826,7 @@ window.onload = async function()
         setData("commands", commands);
     }
 
+    // UPDATE 1.12
     var customBonks = await getData("customBonks");
     if (customBonks != null)
     {
@@ -1837,6 +1842,12 @@ window.onload = async function()
 
         setData("customBonks", customBonks);
     }
+
+    // UPDATE 1.13
+    var tray = await getData("minimizeToTray");
+    if (tray == null)
+        setData("minimizeToTray", false);
+
     // END UPDATING
 
     loadData("subEnabled");
@@ -1871,6 +1882,7 @@ window.onload = async function()
     loadData("volume");
     loadData("portThrower");
     loadData("portVTubeStudio");
+    loadData("minimizeToTray");
     
     openImages();
     openBitImages();
@@ -1931,6 +1943,7 @@ document.querySelector("#delay").addEventListener("change", () => { clampValue(d
 document.querySelector("#volume").addEventListener("change", () => { clampValue(document.querySelector("#volume"), 0, 1); setData("volume", parseFloat(document.querySelector("#volume").value)) });
 document.querySelector("#portThrower").addEventListener("change", () => setData("portThrower", parseInt(document.querySelector("#portThrower").value)));
 document.querySelector("#portVTubeStudio").addEventListener("change", () => setData("portVTubeStudio", parseInt(document.querySelector("#portVTubeStudio").value)));
+document.querySelector("#minimizeToTray").addEventListener("change", () => setData("minimizeToTray", document.querySelector("#minimizeToTray").checked));
 
 function clampValue(node, min, max)
 {

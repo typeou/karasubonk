@@ -6,6 +6,23 @@ const { ElectronAuthProvider } = require("@twurple/auth-electron");
 const fs = require("fs");
 
 var mainWindow;
+
+const isPrimary = app.requestSingleInstanceLock();
+    
+if (!isPrimary)
+  app.quit()
+else
+{
+  app.on("second-instance", () => {
+    if (mainWindow)
+    {
+      if (mainWindow.isMinimized())
+        mainWindow.restore();
+      mainWindow.focus();
+    }
+  })
+}
+
 const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1024,
@@ -26,11 +43,33 @@ const createWindow = () => {
 
   // Minimizing to and restoring from tray
   mainWindow.on("minimize", () => {
-    mainWindow.setSkipTaskbar(true)
+    if (data.minimizeToTray)
+    {
+      setTray();
+      mainWindow.setSkipTaskbar(true);
+    }
+    else
+    {
+      if (tray != null)
+      {
+        setTimeout(() => {
+          tray.destroy()
+        }, 100);
+      }
+
+      mainWindow.setSkipTaskbar(false);
+    }
   });
 
   mainWindow.on("restore", () => {
-    mainWindow.setSkipTaskbar(false)
+    if (tray != null)
+    {
+      setTimeout(() => {
+        tray.destroy()
+      }, 100);
+    }
+
+    mainWindow.setSkipTaskbar(false);
   });
 
   mainWindow.on("close", () => {
@@ -38,16 +77,19 @@ const createWindow = () => {
   });
 }
 
-var tray = null;
-app.whenReady().then(() => {
+function setTray()
+{
   tray = new Tray(__dirname + "/icon.ico");
-  var contextMenu = Menu.buildFromTemplate([
+  contextMenu = Menu.buildFromTemplate([
     { label: "Open", click: () => { mainWindow.restore(); } },
     { label: "Quit", role: "quit" }
   ]);
-  tray.setContextMenu(contextMenu)
+  tray.setContextMenu(contextMenu);
   tray.on("click", () => { mainWindow.restore(); });
+}
 
+var tray = null, contextMenu;
+app.whenReady().then(() => {
   createWindow();
 
   app.on("activate", () => {
@@ -182,7 +224,9 @@ setInterval(() => {
   if (mainWindow != null)
   {
     var status = 0;
-    if (!authenticated)
+    if (portInUse)
+      status = 9;
+    else if (!authenticated)
       status = 1;
     else if (!listenersActive)
       status = 8;
@@ -221,60 +265,79 @@ ipcMain.on("link", () => require('electron').shell.openExternal("https://typeou.
 
 const WebSocket = require("ws");
 
-const wss = new WebSocket.Server({ port: data.portThrower });
+var wss, portInUse = false, socket, connectedVTube = false;
 
-var socket, connectedVTube = false;
+createServer();
 
-wss.on("connection", function connection(ws)
+function createServer()
 {
-  socket = ws;
-  
-  socket.on("message", function message(request)
-  {
-    request = JSON.parse(request);
+  portInUse = false;
 
-    if (request.type == "calibrating")
+  wss = new WebSocket.Server({ port: data.portThrower });
+
+  wss.on("error", () => {
+    portInUse = true;
+    // Retry server creation after 3 seconds
+    setTimeout(() => {
+      createServer();
+    }, 3000);
+  });
+
+  if (!portInUse)
+  {
+    wss.on("connection", function connection(ws)
     {
-      switch (request.stage)
+      portInUse = false;
+      socket = ws;
+      
+      socket.on("message", function message(request)
       {
-        case "min":
-          if (request.size > -99)
+        request = JSON.parse(request);
+    
+        if (request.type == "calibrating")
+        {
+          switch (request.stage)
           {
-            calibrateStage = 0;
-            calibrate();
+            case "min":
+              if (request.size > -99)
+              {
+                calibrateStage = 0;
+                calibrate();
+              }
+              else
+              {
+                setData(request.modelID + "Min", [ request.positionX, request.positionY ], false);
+                calibrateStage = 2;
+                calibrate();
+              }
+              break;
+            case "max":
+              if (request.size < 99)
+              {
+                calibrateStage = 2;
+                calibrate();
+              }
+              else
+              {
+                setData(request.modelID + "Max", [ request.positionX, request.positionY ], false);
+                calibrateStage = 4;
+                calibrate();
+              }
+              break;
           }
-          else
-          {
-            setData(request.modelID + "Min", [ request.positionX, request.positionY ], false);
-            calibrateStage = 2;
-            calibrate();
-          }
-          break;
-        case "max":
-          if (request.size < 99)
-          {
-            calibrateStage = 2;
-            calibrate();
-          }
-          else
-          {
-            setData(request.modelID + "Max", [ request.positionX, request.positionY ], false);
-            calibrateStage = 4;
-            calibrate();
-          }
-          break;
-      }
-    }
-    else if (request.type == "status")
-      connectedVTube = request.connectedVTube;
-  });
-
-  ws.on("close", function message()
-  {
-    socket = null;
-    calibrateStage = -2;
-  });
-});
+        }
+        else if (request.type == "status")
+          connectedVTube = request.connectedVTube;
+      });
+    
+      ws.on("close", function message()
+      {
+        socket = null;
+        calibrateStage = -2;
+      });
+    });
+  }
+}
 
 // -----------------
 // Model Calibration

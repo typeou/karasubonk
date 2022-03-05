@@ -337,5 +337,6 @@
     ],
     "raidEmotes": true,
     "spinSpeedMin": 5,
-    "spinSpeedMax": 10
+    "spinSpeedMax": 10,
+    "minimizeToTray": false
 }
