@@ -877,6 +877,8 @@ function onSubHandler(subMessage)
   }
 }
 
+const bitTiers = [ 100, 1000, 5000, 10000 ];
+
 var canBits = true;
 function onBitsHandler(bitsMessage)
 {
@@ -887,48 +889,29 @@ function onBitsHandler(bitsMessage)
       setTimeout(() => { canBits = true; }, data.bitsCooldown * 1000);
     }
 
-    var totalBits = bitsMessage == null ? Math.floor(Math.random() * 15000) : bitsMessage.bits;
+    var totalBits = bitsMessage == null ? bitTiers[Math.floor(Math.random() * bitTiers.length)] : bitsMessage.bits;
 
-    var num10k = 0, num5k = 0, num1k = 0, num100 = 0;
-    while (totalBits >= 100 && totalBits + num100 + num1k + num5k + num10k > data.bitsMaxBarrageCount)
+    var numBits = [0, 0, 0, 0];
+    while (totalBits >= 100 && totalBits + numBits[0] + numBits[1] + numBits[2] + numBits[3] > data.bitsMaxBarrageCount)
     {
-      // Maximum number of possible 10k bit icons
-      const max10k = Math.floor(totalBits / 10000);
-      // Number of 10k bit icons to be thrown
-      var temp = Math.floor(Math.random() * max10k) + max10k > 0 ? 1 : 0;
-      num10k += temp;
-      // Subtract from total bits
-      totalBits -= temp * 10000;
-  
-      // Repeat process for 5k, 1k, and 100 bit icons
-      const max5k = Math.floor(totalBits / 5000);
-      var temp = Math.floor(Math.random() * max5k) + max5k > 0 ? 1 : 0;
-      num5k += temp;
-      totalBits -= temp * 5000;
-  
-      const max1k = Math.floor(totalBits / 1000);
-      var temp = Math.floor(Math.random() * max1k) + max1k > 0 ? 1 : 0;
-      num1k += temp;
-      totalBits -= temp * 1000;
-  
-      const max100 = Math.floor(totalBits / 100);
-      var temp = Math.floor(Math.random() * max100) + max100 > 0 ? 1 : 0;
-      num100 += temp;
-      totalBits -= temp * 100;
+      for (var i = 0; i < bitTiers.length; i++)
+      {
+        var max = Math.floor(totalBits / bitTiers[i]);
+        var temp = Math.floor(Math.random() * max);
+        numBits[i] += temp;
+        totalBits -= temp * bitTiers[i];
+      }
     }
 
-    if (totalBits + num100 + num1k + num5k + num10k > data.bitsMaxBarrageCount)
-      totalBits = data.bitsMaxBarrageCount - (num100 + num1k + num5k + num10k);
+    if (totalBits + numBits[0] + numBits[1] + numBits[2] + numBits[3] > data.bitsMaxBarrageCount)
+      totalBits = data.bitsMaxBarrageCount - (numBits[0] + numBits[1] + numBits[2] + numBits[3]);
 
     var bitThrows = [];
-    while (num10k-- > 0)
-      bitThrows.push(10000);
-    while (num5k-- > 0)
-      bitThrows.push(5000);
-    while (num1k-- > 0)
-      bitThrows.push(1000);
-    while (num100-- > 0)
-      bitThrows.push(100);
+    for (var i = 0; i < bitTiers.length; i++)
+    {
+      while (numBits[i]-- > 0)
+        bitThrows.push(bitTiers[i]);
+    }
     while (totalBits-- > 0)
       bitThrows.push(1);
     

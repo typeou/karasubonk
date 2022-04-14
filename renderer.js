@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.13;
+const version = 1.14;
 
 // ------
 // Status
@@ -1528,6 +1528,10 @@ async function openEvents()
         document.querySelector("#redeemsRow").after(row);
 
         row.querySelector(".redeemEnabled").checked = redeems[index].enabled;
+        row.querySelector(".redeemEnabled").addEventListener("change", () => {
+            redeems[index].enabled = row.querySelector(".redeemEnabled").checked;
+            setData("redeems", redeems);
+        });
 
         row.querySelector(".redeemName").innerHTML = redeems[index].name == null ? "<b class=\"errorText\">Unassigned</b>" : redeems[index].name;
         
@@ -1593,6 +1597,10 @@ async function openEvents()
         document.querySelector("#commandsRow").after(row);
 
         row.querySelector(".commandEnabled").checked = commands[index].enabled;
+        row.querySelector(".commandEnabled").addEventListener("change", () => {
+            commands[index].enabled = row.querySelector(".commandEnabled").checked;
+            setData("commands", commands);
+        });
 
         row.querySelector(".commandName").value = commands[index].name;
         row.querySelector(".commandName").addEventListener("change", () => {
