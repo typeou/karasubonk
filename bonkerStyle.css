@@ -214,7 +214,7 @@ body {
 }
 
 #guideText p {
-    font-size: 3vw;
+    font-size: 2.5vw;
     text-align: center;
     animation: glow 3s infinite;
 }
@@ -229,4 +229,8 @@ body {
     100% {
         color: white;
     }
+}
+
+* {
+    pointer-events: none;
 }

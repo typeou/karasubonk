@@ -38,6 +38,15 @@ function endCalibration()
     }
 }
 
+var guideX = null, guideY = null;
+document.onclick = function(e)
+{
+    guideX = e.clientX;
+    guideY = e.clientY;
+    document.querySelector("#guide").style.left = (guideX - 25) + "px";
+    document.querySelector("#guide").style.top = (guideY - 25) + "px";
+}
+
 function connectKarasu()
 {
     socketKarasu = new WebSocket("ws://localhost:" + ports[0]);
@@ -112,8 +121,6 @@ function connectKarasu()
                         "data": {
                             "timeInSeconds": 0.5,
                             "valuesAreRelativeToModel": false,
-                            "positionX": 0.0,
-                            "positionY": 0.0,
                             "rotation": 0,
                             "size": -100
                         }
@@ -135,8 +142,8 @@ function connectKarasu()
                         request = {
                             "type": "calibrating",
                             "stage": "min",
-                            "positionX": tempData.modelPosition.positionX,
-                            "positionY": tempData.modelPosition.positionY,
+                            "positionX": tempData.modelPosition.positionX - (((guideX / window.innerWidth) * 2) - 1),
+                            "positionY": tempData.modelPosition.positionY + (((guideY / window.innerHeight) * 2) - 1),
                             "size": tempData.modelPosition.size,
                             "modelID": tempData.modelID
                         }
@@ -155,8 +162,6 @@ function connectKarasu()
                         "data": {
                             "timeInSeconds": 0.5,
                             "valuesAreRelativeToModel": false,
-                            "positionX": 0.0,
-                            "positionY": 0.0,
                             "rotation": 0,
                             "size": 100
                         }
@@ -178,8 +183,8 @@ function connectKarasu()
                         request = {
                             "type": "calibrating",
                             "stage": "max",
-                            "positionX": tempData.modelPosition.positionX,
-                            "positionY": tempData.modelPosition.positionY,
+                            "positionX": tempData.modelPosition.positionX - (((guideX / window.innerWidth) * 2) - 1),
+                            "positionY": tempData.modelPosition.positionY + (((guideY / window.innerHeight) * 2) - 1),
                             "size": tempData.modelPosition.size,
                             "modelID": tempData.modelID
                         }
@@ -519,6 +524,12 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     var randH = (((Math.random() * 100) - 50) * ((pos.size + 100) / 200));
                     var randV = (((Math.random() * 100) - 50) * ((pos.size + 100) / 200));
 
+                    var root = document.createElement("div");
+                    root.classList.add("thrown");
+                    root.style.width = "100%";
+                    root.style.height = "100%";
+                    root.style.transformOrigin = (((pos.positionX + 1) / 2) * 100) + "% " + ((1 - ((pos.positionY + 1) / 2)) * 100) + "%";
+                    root.style.transform = "rotate(" + pos.rotation + "deg)";
                     var pivot = document.createElement("div");
                     pivot.classList.add("thrown");
                     pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + randH + "px";
@@ -546,7 +557,8 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     
                     movement.appendChild(thrown);
                     pivot.appendChild(movement);
-                    document.querySelector("body").appendChild(pivot);
+                    root.appendChild(pivot);
+                    document.querySelector("body").appendChild(root);
                     
                     setTimeout(function() { flinch(multH, angle, weight, data.parametersHorizontal, data.parametersVertical, data.returnSpeed, eyeState); }, data.throwDuration * 500, data.throwAngleMin, data.throwAngleMax);
                 
@@ -567,7 +579,7 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                             setTimeout(function() { hit.remove(); }, impactDecal.duration * 1000);
                         }, (data.throwDuration * 500) + data.delay);
                     
-                    setTimeout(function() { document.querySelector("body").removeChild(pivot); }, (data.throwDuration * 1000) + data.delay);
+                    setTimeout(function() { document.querySelector("body").removeChild(root); }, (data.throwDuration * 1000) + data.delay);
                 }
             }
         }

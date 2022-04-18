@@ -338,5 +338,8 @@
     "raidEmotes": true,
     "spinSpeedMin": 5,
     "spinSpeedMax": 10,
-    "minimizeToTray": false
+    "minimizeToTray": false,
+    "bitsMinDonation": 0,
+    "raidMinBarrageCount": 10,
+    "bitsOnlySingle": false
 }

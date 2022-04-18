@@ -978,8 +978,6 @@
                 <!-- Bits -->
                 <b class="grid1">Enabled</b>
                 <b class="grid2">Event Type</b>
-                <b class="grid3">Max Bonks</b>
-                <b class="grid4">Cooldown (s)</b>
 
                 <label class="checkbox grid1">
                   <input type="checkbox" id="bitsEnabled" checked>
@@ -987,24 +985,46 @@
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
                 <p class="grid2">Bits</p>
-                <input type="number" id="bitsMaxBarrageCount" class="grid3" value="100">
+
+                <p class="grid3">Min Donation</p>
+                <input type="number" id="bitsMinDonation" class="grid4" value="0">
+
+                <p class="grid3">Max Bonks</p>
+                <input type="number" id="bitsMaxBarrageCount" class="grid4" value="100">
+
+                <p class="grid3">Cooldown (s)</p>
                 <input type="number" id="bitsCooldown" class="grid4" min="0" value="0">
+                
+                <p class="grid2-3 right" title="If enabled, only 1-bit icons will be thrown. This will not throw an accurate number of bits if the donation is higher than the max bonks. &#013;If disabled, all of 1, 100, 1,000, 5,000, and 10,000-bit icons can be thrown. This will usually throw an accurate number of bits.">Throw Only 1-Bit Icons</p>
+                <label class="checkbox grid4">
+                  <input type="checkbox" id="bitsOnlySingle">
+                  <div class="checkHover"></div>
+                  <img src="ui/checkmark.png" class="checkmark">
+                </label>
 
                 <!-- Raids -->
+                <b class="grid1">Enabled</b>
+                <b class="grid2">Event Type</b>
+
                 <label class="checkbox grid1">
                   <input type="checkbox" id="raidEnabled" checked>
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
                 <p class="grid2">Raids</p>
-                <input type="number" id="raidMaxBarrageCount" value="100">
-                <input type="number" id="raidCooldown" min="0" value="0">
-                <label class="checkbox grid1">
+                
+                <p class="grid3">Min Bonks</p>
+                <input type="number" id="raidMinBarrageCount" class="grid4" value="10">
+                <p class="grid3">Max Bonks</p>
+                <input type="number" id="raidMaxBarrageCount" class="grid4" value="100">
+                <p class="grid3">Cooldown (s)</p>
+                <input type="number" id="raidCooldown" class="grid4" min="0" value="0">
+                <p class="grid2-3 right">Throw Raiding Channel's Emotes</p>
+                <label class="checkbox grid4">
                   <input type="checkbox" id="raidEmotes" checked>
                   <div class="checkHover"></div>
                   <img src="ui/checkmark.png" class="checkmark">
                 </label>
-                <p class="grid2-4">Throw Raiding Channel's Emotes</p>
               </div>
             </div>
           </div>

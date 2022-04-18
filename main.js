@@ -882,7 +882,7 @@ const bitTiers = [ 100, 1000, 5000, 10000 ];
 var canBits = true;
 function onBitsHandler(bitsMessage)
 {
-  if (bitsMessage == null || canBits && data.bitsEnabled) {
+  if (bitsMessage == null || canBits && data.bitsEnabled && bitsMessage.bits >= data.bitsMinDonation) {
     if (bitsMessage != null && data.bitsCooldown > 0)
     {
       canBits = false;
@@ -891,12 +891,15 @@ function onBitsHandler(bitsMessage)
 
     var totalBits = bitsMessage == null ? bitTiers[Math.floor(Math.random() * bitTiers.length)] : bitsMessage.bits;
 
-    var numBits = [0, 0, 0, 0];
-    while (totalBits >= 100 && totalBits + numBits[0] + numBits[1] + numBits[2] + numBits[3] > data.bitsMaxBarrageCount)
+    var numBits = [0, 0, 0, 0], canAdd = true;
+    while (!data.bitsOnlySingle && totalBits >= 100 && totalBits + numBits[0] + numBits[1] + numBits[2] + numBits[3] > data.bitsMaxBarrageCount && canAdd)
     {
-      for (var i = 0; i < bitTiers.length; i++)
+      canAdd = false;
+      for (var i = bitTiers.length - 1; i >= 0; i--)
       {
         var max = Math.floor(totalBits / bitTiers[i]);
+        if (max > 1)
+          canAdd = true;
         var temp = Math.floor(Math.random() * max);
         numBits[i] += temp;
         totalBits -= temp * bitTiers[i];
@@ -993,7 +996,7 @@ async function onRaidHandler(_, raider, raidInfo)
     if (raider == null)
     {
       raider = userID
-      numRaiders = Math.floor(Math.random() * data.raidMaxBarrageCount);
+      numRaiders = data.raidMinBarrageCount + Math.floor(Math.random() * (data.raidMaxBarrageCount - data.raidMinBarrageCount));
     }
     else
     {
@@ -1001,6 +1004,9 @@ async function onRaidHandler(_, raider, raidInfo)
       raider = await apiClient.helix.users.getUserByName(raider);
       raider = raider.id;
     }
+
+    if (numRaiders < data.raidMinBarrageCount)
+      numRaiders = data.raidMinBarrageCount;
   
     if (numRaiders > data.raidMaxBarrageCount)
       numRaiders = data.raidMaxBarrageCount;
