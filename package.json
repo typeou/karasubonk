@@ -4,11 +4,11 @@
   "description": "Lightweight item thrower for Live2D models.",
   "main": "main.js",
   "dependencies": {
-    "@twurple/api": "^5.0.18",
-    "@twurple/auth": "^5.0.18",
-    "@twurple/auth-electron": "^5.0.18",
-    "@twurple/chat": "^5.0.18",
-    "@twurple/pubsub": "^5.0.18",
+    "@twurple/api": "^5.0.19",
+    "@twurple/auth": "^5.0.19",
+    "@twurple/auth-electron": "^5.0.19",
+    "@twurple/chat": "^5.0.19",
+    "@twurple/pubsub": "^5.0.19",
     "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {
@@ -17,7 +17,7 @@
     "@electron-forge/maker-rpm": "^6.0.0-beta.63",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.63",
     "@electron-forge/maker-zip": "^6.0.0-beta.63",
-    "electron": "^16.0.10"
+    "electron": "^16.2.2"
   },
   "scripts": {
     "start": "electron-forge start",
