@@ -76,6 +76,10 @@ function connectKarasu()
 
         if (data.type == "calibrating")
         {
+            if (guideX == null)
+                guideX = window.innerWidth / 2;
+            if (guideY == null)
+                guideY = window.innerHeight / 2;
             if (data.stage >= 0 && data.stage != 4)
             {
                 document.querySelector("#guide").hidden = false;
