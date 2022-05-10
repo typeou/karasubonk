@@ -834,7 +834,7 @@ function onSubHandler(subMessage)
 {
   if (canSub && data.subEnabled && !subMessage.isGift)
   {
-    switch (data.subBonkType)
+    switch (data.subType)
     {
       case "single":
         single();
@@ -843,7 +843,7 @@ function onSubHandler(subMessage)
         barrage();
         break;
       default:
-        custom(data.subBonkType);
+        custom(data.subType);
         break;
     }
 
