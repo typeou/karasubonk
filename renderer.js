@@ -1633,7 +1633,32 @@ async function openEvents()
             setData("commands", commands);
             openEvents();
         });
-    }); 
+    });
+
+    // Update Sub and Gift Sub drop-downs
+    var node = document.querySelector("#subType");
+    while (node.childElementCount > 2)
+        node.removeChild(node.lastChild);
+
+    for (var key in customBonks)
+    {
+        var customBonk = document.createElement("option");
+        customBonk.value = key;
+        customBonk.innerText = key;
+        node.appendChild(customBonk);
+    }
+
+    node = document.querySelector("#subGiftType");
+    while (node.childElementCount > 2)
+        node.removeChild(node.lastChild);
+
+    for (var key in customBonks)
+    {
+        var customBonk = document.createElement("option");
+        customBonk.value = key;
+        customBonk.innerText = key;
+        node.appendChild(customBonk);
+    }
 }
 
 // ----
@@ -2264,6 +2289,8 @@ function checkVersion()
 
 document.querySelector("#testSingle").addEventListener("click", () => { ipcRenderer.send("single"); });
 document.querySelector("#testBarrage").addEventListener("click", () => { ipcRenderer.send("barrage"); });
+document.querySelector("#testSub").addEventListener("click", () => { ipcRenderer.send("sub"); });
+document.querySelector("#testSubGift").addEventListener("click", () => { ipcRenderer.send("subGift"); });
 document.querySelector("#testBits").addEventListener("click", () => { ipcRenderer.send("bits"); });
 document.querySelector("#testRaid").addEventListener("click", () => { ipcRenderer.send("raid"); });
 

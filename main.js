@@ -328,6 +328,23 @@ function createServer()
         }
         else if (request.type == "status")
           connectedVTube = request.connectedVTube;
+        else if (request.type == "setAuthVTS")
+        {
+          setData("authVTS", request.token);
+          var request = {
+              "type": "getAuthVTS",
+              "token": request.token
+          }
+          socket.send(JSON.stringify(request));
+        }
+        else if (request.type == "getAuthVTS")
+        {
+          var request = {
+              "type": "getAuthVTS",
+              "token": data.authVTS
+          }
+          socket.send(JSON.stringify(request));
+        }
       });
     
       ws.on("close", function message()
@@ -428,6 +445,8 @@ function getImagesWeightsScalesSoundsVolumes(customAmount)
 // Test Events
 ipcMain.on("single", () => single());
 ipcMain.on("barrage", () => barrage());
+ipcMain.on("sub", () => onSubHandler({ isGift: false }));
+ipcMain.on("subGift", () => onSubHandler({ isGift: true }));
 ipcMain.on("bits", () => onBitsHandler());
 ipcMain.on("raid", () => onRaidHandler());
 
