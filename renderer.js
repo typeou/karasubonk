@@ -2279,7 +2279,7 @@ function checkVersion()
         }
     };
     // Open the request and send it.
-    versionRequest.open("GET", "https://itch.io/api/1/x/wharf/latest?target=typeou/karasubonk&channel_name=win32", true);
+    versionRequest.open("GET", "https://itch.io/api/1/x/wharf/latest?game_id=1387406&channel_name=win32", true);
     versionRequest.send();
 }
 
