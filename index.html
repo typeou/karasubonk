@@ -122,7 +122,7 @@
                 </div>
               </div>
 
-              <p class="grid1">Throw Duration</p>
+              <p class="grid1">Throw Duration (s)</p>
               <input type="number" id="throwDuration" class="grid2" min="0.1" value="1.0">
 
               <p class="grid4">Model Return Speed</p>
@@ -166,6 +166,12 @@
                   Advanced
                 </div>
               </div>
+
+              <div class="header grid4-5">
+                <div class="headerInner">
+                  Physics Simulation
+                </div>
+              </div>
               
               <p class="grid1">Minimize To System Tray</p>
               <label class="checkbox grid2">
@@ -173,15 +179,41 @@
                 <div class="checkHover"></div>
                 <img src="ui/checkmark.png" class="checkmark">
               </label>
+              
+              <p class="grid4">Physics Simulation</p>
+              <label class="checkbox grid5">
+                <input type="checkbox" id="physicsSim">
+                <div class="checkHover"></div>
+                <img src="ui/checkmark.png" class="checkmark">
+              </label>
 
               <p class="grid1">Impact Delay (ms)</p>
               <input type="number" id="delay" class="grid2" min="0" value="0">
 
+              <p class="grid4">Physics Simulation FPS</p>
+              <input type="number" id="physicsFPS" class="grid5" min="1" max="60" value="60" step="1">
+
               <p class="grid1">Browser Source Port</p>
               <input type="number" id="portThrower" class="grid2" value="8080">
+
+              <p class="grid4">Gravity Multiplier</p>
+              <input type="number" id="physicsGravity" class="grid5" min="0.01" value="1">
+              
+              <p class="grid4">Reverse Gravity</p>
+              <label class="checkbox grid5">
+                <input type="checkbox" id="physicsReverse">
+                <div class="checkHover"></div>
+                <img src="ui/checkmark.png" class="checkmark">
+              </label>
               
               <p class="grid1">VTube Studio Port</p>
               <input type="number" id="portVTubeStudio" class="grid2" value="8001">
+
+              <p class="grid4">Horizontal Bounce Multiplier</p>
+              <input type="number" id="physicsHorizontal" class="grid5" value="1">
+
+              <p class="grid4">Vertical Bounce Multiplier</p>
+              <input type="number" id="physicsVertical" class="grid5" value="1">
 
             </div>
 

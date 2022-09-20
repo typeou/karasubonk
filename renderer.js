@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.17;
+const version = 1.18;
 
 // ------
 // Status
@@ -1908,6 +1908,12 @@ window.onload = async function()
     loadData("returnSpeed");
     loadData("throwAngleMin");
     loadData("throwAngleMax");
+    loadData("physicsSim");
+    loadData("physicsFPS");
+    loadData("physicsGravity");
+    loadData("physicsReverse");
+    loadData("physicsHorizontal");
+    loadData("physicsVertical");
     loadData("spinSpeedMin");
     loadData("spinSpeedMax");
     loadData("closeEyes");
@@ -1958,6 +1964,12 @@ document.querySelector("#throwAngleMin").addEventListener("change", () => { clam
 document.querySelector("#throwAngleMax").addEventListener("change", () => { clampValue(document.querySelector("#throwAngleMax"), parseFloat(document.querySelector("#throwAngleMin").value), null); setData("throwAngleMax", parseFloat(document.querySelector("#throwAngleMax").value)) });
 document.querySelector("#spinSpeedMin").addEventListener("change", () => { clampValue(document.querySelector("#spinSpeedMin"), 0, parseFloat(document.querySelector("#spinSpeedMax").value)); setData("spinSpeedMin", parseFloat(document.querySelector("#spinSpeedMin").value)) });
 document.querySelector("#spinSpeedMax").addEventListener("change", () => { clampValue(document.querySelector("#spinSpeedMax"), parseFloat(document.querySelector("#spinSpeedMin").value), null); setData("spinSpeedMax", parseFloat(document.querySelector("#spinSpeedMax").value)) });
+document.querySelector("#physicsSim").addEventListener("change", () => setData("physicsSim", document.querySelector("#physicsSim").checked));
+document.querySelector("#physicsFPS").addEventListener("change", () => { clampValue(document.querySelector("#physicsFPS"), 1, 60); setData("physicsFPS", parseFloat(document.querySelector("#physicsFPS").value)) });
+document.querySelector("#physicsGravity").addEventListener("change", () => { clampValue(document.querySelector("#physicsGravity"), 0.01, null); setData("physicsGravity", parseFloat(document.querySelector("#physicsGravity").value)) });
+document.querySelector("#physicsReverse").addEventListener("change", () => setData("physicsReverse", document.querySelector("#physicsReverse").checked));
+document.querySelector("#physicsHorizontal").addEventListener("change", () => { setData("physicsHorizontal", parseFloat(document.querySelector("#physicsHorizontal").value)) });
+document.querySelector("#physicsVertical").addEventListener("change", () => { setData("physicsVertical", parseFloat(document.querySelector("#physicsVertical").value)) });
 
 document.querySelector("#closeEyes").addEventListener("change", () => {
     const val = document.querySelector("#closeEyes").checked;

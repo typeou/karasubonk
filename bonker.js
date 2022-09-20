@@ -582,8 +582,9 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     while (!canPlayAudio || !canShowImpact)
                         await new Promise(resolve => setTimeout(resolve, 10));
 
-                    var randH = (((Math.random() * 100) - 50) * ((pos.size + 100) / 200));
-                    var randV = (((Math.random() * 100) - 50) * ((pos.size + 100) / 200));
+                    var randScale = ((pos.size + 100) / 200);
+                    var randH = (((Math.random() * 100) - 50) * randScale);
+                    var randV = (((Math.random() * 100) - 50) * randScale);
 
                     var root = document.createElement("div");
                     root.classList.add("thrown");
@@ -611,8 +612,11 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                         thrown.style.transform = "rotate(" + -angle + "deg)";
                     else
                     {
-                        var animName = "spin" + (Math.random() < 0.5 ? "Clockwise " : "CounterClockwise ");
-                        thrown.style.animation = animName + (1 / (data.spinSpeedMin + (Math.random() * (data.spinSpeedMax - data.spinSpeedMin)))) + "s";
+                        thrown.style.animationName = "spin" + (Math.random() < 0.5 ? "Clockwise " : "CounterClockwise ");
+                        thrown.style.animationDuration = (3 / (data.spinSpeedMin + (Math.random() * (data.spinSpeedMax - data.spinSpeedMin)))) + "s";
+                        setTimeout(function() {
+                            thrown.style.animationDuration = (1 / (data.spinSpeedMin + (Math.random() * (data.spinSpeedMax - data.spinSpeedMin)))) + "s";
+                        }, (data.throwDuration * 500) + data.delay);
                         thrown.style.animationIterationCount = "infinite";
                     }
                     
@@ -640,11 +644,68 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                             setTimeout(function() { hit.remove(); }, impactDecal.duration * 1000);
                         }, (data.throwDuration * 500) + data.delay);
                     
-                    setTimeout(function() { document.querySelector("body").removeChild(root); }, (data.throwDuration * 1000) + data.delay);
+                    if (!data.physicsSim)
+                        setTimeout(function() { document.querySelector("body").removeChild(root); }, (data.throwDuration * 1000) + data.delay);
+                    else
+                    {
+                        setTimeout(function() {
+                            movement.style.animationName = "";
+                            pivot.style.transform = "";
+                            if (data.spinSpeedMax - data.spinSpeedMin == 0)
+                                thrown.style.transform = "";
+                            
+                            var x = 0, y = 0;
+                            var randV = Math.random();
+                            var vX = randV * 3 * (fromLeft ? -1 : 1) * data.physicsHorizontal;
+                            var vY = (1 - randV) * 10 * (angle < 0 ? -1 : 0.5) * data.physicsVertical;
+    
+                            objects.push({
+                                "x": x,
+                                "y": y,
+                                "vX": vX,
+                                "vY": vY,
+                                "element": movement,
+                                "root": root
+                            });
+    
+                            if (data.physicsFPS != physicsFPS)
+                            {
+                                physicsFPS = data.physicsFPS;
+                                if (physicsSimulator)
+                                    clearInterval(physicsSimulator);
+                                physicsSimulator = setInterval(simulatePhysics, 1000 / physicsFPS);
+                            }
+                            physicsGravityMult = data.physicsGravity;
+                            physicsGravityReverse = data.physicsReverse;
+
+                            if (!physicsSimulator)
+                                physicsSimulator = setInterval(simulatePhysics, 1000 / physicsFPS);
+                        }, (data.throwDuration * 500) + data.delay);
+                    }
                 }
             }
         }
         socketVTube.send(JSON.stringify(request));
+    }
+}
+
+var physicsSimulator = null;
+var physicsFPS = 60, physicsGravityMult = 1, physicsGravityReverse = false;
+var objects = [];
+
+function simulatePhysics()
+{
+    for (var i = 0; i < objects.length; i++)
+    {
+        objects[i].x += objects[i].vX;
+        objects[i].vY += 30 * physicsGravityMult * (physicsGravityReverse ? -1 : 1) * (1 / physicsFPS);
+        objects[i].y += objects[i].vY;
+        objects[i].element.style.transform = "translate(" + objects[i].x + "vw," + objects[i].y + "vh)";
+        if (objects[i].y > 100 || physicsGravityReverse && objects[i].y < -100)
+        {
+            document.querySelector("body").removeChild(objects[i].root);
+            objects.splice(i--, 1);
+        }
     }
 }
 

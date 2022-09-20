@@ -916,9 +916,14 @@ function onBitsHandler(bitsMessage)
       canAdd = false;
       for (var i = bitTiers.length - 1; i >= 0; i--)
       {
-        var max = Math.floor(totalBits / bitTiers[i]);
+        var max = totalBits / bitTiers[i];
         if (max > 1)
+        {
+          max--;
           canAdd = true;
+          numBits[i]++;
+          totalBits -= bitTiers[i];
+        }
         var temp = Math.floor(Math.random() * max);
         numBits[i] += temp;
         totalBits -= temp * bitTiers[i];
@@ -931,7 +936,7 @@ function onBitsHandler(bitsMessage)
     var bitThrows = [];
     for (var i = 0; i < bitTiers.length; i++)
     {
-      while (numBits[i]-- > 0)
+      while (bitThrows.length < data.bitsMaxBarrageCount && numBits[i]-- > 0)
         bitThrows.push(bitTiers[i]);
     }
     while (totalBits-- > 0)

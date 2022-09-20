@@ -341,5 +341,11 @@
     "minimizeToTray": false,
     "bitsMinDonation": 0,
     "raidMinBarrageCount": 10,
-    "bitsOnlySingle": false
+    "bitsOnlySingle": false,
+    "physicsSim": false,
+    "physicsFPS": 60,
+    "physicsGravity": 1,
+    "physicsReverse": false,
+    "physicsHorizontal": 1,
+    "physicsVertical": 1
 }

@@ -27,7 +27,7 @@ body {
 
 ::-webkit-scrollbar-thumb
 {
-    background-color: #77FF85;
+    background-color: #5BFF8F;
 }
 
 input[type='range'] {
@@ -43,13 +43,13 @@ input[type='range']::-webkit-slider-thumb {
     width: 10px;
     -webkit-appearance: none;
     height: 10px;
-    background: #FF3CD7;
-    box-shadow: -100vw 0 0 100vw #FF84E3;
+    background: #E10098;
+    box-shadow: -100vw 0 0 100vw #FF5BCE;
     transition: background-color 0.25s;
 }
   
 input[type='range']::-webkit-slider-thumb:hover {
-    background-color: #77FF85;
+    background-color: #5BFF8F;
 }
 
 body > div {
@@ -62,7 +62,7 @@ body > div {
     line-height: 63px;
     display: grid;
     grid-template-columns: 320px auto;
-    border-bottom: 1px solid #FF3CD7;
+    border-bottom: 1px solid #E10098;
     background-color: #0C0C0C;
     transition: background-color 0.25s;
     cursor: pointer;
@@ -88,7 +88,7 @@ body > div {
 #headerPink {
     width: 304px;
     height: 63px;
-    background-color: #FF3CD7;
+    background-color: #E10098;
     clip-path: polygon(0% 0%, 100% 0%, calc(100% - 69px) 100%, 0% 100%);
 }
 
@@ -127,7 +127,7 @@ body > div {
         color: white;
     }
     50% {
-        color: #77FF85;
+        color: #5BFF8F;
     }
     100% {
         color: white;
@@ -159,7 +159,7 @@ body > div {
         color: white;
     }
     50% {
-        color: #FF6290;
+        color: #FF5B79;
     }
     100% {
         color: white;
@@ -186,7 +186,7 @@ body > div {
 }
 
 a {
-    color: #77FF85;
+    color: #5BFF8F;
 }
 
 #body {
@@ -231,12 +231,12 @@ a {
 .cornerTopButton {
     grid-column: 1;
     grid-row: 1;
-    background-color: #FF3CD7;
+    background-color: #E10098;
     clip-path: polygon(0% 0%, 32px 0%, 0% 32px);
 }
 
 .overlayButton {
-    background-color: #FF3CD7;
+    background-color: #E10098;
     opacity: 0;
     z-index: 1;
     transition: opacity 0.2s;
@@ -315,7 +315,7 @@ a {
     margin-top: -32px;
     position: absolute;
     clip-path: polygon(0% 0%, 100% 0%, 0% 100%);
-    background-color: #FF3CD7;
+    background-color: #E10098;
 }
 
 #mainWindow {
@@ -355,7 +355,7 @@ a {
     margin-top: -32px;
     right: 0;
     position: absolute;
-    background-color: #FF6290;
+    background-color: #FF5B79;
     font-weight: bold;
     color: black;
     font-size: 20px;
@@ -364,7 +364,7 @@ a {
 }
 
 .windowBack:hover {
-    background-color: #77FF85;
+    background-color: #5BFF8F;
 }
 
 .sideButtonInner > .overlayButton {
@@ -406,14 +406,14 @@ a {
     position: absolute;
     width: 100%;
     height: 100%;
-    background-color: #FF3CD7;
+    background-color: #E10098;
     transition: opacity 0.25s;
     opacity: 0;
     z-index: -1;
 }
 
 .new .imageRowHover {
-    background-color: #77FF85 !important;
+    background-color: #5BFF8F !important;
     cursor: pointer;
 }
 
@@ -530,7 +530,7 @@ a {
     position: absolute;
     width: calc(100% - 14px);
     height: calc(100% - 14px);
-    background-color: #77FF85;
+    background-color: #5BFF8F;
     margin: 7px;
     opacity: 0;
     transition: opacity 0.2s;
@@ -621,7 +621,7 @@ a {
 
 .firstTab {
     padding-left: 16px;
-    background-color: #FF3CD7;
+    background-color: #E10098;
 }
 
 .secondTab {
@@ -630,7 +630,7 @@ a {
 }
 
 .selectedTab {
-    background-color: #FF84E3;
+    background-color: #FF5BCE;
     color: white;
 }
 
