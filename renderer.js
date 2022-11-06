@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.18;
+const version = 1.19;
 
 // ------
 // Status
@@ -1892,6 +1892,7 @@ window.onload = async function()
     loadData("subGiftType");
     loadData("bitsMinDonation");
     loadData("bitsMaxBarrageCount");
+    loadData("raidMinRaiders");
     loadData("raidMinBarrageCount");
     loadData("raidMaxBarrageCount");
 
@@ -1944,6 +1945,7 @@ document.querySelector("#subGiftType").addEventListener("change", () => setData(
 document.querySelector("#bitsMinDonation").addEventListener("change", () => { clampValue(document.querySelector("#bitsMinDonation"), 0, null); setData("bitsMinDonation", parseInt(document.querySelector("#bitsMinDonation").value)) });
 document.querySelector("#bitsMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#bitsMaxBarrageCount"), 0, null); setData("bitsMaxBarrageCount", parseInt(document.querySelector("#bitsMaxBarrageCount").value)) });
 
+document.querySelector("#raidMinRaiders").addEventListener("change", () => { setData("raidMinRaiders", parseInt(document.querySelector("#raidMinRaiders").value)) });
 document.querySelector("#raidMinBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#raidMinBarrageCount"), 0, parseFloat(document.querySelector("#raidMaxBarrageCount").value)); setData("raidMinBarrageCount", parseInt(document.querySelector("#raidMinBarrageCount").value)) });
 document.querySelector("#raidMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#raidMaxBarrageCount"), parseFloat(document.querySelector("#raidMinBarrageCount").value), null); setData("raidMaxBarrageCount", parseInt(document.querySelector("#raidMaxBarrageCount").value)) });
 

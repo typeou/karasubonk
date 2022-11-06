@@ -347,5 +347,6 @@
     "physicsGravity": 1,
     "physicsReverse": false,
     "physicsHorizontal": 1,
-    "physicsVertical": 1
+    "physicsVertical": 1,
+    "raidMinRaiders": 1
 }

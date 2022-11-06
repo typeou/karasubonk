@@ -1029,16 +1029,19 @@ async function onRaidHandler(_, raider, raidInfo)
       raider = raider.id;
     }
 
-    if (numRaiders < data.raidMinBarrageCount)
-      numRaiders = data.raidMinBarrageCount;
-  
-    if (numRaiders > data.raidMaxBarrageCount)
-      numRaiders = data.raidMaxBarrageCount;
-  
+    if (numRaiders >= data.raidMinRaiders)
+    {
+      if (numRaiders < data.raidMinBarrageCount)
+        numRaiders = data.raidMinBarrageCount;
+    
+      if (numRaiders > data.raidMaxBarrageCount)
+        numRaiders = data.raidMaxBarrageCount;
+    
       if (data.raidEmotes)
         mainWindow.webContents.send("raid", [ raider, token.accessToken ]);
       else
         barrage(numRaiders);
+    }
   }
 }
 

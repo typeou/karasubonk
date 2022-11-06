@@ -1035,10 +1035,10 @@
                 <p class="grid2">Bits</p>
 
                 <p class="grid3">Min Donation</p>
-                <input type="number" id="bitsMinDonation" class="grid4" value="0">
+                <input type="number" id="bitsMinDonation" class="grid4" step="1" min="0" value="0">
 
                 <p class="grid3">Max Bonks</p>
-                <input type="number" id="bitsMaxBarrageCount" class="grid4" value="100">
+                <input type="number" id="bitsMaxBarrageCount" class="grid4" step="1" min="0" value="100">
 
                 <p class="grid3">Cooldown (s)</p>
                 <input type="number" id="bitsCooldown" class="grid4" min="0" value="0">
@@ -1061,12 +1061,18 @@
                 </label>
                 <p class="grid2">Raids</p>
                 
+                <p class="grid3">Min Raiders</p>
+                <input type="number" id="raidMinRaiders" class="grid4" step="1" min="0" value="1">
+
                 <p class="grid3">Min Bonks</p>
-                <input type="number" id="raidMinBarrageCount" class="grid4" value="10">
+                <input type="number" id="raidMinBarrageCount" class="grid4" step="1" value="10">
+
                 <p class="grid3">Max Bonks</p>
-                <input type="number" id="raidMaxBarrageCount" class="grid4" value="100">
+                <input type="number" id="raidMaxBarrageCount" class="grid4" step="1" value="100">
+
                 <p class="grid3">Cooldown (s)</p>
                 <input type="number" id="raidCooldown" class="grid4" min="0" value="0">
+                
                 <p class="grid2-3 right">Throw Raiding Channel's Emotes</p>
                 <label class="checkbox grid4">
                   <input type="checkbox" id="raidEmotes" checked>
