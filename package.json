@@ -8,18 +8,20 @@
   },
   "main": "main.js",
   "dependencies": {
-    "@twurple/api": "^5.2.7",
-    "@twurple/auth": "^5.2.7",
-    "@twurple/auth-electron": "^5.2.7",
-    "@twurple/chat": "^5.2.7",
-    "@twurple/pubsub": "^5.2.7"
+    "@twurple/api": "^5.3.4",
+    "@twurple/auth": "^5.3.4",
+    "@twurple/auth-electron": "^5.3.4",
+    "@twurple/chat": "^5.3.4",
+    "@twurple/pubsub": "^5.3.4",
+    "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^6.0.1",
-    "@electron-forge/maker-deb": "^6.0.1",
-    "@electron-forge/maker-squirrel": "^6.0.1",
-    "@electron-forge/maker-zip": "^6.0.1",
-    "electron": "^17.4.11"
+    "@electron-forge/cli": "^6.0.5",
+    "@electron-forge/maker-deb": "^6.0.5",
+    "@electron-forge/maker-rpm": "^6.0.5",
+    "@electron-forge/maker-squirrel": "^6.0.5",
+    "@electron-forge/maker-zip": "^6.0.5",
+    "electron": "^23.1.0"
   },
   "scripts": {
     "start": "electron-forge start",

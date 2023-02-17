@@ -342,10 +342,11 @@
     "bitsMinDonation": 0,
     "raidMinBarrageCount": 10,
     "bitsOnlySingle": false,
-    "physicsSim": false,
+    "physicsSim": true,
     "physicsFPS": 60,
     "physicsGravity": 1,
     "physicsReverse": false,
+    "physicsRotate": false,
     "physicsHorizontal": 1,
     "physicsVertical": 1,
     "raidMinRaiders": 1

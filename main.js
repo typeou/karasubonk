@@ -5,6 +5,24 @@ const { ChatClient } = require("@twurple/chat");
 const { ElectronAuthProvider } = require("@twurple/auth-electron");
 const fs = require("fs");
 
+// Previous versions of twurple had node_modules folders in some of the sub-packages.
+// These, for some reason, cause the event listeners to fail to create themselves.
+// Thus, we search the folders for these folders and delete them.
+// This allows users to overwrite their old files without issue.
+var deletedFolder = false;
+fs.readdirSync(__dirname + "/node_modules/@twurple").forEach(file => {
+  if (fs.existsSync(__dirname + "/node_modules/@twurple/" + file + "/node_modules"))
+  {
+    deletedFolder = true;
+    fs.rmSync(__dirname + "/node_modules/@twurple/" + file + "/node_modules", { recursive: true, force: true });
+  }
+});
+if (deletedFolder)
+{
+  app.relaunch()
+  app.exit()
+}
+
 var mainWindow;
 
 const isPrimary = app.requestSingleInstanceLock();
@@ -99,6 +117,10 @@ app.whenReady().then(() => {
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit()
+});
+
+ipcMain.on("getUserDataPath", () => {
+  mainWindow.webContents.send("userDataPath", app.getPath("userData"));
 });
 
 // --------------
@@ -242,6 +264,10 @@ setInterval(() => {
       status = 6;
     else if (calibrateStage == -1)
       status = 7;
+    else if (badVersion)
+      status = 10;
+    else if (noResponse)
+      status = 11;
   
     if (!exiting)
       mainWindow.webContents.send("status", status);
@@ -251,9 +277,16 @@ setInterval(() => {
 // Loading data from file
 // If no data exists, create data from default data file
 const defaultData = JSON.parse(fs.readFileSync(__dirname + "/defaultData.json", "utf8"));
-if (!fs.existsSync(__dirname + "/data.json"))
-  fs.writeFileSync(__dirname + "/data.json", JSON.stringify(defaultData));
-var data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
+if (!fs.existsSync(app.getPath("userData")))
+  fs.mkdirSync(app.getPath("userData"));
+if (!fs.existsSync(app.getPath("userData") + "/data.json"))
+{
+  if (fs.existsSync(__dirname + "/data.json"))
+    fs.copyFileSync(__dirname + "/data.json", app.getPath("userData") + "/data.json");
+  else
+    fs.writeFileSync(app.getPath("userData") + "/data.json", JSON.stringify(defaultData));
+}
+var data = JSON.parse(fs.readFileSync(app.getPath("userData") + "/data.json", "utf8"));
 
 
 ipcMain.on("help", () => require('electron').shell.openExternal("https://typeou.dev/#kbonkHelp"));
@@ -265,7 +298,24 @@ ipcMain.on("link", () => require('electron').shell.openExternal("https://typeou.
 
 const WebSocket = require("ws");
 
-var wss, portInUse = false, socket, connectedVTube = false;
+var wss, portInUse = false, socket, connectedVTube = false, badVersion = false, noResponse = false;
+
+function checkVersion()
+{
+  if (socket != null)
+  {
+    socket.send(JSON.stringify({
+      "type": "versionReport",
+      "version": data.version
+    }));
+    noResponse = true;
+
+    setTimeout(() => {
+      if (noResponse || badVersion)
+        checkVersion();
+    }, 1000);
+  }
+}
 
 createServer();
 
@@ -289,11 +339,19 @@ function createServer()
     {
       portInUse = false;
       socket = ws;
+
+      if (data.version != null)
+        checkVersion();
       
       socket.on("message", function message(request)
       {
         request = JSON.parse(request);
     
+        if (request.type == "versionReport")
+        {
+          noResponse = false;
+          badVersion = parseFloat(request.version) != data.version;
+        }
         if (request.type == "calibrating")
         {
           switch (request.stage)
@@ -644,9 +702,12 @@ ipcMain.on("setData", (_, arg) =>
 function setData(field, value, external)
 {
   data[field] = value;
-  fs.writeFileSync(__dirname + "/data.json", JSON.stringify(data));
+  fs.writeFileSync(app.getPath("userData") + "/data.json", JSON.stringify(data));
   if (external)
     mainWindow.webContents.send("doneWriting");
+  
+  if (field == "version")
+    checkVersion();
 }
 
 function hasActiveImage()

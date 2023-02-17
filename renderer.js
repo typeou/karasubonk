@@ -19,7 +19,9 @@ const statusTitle = [
     "Listening for Redeem...",
     "Calibration",
     "Activating Event Listeners...",
-    "Error: Port In Use"
+    "Error: Port In Use",
+    "Warning: Version Mismatch",
+    "Warning: Version Mismatch"
 ];
 
 const statusDesc = [
@@ -32,7 +34,9 @@ const statusDesc = [
     "<p>Please use the Channel Point Reward you'd like to use.</p>",
     "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>",
     "<p>Several windows will briefly appear during this process.</p>",
-    [ "<p>The port <mark>", "</mark> is already in use. Another process may be using this port.</p><p>Try changing the Browser Source Port in Settings, under Advanced Settings.</p><p>It should be some number between 1024 and 65535.</p>"]
+    [ "<p>The port <mark>", "</mark> is already in use. Another process may be using this port.</p><p>Try changing the Browser Source Port in Settings, under Advanced Settings.</p><p>It should be some number between 1024 and 65535.</p>" ],
+    "<p>KBonk and the Browser Source are running on different versions.</p><p>Please ensure KBonk and the Browser Source are both running from the same folder.</p>",
+    "<p>No version response from Browser Source.</p><p>KBonk and the Browser Source may be running on different versions.</p><p>Please ensure KBonk and the Browser Source are both running from the same folder.</p>"
 ];
 
 ipcRenderer.on("username", (event, message) => {
@@ -41,6 +45,12 @@ ipcRenderer.on("username", (event, message) => {
     document.querySelector("#username").innerText = message;
     document.querySelector("#logout").innerText = "Log out";
 });
+
+var userDataPath = null;
+ipcRenderer.on("userDataPath", (event, message) => {
+    userDataPath = message;
+})
+ipcRenderer.send("getUserDataPath");
 
 document.querySelector("#logout").addEventListener("click", () => {
     ipcRenderer.send("reauthenticate");
@@ -66,7 +76,7 @@ async function setStatus(_, message)
         document.querySelector("#headerStatus").classList.remove("workingText");
         document.querySelector("#headerStatus").classList.add("readyText");
     }
-    else if (status == 9)
+    else if (status == 9 || status == 10 || status == 11)
     {
         document.querySelector("#headerStatus").classList.add("errorText");
         document.querySelector("#headerStatus").classList.remove("workingText");
@@ -117,19 +127,19 @@ async function loadImage()
         // Grab the image that was just loaded
         var imageFile = files[i];
         // If the folder for objects doesn't exist for some reason, make it
-        if (!fs.existsSync(__dirname + "/throws/"))
-            fs.mkdirSync(__dirname + "/throws/");
+        if (!fs.existsSync(userDataPath + "/throws/"))
+            fs.mkdirSync(userDataPath + "/throws/");
     
         // Ensure that we're not overwriting any existing files with the same name
         // If a file already exists, add an interating number to the end until it"s a unique filename
         var append = "";
-        if (imageFile.path != __dirname + "\\throws\\" + imageFile.name)
-            while (fs.existsSync(__dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
+        if (imageFile.path != userDataPath + "\\throws\\" + imageFile.name)
+            while (fs.existsSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
     
         // Make a copy of the file into the local folder
-        fs.copyFileSync(imageFile.path, __dirname + "/throws/" + filename);
+        fs.copyFileSync(imageFile.path, userDataPath + "/throws/" + filename);
         
         // Add the new image, update the data, and refresh the images page
         throws.unshift({
@@ -144,6 +154,7 @@ async function loadImage()
     }
     setData("throws", throws);
     openImages();
+    copyFilesToDirectory();
     
     // Reset the image upload
     document.querySelector("#loadImage").value = null;
@@ -182,7 +193,7 @@ async function openImages()
     {
         throws.forEach((_, index) =>
         {
-            if (fs.existsSync(__dirname + "/" + throws[index].location))
+            if (fs.existsSync(userDataPath + "/" + throws[index].location))
             {
                 var row = document.querySelector("#imageRow").cloneNode(true);
                 row.removeAttribute("id");
@@ -192,7 +203,7 @@ async function openImages()
 
                 row.querySelector(".imageLabel").innerText = throws[index].location.substr(throws[index].location.lastIndexOf('/') + 1);
     
-                row.querySelector(".imageImage").src = throws[index].location;
+                row.querySelector(".imageImage").src = userDataPath + "/" + throws[index].location;
 
                 row.querySelector(".imageEnabled").checked = throws[index].enabled;
                 row.querySelector(".imageEnabled").addEventListener("change", () => {
@@ -241,19 +252,19 @@ async function loadImageCustom(customName)
         // Grab the image that was just loaded
         var imageFile = files[i];
         // If the folder for objects doesn't exist for some reason, make it
-        if (!fs.existsSync(__dirname + "/throws/"))
-            fs.mkdirSync(__dirname + "/throws/");
+        if (!fs.existsSync(userDataPath + "/throws/"))
+            fs.mkdirSync(userDataPath + "/throws/");
     
         // Ensure that we're not overwriting any existing files with the same name
         // If a file already exists, add an interating number to the end until it"s a unique filename
         var append = "";
-        if (imageFile.path != __dirname + "\\throws\\" + imageFile.name)
-            while (fs.existsSync(__dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
+        if (imageFile.path != userDataPath + "\\throws\\" + imageFile.name)
+            while (fs.existsSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
     
         // Make a copy of the file into the local folder
-        fs.copyFileSync(imageFile.path, __dirname + "/throws/" + filename);
+        fs.copyFileSync(imageFile.path, userDataPath + "/throws/" + filename);
         
         // Add the new image, update the data, and refresh the images page
         throws.unshift({
@@ -268,6 +279,7 @@ async function loadImageCustom(customName)
     }
     setData("throws", throws);
     openImagesCustom(customName);
+    copyFilesToDirectory();
     
     // Reset the image upload
     document.querySelector("#loadImageCustom").value = null;
@@ -319,7 +331,7 @@ async function openImagesCustom(customName)
     {
         throws.forEach((_, index) =>
         {
-            if (fs.existsSync(__dirname + "/" + throws[index].location))
+            if (fs.existsSync(userDataPath + "/" + throws[index].location))
             {
                 var row = document.querySelector("#imageRowCustom").cloneNode(true);
                 row.removeAttribute("id");
@@ -329,7 +341,7 @@ async function openImagesCustom(customName)
 
                 row.querySelector(".imageLabel").innerText = throws[index].location.substr(throws[index].location.lastIndexOf('/') + 1);
     
-                row.querySelector(".imageImage").src = throws[index].location;
+                row.querySelector(".imageImage").src = userDataPath + "/" + throws[index].location;
 
                 row.querySelector(".imageEnabled").checked = throws[index].customs.includes(customName);
                 row.querySelector(".imageEnabled").addEventListener("change", () => {
@@ -367,16 +379,16 @@ async function loadSoundCustom(customName)
     for (var i = 0; i < files.length; i++)
     {
         var soundFile = files[i];
-        if (!fs.existsSync(__dirname + "/impacts/"))
-            fs.mkdirSync(__dirname + "/impacts/");
+        if (!fs.existsSync(userDataPath + "/impacts/"))
+            fs.mkdirSync(userDataPath + "/impacts/");
 
         var append = "";
-        if (soundFile.path != __dirname + "\\impacts\\" + soundFile.name)
-            while (fs.existsSync( __dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+        if (soundFile.path != userDataPath + "\\impacts\\" + soundFile.name)
+            while (fs.existsSync( userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
-        fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + filename);
+        fs.copyFileSync(soundFile.path, userDataPath + "/impacts/" + filename);
 
         impacts.unshift({
             "location": "impacts/" + filename,
@@ -387,6 +399,7 @@ async function loadSoundCustom(customName)
     }
     setData("impacts", impacts);
     openSoundsCustom(customName);
+    copyFilesToDirectory();
     
     document.querySelector("#loadSoundCustom").value = null;
 }
@@ -437,7 +450,7 @@ async function openSoundsCustom(customName)
     {
         impacts.forEach((_, index) =>
         {
-            if (fs.existsSync(__dirname + "/" + impacts[index].location))
+            if (fs.existsSync(userDataPath + "/" + impacts[index].location))
             {
                 var row = document.querySelector("#soundRowCustom").cloneNode(true);
                 row.removeAttribute("id");
@@ -481,16 +494,16 @@ async function loadImpactDecal(customName)
     for (var i = 0; i < files.length; i++)
     {
         var imageFile = files[i];
-        if (!fs.existsSync(__dirname + "/decals/"))
-            fs.mkdirSync(__dirname + "/decals/");
+        if (!fs.existsSync(userDataPath + "/decals/"))
+            fs.mkdirSync(userDataPath + "/decals/");
 
         var append = "";
-        if (imageFile.path != __dirname + "\\decals\\" + imageFile.name)
-            while (fs.existsSync(__dirname + "/decals/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
+        if (imageFile.path != userDataPath + "\\decals\\" + imageFile.name)
+            while (fs.existsSync(userDataPath + "/decals/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
 
-        fs.copyFileSync(imageFile.path, __dirname + "/decals/" + filename);
+        fs.copyFileSync(imageFile.path, userDataPath + "/decals/" + filename);
 
         customBonks[customName].impactDecals.unshift({
             "location": "decals/" + filename,
@@ -501,6 +514,7 @@ async function loadImpactDecal(customName)
     }
     setData("customBonks", customBonks);
     openImpactDecals(customName);
+    copyFilesToDirectory();
     
     document.querySelector("#loadImpactDecal").value = null;
 }
@@ -542,7 +556,7 @@ async function openImpactDecals(customName)
 
     customBonks[customName].impactDecals.forEach((_, index) =>
     {
-        if (fs.existsSync(__dirname + "/" + customBonks[customName].impactDecals[index].location))
+        if (fs.existsSync(userDataPath + "/" + customBonks[customName].impactDecals[index].location))
         {
             var row = document.querySelector("#impactDecalRow").cloneNode(true);
             row.removeAttribute("id");
@@ -551,7 +565,7 @@ async function openImpactDecals(customName)
             row.querySelector(".imageLabel").innerText = customBonks[customName].impactDecals[index].location.substr(customBonks[customName].impactDecals[index].location.lastIndexOf('/') + 1);
             document.querySelector("#impactDecalsTable").appendChild(row);
 
-            row.querySelector(".imageImage").src = customBonks[customName].impactDecals[index].location;
+            row.querySelector(".imageImage").src = userDataPath + "/" + customBonks[customName].impactDecals[index].location;
 
             row.querySelector(".imageRemove").addEventListener("click", () => {
                 customBonks[customName].impactDecals.splice(index, 1);
@@ -605,16 +619,16 @@ async function loadWindupSound(customName)
     for (var i = 0; i < files.length; i++)
     {
         var soundFile = files[i];
-        if (!fs.existsSync(__dirname + "/windups/"))
-            fs.mkdirSync(__dirname + "/windups/");
+        if (!fs.existsSync(userDataPath + "/windups/"))
+            fs.mkdirSync(userDataPath + "/windups/");
 
         var append = "";
-        if (soundFile.path != __dirname + "\\windups\\" + soundFile.name)
-            while (fs.existsSync(__dirname + "/windups/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+        if (soundFile.path != userDataPath + "\\windups\\" + soundFile.name)
+            while (fs.existsSync(userDataPath + "/windups/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
-        fs.copyFileSync(soundFile.path, __dirname + "/windups/" + filename);
+        fs.copyFileSync(soundFile.path, userDataPath + "/windups/" + filename);
 
         customBonks[customName].windupSounds.unshift({
             "location": "windups/" + filename,
@@ -624,6 +638,7 @@ async function loadWindupSound(customName)
     }
     setData("customBonks", customBonks);
     openWindupSounds(customName);
+    copyFilesToDirectory();
     
     document.querySelector("#loadWindupSound").value = null;
 }
@@ -665,7 +680,7 @@ async function openWindupSounds(customName)
 
     customBonks[customName].windupSounds.forEach((_, index) =>
     {
-        if (fs.existsSync(__dirname + "/" + customBonks[customName].windupSounds[index].location))
+        if (fs.existsSync(userDataPath + "/" + customBonks[customName].windupSounds[index].location))
         {
             var row = document.querySelector("#windupSoundRow").cloneNode(true);
             row.removeAttribute("id");
@@ -759,24 +774,25 @@ async function loadBitImage(key)
     // Grab the image that was just loaded
     var imageFile = files[0];
     // If the folder for objects doesn't exist for some reason, make it
-    if (!fs.existsSync(__dirname + "/throws/"))
-        fs.mkdirSync(__dirname + "/throws/");
+    if (!fs.existsSync(userDataPath + "/throws/"))
+        fs.mkdirSync(userDataPath + "/throws/");
 
     // Ensure that we're not overwriting any existing files with the same name
     // If a file already exists, add an interating number to the end until it"s a unique filename
     var append = "";
-    if (imageFile.path != __dirname + "\\throws\\" + imageFile.name)
-        while (fs.existsSync(__dirname + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
+    if (imageFile.path != userDataPath + "\\throws\\" + imageFile.name)
+        while (fs.existsSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
             append = append == "" ? 2 : (append + 1);
     var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
 
     // Make a copy of the file into the local folder
-    fs.copyFileSync(imageFile.path, __dirname + "/throws/" + filename);
+    fs.copyFileSync(imageFile.path, userDataPath + "/throws/" + filename);
     
     // Add the new image, update the data, and refresh the images page
     bitThrows[key].location = "throws/" + filename;
     setData("bitThrows", bitThrows);
     openBitImages();
+    copyFilesToDirectory();
     
     // Reset the image upload
     document.querySelector("#loadBitImage" + key).value = null;
@@ -792,19 +808,19 @@ async function openBitImages()
         setData("bitThrows", bitThrows);
     }
 
-    document.querySelector("#bit1").querySelector(".imageImage").src = bitThrows.one.location;
+    document.querySelector("#bit1").querySelector(".imageImage").src = userDataPath + "/" + bitThrows.one.location;
     document.querySelector("#bit1").querySelector(".bitImageScale").value = bitThrows.one.scale;
 
-    document.querySelector("#bit100").querySelector(".imageImage").src = bitThrows.oneHundred.location;
+    document.querySelector("#bit100").querySelector(".imageImage").src = userDataPath + "/" + bitThrows.oneHundred.location;
     document.querySelector("#bit100").querySelector(".bitImageScale").value = bitThrows.oneHundred.scale;
 
-    document.querySelector("#bit1000").querySelector(".imageImage").src = bitThrows.oneThousand.location;
+    document.querySelector("#bit1000").querySelector(".imageImage").src = userDataPath + "/" + bitThrows.oneThousand.location;
     document.querySelector("#bit1000").querySelector(".bitImageScale").value = bitThrows.oneThousand.scale;
 
-    document.querySelector("#bit5000").querySelector(".imageImage").src = bitThrows.fiveThousand.location;
+    document.querySelector("#bit5000").querySelector(".imageImage").src = userDataPath + "/" + bitThrows.fiveThousand.location;
     document.querySelector("#bit5000").querySelector(".bitImageScale").value = bitThrows.fiveThousand.scale;
 
-    document.querySelector("#bit10000").querySelector(".imageImage").src = bitThrows.tenThousand.location;
+    document.querySelector("#bit10000").querySelector(".imageImage").src = userDataPath + "/" + bitThrows.tenThousand.location;
     document.querySelector("#bit10000").querySelector(".bitImageScale").value = bitThrows.tenThousand.scale;
 }
 
@@ -815,19 +831,19 @@ async function loadImageSound()
     // Grab the image that was just loaded
     var soundFile = document.querySelector("#loadImageSound").files[0];
     // If the folder for objects doesn"t exist for some reason, make it
-    if (!fs.existsSync(__dirname + "/impacts/"))
-        fs.mkdirSync(__dirname + "/impacts/");
+    if (!fs.existsSync(userDataPath + "/impacts/"))
+        fs.mkdirSync(userDataPath + "/impacts/");
 
-    // Ensure that we"re not overwriting any existing files with the same name
+    // Ensure that we're not overwriting any existing files with the same name
     // If a file already exists, add an interating number to the end until it"s a unique filename
     var append = "";
-    if (soundFile.path != __dirname + "\\impacts\\" + soundFile.name)
-        while (fs.existsSync( __dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+    if (soundFile.path != userDataPath + "\\impacts\\" + soundFile.name)
+        while (fs.existsSync( userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
             append = append == "" ? 2 : (append + 1);
     var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
     // Make a copy of the file into the local folder
-    fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + filename);
+    fs.copyFileSync(soundFile.path, userDataPath + "/impacts/" + filename);
     
     // Get the existing images, add the new image, update the data, and refresh the images page
     var throws = await getData("throws");
@@ -837,6 +853,7 @@ async function loadImageSound()
     // Reset the image upload
     document.querySelector("#loadImageSound").value = null;
     openImageDetails(currentImageIndex);
+    copyFilesToDirectory();
 }
 
 var currentImageIndex = -1;
@@ -861,7 +878,7 @@ async function openImageDetails()
 
     details.querySelector(".imageLabel").innerText = throws[currentImageIndex].location.substr(throws[currentImageIndex].location.lastIndexOf('/') + 1);
 
-    details.querySelector(".imageImage").src = throws[currentImageIndex].location;
+    details.querySelector(".imageImage").src = userDataPath + "/" + throws[currentImageIndex].location;
     details.querySelector(".imageImage").style.transform = "scale(" + throws[currentImageIndex].scale + ")";
     details.querySelector(".imageWeight").value = throws[currentImageIndex].weight;
     details.querySelector(".imageScale").value = throws[currentImageIndex].scale;
@@ -912,16 +929,16 @@ async function loadSound()
     for (var i = 0; i < files.length; i++)
     {
         var soundFile = files[i];
-        if (!fs.existsSync(__dirname + "/impacts/"))
-            fs.mkdirSync(__dirname + "/impacts/");
+        if (!fs.existsSync(userDataPath + "/impacts/"))
+            fs.mkdirSync(userDataPath + "/impacts/");
 
         var append = "";
-        if (soundFile.path != __dirname + "\\impacts\\" + soundFile.name)
-            while (fs.existsSync( __dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+        if (soundFile.path != userDataPath + "\\impacts\\" + soundFile.name)
+            while (fs.existsSync( userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
-        fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + filename);
+        fs.copyFileSync(soundFile.path, userDataPath + "/impacts/" + filename);
 
         impacts.unshift({
             "location": "impacts/" + filename,
@@ -933,6 +950,7 @@ async function loadSound()
     }
     setData("impacts", impacts);
     openSounds();
+    copyFilesToDirectory();
     
     document.querySelector("#loadSound").value = null;
 }
@@ -959,7 +977,7 @@ async function openSounds()
     {
         impacts.forEach((_, index) =>
         {
-            if (fs.existsSync(__dirname + "/" + impacts[index].location))
+            if (fs.existsSync(userDataPath + "/" + impacts[index].location))
             {
                 var row = document.querySelector("#soundRow").cloneNode(true);
                 row.removeAttribute("id");
@@ -1017,15 +1035,15 @@ async function loadBitSound()
     for (var i = 0; i < files.length; i++)
     {
         var soundFile = files[i];
-        if (!fs.existsSync(__dirname + "/impacts/"))
-            fs.mkdirSync(__dirname + "/impacts/");
+        if (!fs.existsSync(userDataPath + "/impacts/"))
+            fs.mkdirSync(userDataPath + "/impacts/");
 
         var append = "";
-        while (fs.existsSync(__dirname + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+        while (fs.existsSync(userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
             append = append == "" ? 2 : (append + 1);
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
-        fs.copyFileSync(soundFile.path, __dirname + "/impacts/" + filename);
+        fs.copyFileSync(soundFile.path, userDataPath + "/impacts/" + filename);
         
         impacts.unshift({
             "location": "impacts/" + filename,
@@ -1037,6 +1055,7 @@ async function loadBitSound()
     }
     setData("impacts", impacts);
     openBitSounds();
+    copyFilesToDirectory();
 
     document.querySelector("#loadBitSound").value = null;
 }
@@ -1063,7 +1082,7 @@ async function openBitSounds()
     {
         impacts.forEach((_, index) =>
         {
-            if (fs.existsSync(__dirname + "/" + impacts[index].location))
+            if (fs.existsSync(userDataPath + "/" + impacts[index].location))
             {
                 var row = document.querySelector("#bitSoundRow").cloneNode(true);
                 row.removeAttribute("id");
@@ -1682,8 +1701,8 @@ async function getData(field)
     while (isWriting > 0)
         await new Promise(resolve => setTimeout(resolve, 10));
 
-    if (!fs.existsSync(__dirname + "/data.json"))
-        fs.writeFileSync(__dirname + "/data.json", JSON.stringify(defaultData));
+    if (!fs.existsSync(userDataPath + "/data.json"))
+        fs.writeFileSync(userDataPath + "/data.json", JSON.stringify(defaultData));
 
     var data;
     // An error should only be thrown if the other process is in the middle of writing to the file.
@@ -1691,10 +1710,10 @@ async function getData(field)
     while (data == null)
     {
         try {
-            data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
+            data = JSON.parse(fs.readFileSync(userDataPath + "/data.json", "utf8"));
         } catch {}
     }
-    data = JSON.parse(fs.readFileSync(__dirname + "/data.json", "utf8"));
+    data = JSON.parse(fs.readFileSync(userDataPath + "/data.json", "utf8"));
     return data[field];
 }
 
@@ -1717,6 +1736,17 @@ async function setPorts()
 // Load the requested data and apply it to the relevant settings field
 async function loadData(field)
 {
+    // Enable physics simulation for all users upon updating to 1.19
+    if (field == "physicsSim")
+    {
+        var didPhysicsUpdate = await getData("didPhysicsUpdate");
+        if (didPhysicsUpdate == null)
+        {
+            setData("physicsSim", true);
+            setData("didPhysicsUpdate", true);
+        }
+    }
+
     const thisData = await getData(field);
     if (thisData != null)
     {
@@ -1737,9 +1767,39 @@ async function loadData(field)
     }
 }
 
+const folders = [ "throws", "impacts", "decals", "windups" ];
+function copyFilesToDirectory()
+{
+    folders.forEach((folder) => {
+        if (!fs.existsSync(__dirname + "/" + folder))
+            fs.mkdirSync(__dirname + "/" + folder);
+
+        fs.readdirSync(userDataPath + "/" + folder).forEach(file => {
+            fs.copyFileSync(userDataPath + "/" + folder + "/" + file, __dirname + "/" + folder + "/" + file);
+        });
+    })
+}
+
 // Place all settings from data into the proper location on load
 window.onload = async function()
 {
+    // UPDATE 1.19 (or new installation)
+    if (!fs.existsSync(userDataPath))
+        fs.mkdirSync(userDataPath);
+
+    if (!fs.existsSync(userDataPath + "/data.json") && fs.existsSync(__dirname + "/data.json"))
+        fs.copyFileSync(__dirname + "/data.json", userDataPath + "/data.json");
+    
+    folders.forEach((folder) => {
+        if (!fs.existsSync(userDataPath + "/" + folder))
+            fs.mkdirSync(userDataPath + "/" + folder);
+
+        fs.readdirSync(__dirname + "/" + folder).forEach(file => {
+            if (!fs.existsSync(userDataPath + "/" + folder + "/" + file))
+                fs.copyFileSync(__dirname + "/" + folder + "/" + file, userDataPath + "/" + folder + "/" + file);
+        });
+    })
+
     // UPDATING FROM 1.0.1 OR EARLIER
     var throws = await getData("throws");
     for (var i = 0; i < throws.length; i++)
@@ -1913,6 +1973,7 @@ window.onload = async function()
     loadData("physicsFPS");
     loadData("physicsGravity");
     loadData("physicsReverse");
+    loadData("physicsRotate");
     loadData("physicsHorizontal");
     loadData("physicsVertical");
     loadData("spinSpeedMin");
@@ -1929,9 +1990,11 @@ window.onload = async function()
     
     openImages();
     openBitImages();
+    copyFilesToDirectory();
 
     checkVersion();
     document.title += " " + version;
+    setData("version", version);
 }
 
 // Event listeners for changing settings
@@ -1970,6 +2033,7 @@ document.querySelector("#physicsSim").addEventListener("change", () => setData("
 document.querySelector("#physicsFPS").addEventListener("change", () => { clampValue(document.querySelector("#physicsFPS"), 1, 60); setData("physicsFPS", parseFloat(document.querySelector("#physicsFPS").value)) });
 document.querySelector("#physicsGravity").addEventListener("change", () => { clampValue(document.querySelector("#physicsGravity"), 0.01, null); setData("physicsGravity", parseFloat(document.querySelector("#physicsGravity").value)) });
 document.querySelector("#physicsReverse").addEventListener("change", () => setData("physicsReverse", document.querySelector("#physicsReverse").checked));
+document.querySelector("#physicsRotate").addEventListener("change", () => setData("physicsRotate", document.querySelector("#physicsRotate").checked));
 document.querySelector("#physicsHorizontal").addEventListener("change", () => { setData("physicsHorizontal", parseFloat(document.querySelector("#physicsHorizontal").value)) });
 document.querySelector("#physicsVertical").addEventListener("change", () => { setData("physicsVertical", parseFloat(document.querySelector("#physicsVertical").value)) });
 

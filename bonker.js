@@ -1,4 +1,5 @@
 // Karasubot Websocket Scripts
+const version = 1.19;
 
 var socketKarasu, karasuIsOpen = false;
 var isCalibrating = false;
@@ -47,6 +48,14 @@ document.onclick = function(e)
     document.querySelector("#guide").style.top = (guideY - 25) + "px";
 }
 
+var badVersion = false, mainVersion;
+function tryWarnVersion()
+{
+    document.querySelector("#mainVersion").innerHTML = mainVersion;
+    document.querySelector("#bonkerVersion").innerHTML = version;
+    document.querySelector("#warnVersion").hidden = !badVersion;
+}
+
 function connectKarasu()
 {
     socketKarasu = new WebSocket("ws://localhost:" + ports[0]);
@@ -74,7 +83,17 @@ function connectKarasu()
     {
         var data = JSON.parse(event.data);
 
-        if (data.type == "calibrating")
+        if (data.type == "versionReport")
+        {
+            mainVersion = parseFloat(data.version);
+            badVersion = mainVersion != version;
+            tryWarnVersion();
+            socketKarasu.send(JSON.stringify({
+                "type": "versionReport",
+                "version": version
+            }));
+        }
+        else if (data.type == "calibrating")
         {
             if (guideX == null)
                 guideX = window.innerWidth / 2;
@@ -591,7 +610,8 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     root.style.width = "100%";
                     root.style.height = "100%";
                     root.style.transformOrigin = (((pos.positionX + 1) / 2) * 100) + "% " + ((1 - ((pos.positionY + 1) / 2)) * 100) + "%";
-                    root.style.transform = "rotate(" + pos.rotation + "deg)";
+                    if (!data.physicsSim || data.physicsSim && data.physicsRotate)
+                        root.style.transform = "rotate(" + pos.rotation + "deg)";
                     var pivot = document.createElement("div");
                     pivot.classList.add("thrown");
                     pivot.style.left = (window.innerWidth * xPos) - (img.width * scale * sizeScale / 2) + randH + "px";
