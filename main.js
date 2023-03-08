@@ -3,6 +3,7 @@ const { ApiClient } = require("@twurple/api");
 const { PubSubClient } = require("@twurple/pubsub");
 const { ChatClient } = require("@twurple/chat");
 const { ElectronAuthProvider } = require("@twurple/auth-electron");
+const { EventSubWsListener } = require("@twurple/eventsub-ws");
 const fs = require("fs");
 
 // Previous versions of twurple had node_modules folders in some of the sub-packages.
@@ -127,7 +128,7 @@ ipcMain.on("getUserDataPath", () => {
 // Authentication
 // --------------
 
-var authProvider, token, apiClient, chatClient, userID, authenticated = false, authenticating = false, listenersActive = false;
+var authProvider, token, apiClient, eventClient, chatClient, user, authenticated = false, authenticating = false, listenersActive = false;
 
 // Retry authorization every second
 setInterval(() => {
@@ -138,22 +139,23 @@ setInterval(() => {
 // Attempt authorization
 async function authenticate() {
   const clientId = "u4rwa52hwkkgyoyow0t3gywxyv54pg";
-  const redirectUri = "https://twitchapps.com/tokengen/&scope=chat%3Aread%20chat%3Aedit%20channel%3Aread%3Aredemptions%20channel_subscriptions%20bits%3Aread";
+  const redirectUri = "https://twitchapps.com/tokengen/";
 
   // Prevent retrying authentication while signing in
   authenticating = true;
   authProvider = new ElectronAuthProvider({ clientId, redirectUri });
 
   // Ensure token was successfully acquired
-  token = await authProvider.getAccessToken();
+  token = await authProvider.getAnyAccessToken();
   if (token != null)
   {
     loggedOut = false;
     authenticated = true;
     apiClient = new ApiClient({ authProvider });
     var tokenInfo = await apiClient.getTokenInfo();
-    mainWindow.webContents.send("username", tokenInfo.userName);
-    pubSub(apiClient);
+    user = await apiClient.users.getUserByName(tokenInfo.userName);
+    mainWindow.webContents.send("username", user.name);
+    pubSub();
   }
 
   authenticating = false;
@@ -171,18 +173,18 @@ ipcMain.on("reauthenticate", async () => {
   }
 });
 
-var pubSubListeners = [], chatListeners = [];
+var pubSubListeners = [], eventListeners = [], chatListeners = [];
 
 // Event listeners
-async function pubSub(apiClient) {
-  const pubSubClient = new PubSubClient();
-  userID = await pubSubClient.registerUserListener(authProvider);
+async function pubSub() {
+  // PubSub
+  const pubSubClient = new PubSubClient({ authProvider });
 
   // PubSub Event Listeners
   if (authenticated)
   {
     console.log("Listening to Redemptions");
-    pubSubListeners.push(await pubSubClient.onRedemption(userID, onRedeemHandler));
+    pubSubListeners.push(await pubSubClient.onRedemption(user.id, onRedeemHandler));
   }
   else
     removeListeners();
@@ -190,7 +192,7 @@ async function pubSub(apiClient) {
   if (authenticated)
   {
     console.log("Listening to Subs");
-    pubSubListeners.push(await pubSubClient.onSubscription(userID, onSubHandler));
+    pubSubListeners.push(await pubSubClient.onSubscription(user.id, onSubHandler));
   }
   else
     removeListeners();
@@ -198,14 +200,27 @@ async function pubSub(apiClient) {
   if (authenticated)
   {
     console.log("Listening to Bits");
-    pubSubListeners.push(await pubSubClient.onBits(userID, onBitsHandler));
+    pubSubListeners.push(await pubSubClient.onBits(user.id, onBitsHandler));
   }
   else
     removeListeners();
 
-  const user = await apiClient.helix.users.getUserById(userID);
-  chatClient = new ChatClient({ authProvider, channels: [user.name] });
-  await chatClient.connect();
+  // EventSub
+  eventClient = new EventSubWsListener({ apiClient });
+  eventClient.start();
+
+  // EventSub Event Listeners
+  if (authenticated)
+  {
+    console.log("Listening to Follows");
+    eventListeners.push(await eventClient.onChannelFollow(user.id, user.id, onFollowHandler));
+  }
+  else
+    removeListeners();
+
+  // Chat
+  chatClient = new ChatClient({ channels: [user.name] });
+  chatClient.connect();
 
   // Chat Event Listeners
   if (authenticated)
@@ -234,6 +249,9 @@ function removeListeners()
   for (var i = 0; i < pubSubListeners.length; i++)
     pubSubListeners[i].remove();
   pubSubListeners = [];
+  for (var i = 0; i < eventListeners.length; i++)
+    eventListeners[i].stop();
+  eventListeners = [];
   for (var i = 0; i < chatListeners.length; i++)
     chatClient.removeListener(chatListeners[i]);
   chatListeners = [];
@@ -877,7 +895,7 @@ ipcMain.on("listenRedeemCancel", () => { listening = false; });
 var listening = false;
 async function onRedeemHandler(redemptionMessage)
 {
-  const reward = await apiClient.helix.channelPoints.getCustomRewardById(redemptionMessage.channelId, redemptionMessage.rewardId);
+  const reward = await apiClient.channelPoints.getCustomRewardById(redemptionMessage.channelId, redemptionMessage.rewardId);
 
   if (listening)
   {
@@ -905,6 +923,32 @@ async function onRedeemHandler(redemptionMessage)
 
         break;
       }
+    }
+  }
+}
+
+var canFollow = true;
+function onFollowHandler()
+{
+  if (canFollow && data.followEnabled)
+  {
+    switch (data.followType)
+    {
+      case "single":
+        single();
+        break;
+      case "barrage":
+        barrage();
+        break;
+      default:
+        custom(data.followType);
+        break;
+    }
+
+    if (data.followCooldown > 0)
+    {
+      canFollow = false;
+      setTimeout(() => { canFollow = true; }, data.followCooldown * 1000);
     }
   }
 }
@@ -1080,13 +1124,13 @@ async function onRaidHandler(_, raider, raidInfo)
 
     if (raider == null)
     {
-      raider = userID
+      raider = user.id
       numRaiders = data.raidMinBarrageCount + Math.floor(Math.random() * (data.raidMaxBarrageCount - data.raidMinBarrageCount));
     }
     else
     {
       numRaiders = raidInfo.viewerCount;
-      raider = await apiClient.helix.users.getUserByName(raider);
+      raider = await apiClient.users.getUserByName(raider);
       raider = raider.id;
     }
 

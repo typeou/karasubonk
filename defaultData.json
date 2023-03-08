@@ -256,12 +256,15 @@
             "scale": 1.5
         }
     },
+    "followEnabled": true,
     "subEnabled": true,
     "subGiftEnabled": true,
     "bitsEnabled": true,
+    "followType": "single",
     "subType": "barrage",
     "subGiftType": "barrage",
     "bitsMaxBarrageCount": 50,
+    "followCooldown": 0,
     "subCooldown": 0,
     "subGiftCooldown": 0,
     "bitsCooldown": 0,

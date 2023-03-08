@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.19;
+const version = 1.20;
 
 // ------
 // Status
@@ -1943,11 +1943,13 @@ window.onload = async function()
 
     // END UPDATING
 
+    loadData("followEnabled");
     loadData("subEnabled");
     loadData("subGiftEnabled");
     loadData("bitsEnabled");
     loadData("raidEnabled");
 
+    loadData("followType");
     loadData("subType");
     loadData("subGiftType");
     loadData("bitsMinDonation");
@@ -1956,6 +1958,7 @@ window.onload = async function()
     loadData("raidMinBarrageCount");
     loadData("raidMaxBarrageCount");
 
+    loadData("followCooldown");
     loadData("subCooldown");
     loadData("subGiftCooldown");
     loadData("bitsCooldown");
@@ -1998,11 +2001,13 @@ window.onload = async function()
 }
 
 // Event listeners for changing settings
+document.querySelector("#followEnabled").addEventListener("change", () => setData("followEnabled", document.querySelector("#followEnabled").checked));
 document.querySelector("#subEnabled").addEventListener("change", () => setData("subEnabled", document.querySelector("#subEnabled").checked));
 document.querySelector("#subGiftEnabled").addEventListener("change", () => setData("subGiftEnabled", document.querySelector("#subGiftEnabled").checked));
 document.querySelector("#bitsEnabled").addEventListener("change", () => setData("bitsEnabled", document.querySelector("#bitsEnabled").checked));
 document.querySelector("#raidEnabled").addEventListener("change", () => setData("raidEnabled", document.querySelector("#raidEnabled").checked));
 
+document.querySelector("#followType").addEventListener("change", () => setData("followType", document.querySelector("#followType").value));
 document.querySelector("#subType").addEventListener("change", () => setData("subType", document.querySelector("#subType").value));
 document.querySelector("#subGiftType").addEventListener("change", () => setData("subGiftType", document.querySelector("#subGiftType").value));
 document.querySelector("#bitsMinDonation").addEventListener("change", () => { clampValue(document.querySelector("#bitsMinDonation"), 0, null); setData("bitsMinDonation", parseInt(document.querySelector("#bitsMinDonation").value)) });
@@ -2012,6 +2017,7 @@ document.querySelector("#raidMinRaiders").addEventListener("change", () => { set
 document.querySelector("#raidMinBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#raidMinBarrageCount"), 0, parseFloat(document.querySelector("#raidMaxBarrageCount").value)); setData("raidMinBarrageCount", parseInt(document.querySelector("#raidMinBarrageCount").value)) });
 document.querySelector("#raidMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#raidMaxBarrageCount"), parseFloat(document.querySelector("#raidMinBarrageCount").value), null); setData("raidMaxBarrageCount", parseInt(document.querySelector("#raidMaxBarrageCount").value)) });
 
+document.querySelector("#followCooldown").addEventListener("change", () => { clampValue(document.querySelector("#followCooldown"), 0, null); setData("followCooldown", parseFloat(document.querySelector("#followCooldown").value)) });
 document.querySelector("#subCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subCooldown"), 0, null); setData("subCooldown", parseFloat(document.querySelector("#subCooldown").value)) });
 document.querySelector("#subGiftCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subGiftCooldown"), 0, null); setData("subGiftCooldown", parseFloat(document.querySelector("#subGiftCooldown").value)) });
 document.querySelector("#bitsCooldown").addEventListener("change", () => { clampValue(document.querySelector("#bitsCooldown"), 0, null); setData("bitsCooldown", parseFloat(document.querySelector("#bitsCooldown").value)) });

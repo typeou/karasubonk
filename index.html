@@ -996,11 +996,24 @@
                   </div>
                 </div>
 
-                <!-- Subs -->
+                <!-- Subs & Follows -->
                 <b class="grid1">Enabled</b>
                 <b class="grid2">Event Type</b>
                 <b class="grid3">Bonk Type</b>
                 <b class="grid4">Cooldown (s)</b>
+
+                <!-- Follow -->
+                <label class="checkbox grid1">
+                  <input type="checkbox" id="followEnabled" checked>
+                  <div class="checkHover"></div>
+                  <img src="ui/checkmark.png" class="checkmark">
+                </label>
+                <p class="grid2">Follow</p>
+                <select id="followType" class="grid3">
+                  <option value="single">Single</option>
+                  <option value="barrage" selected>Barrage</option>
+                </select>
+                <input type="number" id="followCooldown" class="grid4" min="0" value="0">
 
                 <!-- Subscription -->
                 <label class="checkbox grid1">

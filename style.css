@@ -1117,6 +1117,7 @@ mark {
     text-overflow: ellipsis;
     white-space: nowrap;
     padding: 0 8px;
+    text-transform: uppercase;
 }
 
 .customBonkRow .imageImage {
