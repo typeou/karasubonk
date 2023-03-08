@@ -128,13 +128,8 @@ ipcMain.on("getUserDataPath", () => {
 // Authentication
 // --------------
 
-var authProvider, token, apiClient, eventClient, chatClient, user, authenticated = false, authenticating = false, listenersActive = false;
+var authProvider, token, apiClient, pubSubClient, eventClient, chatClient, user, authenticated = false, authenticating = false, listenersActive = false;
 
-// Retry authorization every second
-setInterval(() => {
-  if (!authenticated && !authenticating)
-    authenticate();
-}, 1000);
 
 // Attempt authorization
 async function authenticate() {
@@ -149,7 +144,6 @@ async function authenticate() {
   token = await authProvider.getAnyAccessToken();
   if (token != null)
   {
-    loggedOut = false;
     authenticated = true;
     apiClient = new ApiClient({ authProvider });
     var tokenInfo = await apiClient.getTokenInfo();
@@ -161,16 +155,17 @@ async function authenticate() {
   authenticating = false;
 }
 
+// Initial login attempt
+setTimeout(() => {
+  authenticate();
+}, 1000);
+
+// When the "Log out" or "Log in" button is clicked
 ipcMain.on("reauthenticate", async () => {
-  if (authProvider != null)
-  {
-    // Clear cookies to allow reauthentication
-    session.defaultSession.clearStorageData([], () => {});
-    authProvider.allowUserChange();
-    authenticated = false;
-    authenticating = false;
-    removeListeners();
-  }
+  if (authenticated)
+    logOut();
+  else if (!authenticating)
+    authenticate();
 });
 
 var pubSubListeners = [], eventListeners = [], chatListeners = [];
@@ -178,7 +173,7 @@ var pubSubListeners = [], eventListeners = [], chatListeners = [];
 // Event listeners
 async function pubSub() {
   // PubSub
-  const pubSubClient = new PubSubClient({ authProvider });
+  pubSubClient = new PubSubClient({ authProvider });
 
   // PubSub Event Listeners
   if (authenticated)
@@ -240,12 +235,27 @@ async function pubSub() {
     removeListeners();
 
   // Done enabling listeners
-  if (pubSubListeners.length > 0 || chatListeners.length > 0)
+  if (pubSubListeners.length > 0 || eventListeners.length > 0 || chatListeners.length > 0)
     listenersActive = true;
 }
 
-function removeListeners()
+function logOut()
 {
+  // Clear cookies to allow reauthentication
+  session.defaultSession.clearStorageData([], () => {});
+
+  // Remove all authentication and listener clients
+  authProvider = null;
+  apiClient = null;
+  pubSubClient = null;
+  eventClient = null;
+  chatClient = null;
+
+  // Reset window protection variables
+  authenticated = false;
+  authenticating = false;
+
+  // Delete all existing listeners
   for (var i = 0; i < pubSubListeners.length; i++)
     pubSubListeners[i].remove();
   pubSubListeners = [];
@@ -255,6 +265,7 @@ function removeListeners()
   for (var i = 0; i < chatListeners.length; i++)
     chatClient.removeListener(chatListeners[i]);
   chatListeners = [];
+
   listenersActive = false;
 }
 
