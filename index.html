@@ -208,7 +208,7 @@
                 <div class="checkHover"></div>
                 <img src="ui/checkmark.png" class="checkmark">
               </label>
-              
+
               <p class="grid4">Rotate Gravity with Model</p>
               <label class="checkbox grid5">
                 <input type="checkbox" id="physicsRotate">
@@ -245,6 +245,22 @@
                 </div>
   
                 <div class="testContainer">
+                  <div id="testEmote" class="topButton">
+                    <div class="overlayButton"></div>
+                    <div class="innerTopButton">EMOTE SINGLE</div>
+                    <div class="cornerTopButton"></div>
+                  </div>
+                </div>
+  
+                <div class="testContainer">
+                  <div id="testRaid" class="topButton">
+                    <div class="overlayButton"></div>
+                    <div class="innerTopButton">EMOTE BARRAGE</div>
+                    <div class="cornerTopButton"></div>
+                  </div>
+                </div>
+  
+                <div class="testContainer">
                   <div id="testSub" class="topButton">
                     <div class="overlayButton"></div>
                     <div class="innerTopButton">SUB</div>
@@ -269,9 +285,9 @@
                 </div>
   
                 <div class="testContainer">
-                  <div id="testRaid" class="topButton">
+                  <div id="testFollow" class="topButton">
                     <div class="overlayButton"></div>
-                    <div class="innerTopButton">RAID</div>
+                    <div class="innerTopButton">FOLLOW</div>
                     <div class="cornerTopButton"></div>
                   </div>
                 </div>
@@ -279,7 +295,7 @@
                 <div id="testCustom" class="testContainer" hidden>
                   <div class="topButton">
                     <div class="overlayButton"></div>
-                    <div class="innerTopButton">CUSTOM CUSTOM CUSTOM CUSTOM CUSTOM CUSTOM</div>
+                    <div class="innerTopButton">CUSTOM</div>
                     <div class="cornerTopButton"></div>
                   </div>
                 </div>
@@ -951,6 +967,8 @@
                   <select class="bonkType grid4">
                     <option value="single">Single</option>
                     <option value="barrage">Barrage</option>
+                    <option value="emote">Emote</option>
+                    <option value="emotes">Emote Barrage</option>
                   </select>
                   <label class="delete grid5">
                     <button class="imageRemove redeemRemove"></button>
@@ -980,6 +998,8 @@
                   <select class="bonkType grid3">
                     <option value="single">Single</option>
                     <option value="barrage">Barrage</option>
+                    <option value="emote">Emote</option>
+                    <option value="emotes">Emote Barrage</option>
                   </select>
                   <input type="number" min="0" class="commandCooldown grid4">
                   <label class="delete grid5">
@@ -1012,6 +1032,8 @@
                 <select id="followType" class="grid3">
                   <option value="single">Single</option>
                   <option value="barrage" selected>Barrage</option>
+                  <option value="emote">Emote</option>
+                  <option value="emotes">Emote Barrage</option>
                 </select>
                 <input type="number" id="followCooldown" class="grid4" min="0" value="0">
 
@@ -1025,6 +1047,8 @@
                 <select id="subType" class="grid3">
                   <option value="single">Single</option>
                   <option value="barrage" selected>Barrage</option>
+                  <option value="emote">Emote</option>
+                  <option value="emotes">Emote Barrage</option>
                 </select>
                 <input type="number" id="subCooldown" class="grid4" min="0" value="0">
 
@@ -1038,6 +1062,8 @@
                 <select id="subGiftType" class="grid3">
                   <option value="single">Single</option>
                   <option value="barrage" selected>Barrage</option>
+                  <option value="emote">Emote</option>
+                  <option value="emotes">Emote Barrage</option>
                 </select>
                 <input type="number" id="subGiftCooldown" class="grid4" min="0" value="0">
 

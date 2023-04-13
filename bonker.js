@@ -1,5 +1,5 @@
 // Karasubot Websocket Scripts
-const version = 1.20;
+const version = 1.21;
 
 var socketKarasu, karasuIsOpen = false;
 var isCalibrating = false;

@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.20;
+const version = 1.21;
 
 // ------
 // Status
@@ -11,7 +11,7 @@ var status = 0;
 
 const statusTitle = [
     "Ready!",
-    "Authenticating...",
+    "Awaiting Authentication...",
     "Connecting to Browser Source...",
     "Calibrating (1/2)",
     "Calibrating (2/2)",
@@ -21,12 +21,13 @@ const statusTitle = [
     "Activating Event Listeners...",
     "Error: Port In Use",
     "Warning: Version Mismatch",
-    "Warning: Version Mismatch"
+    "Warning: Version Mismatch",
+    "Authenticating..."
 ];
 
 const statusDesc = [
     "",
-    "<p>If you haven't logged in before or access has expired, a Twitch login window will appear.</p><p>If it doesn't appear, you may also click the \"Log in\" button below to allow the window to reappear.</p>",
+    "<p>Click the \"Log in\" button below to open a Twitch authentication window in your browser.</p>",
     "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source in OBS.</p><p>The KBonk Browser Source should be active with <mark>karasubonk/resources/app/bonker.html</mark> as the source file.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Continue Calibration</mark> button below to continue to the next step.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Confirm Calibration</mark> button below to finish calibration.</p>",
@@ -36,7 +37,8 @@ const statusDesc = [
     "<p>Several windows will briefly appear during this process.</p>",
     [ "<p>The port <mark>", "</mark> is already in use. Another process may be using this port.</p><p>Try changing the Browser Source Port in Settings, under Advanced Settings.</p><p>It should be some number between 1024 and 65535.</p>" ],
     "<p>KBonk and the Browser Source are running on different versions.</p><p>Please ensure KBonk and the Browser Source are both running from the same folder.</p>",
-    "<p>No version response from Browser Source.</p><p>KBonk and the Browser Source may be running on different versions.</p><p>Please ensure KBonk and the Browser Source are both running from the same folder.</p>"
+    "<p>No version response from Browser Source.</p><p>KBonk and the Browser Source may be running on different versions.</p><p>Please ensure KBonk and the Browser Source are both running from the same folder.</p>",
+    "<p>Awaiting authentication response from browser...</p>"
 ];
 
 ipcRenderer.on("username", (event, message) => {
@@ -1654,9 +1656,21 @@ async function openEvents()
         });
     });
 
+    var node = document.querySelector("#followType");
+    while (node.childElementCount > 4)
+        node.removeChild(node.lastChild);
+
+    for (var key in customBonks)
+    {
+        var customBonk = document.createElement("option");
+        customBonk.value = key;
+        customBonk.innerText = key;
+        node.appendChild(customBonk);
+    }
+
     // Update Sub and Gift Sub drop-downs
-    var node = document.querySelector("#subType");
-    while (node.childElementCount > 2)
+    node = document.querySelector("#subType");
+    while (node.childElementCount > 4)
         node.removeChild(node.lastChild);
 
     for (var key in customBonks)
@@ -1668,7 +1682,7 @@ async function openEvents()
     }
 
     node = document.querySelector("#subGiftType");
-    while (node.childElementCount > 2)
+    while (node.childElementCount > 4)
         node.removeChild(node.lastChild);
 
     for (var key in customBonks)
@@ -2376,6 +2390,8 @@ document.querySelector("#testBarrage").addEventListener("click", () => { ipcRend
 document.querySelector("#testSub").addEventListener("click", () => { ipcRenderer.send("sub"); });
 document.querySelector("#testSubGift").addEventListener("click", () => { ipcRenderer.send("subGift"); });
 document.querySelector("#testBits").addEventListener("click", () => { ipcRenderer.send("bits"); });
+document.querySelector("#testFollow").addEventListener("click", () => { ipcRenderer.send("follow"); });
+document.querySelector("#testEmote").addEventListener("click", () => { ipcRenderer.send("emote"); });
 document.querySelector("#testRaid").addEventListener("click", () => { ipcRenderer.send("raid"); });
 
 document.querySelector("#calibrateButton").addEventListener("click", () => { if (!cancelCalibrate) ipcRenderer.send("startCalibrate"); });

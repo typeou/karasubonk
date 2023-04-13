@@ -209,8 +209,8 @@ a {
     font-size: 28px;
     width: 192px;
     height: 64px;
+    min-height: 64px;
     max-height: 64px;
-    line-height: 64px;
     text-align: center;
     margin: 0 16px;
     background-color: #1D1D1D;
@@ -226,6 +226,9 @@ a {
     grid-row: 1;
     background-color: #0C0C0C;
     clip-path: polygon(0% 0%, 100% 0%, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0% 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .cornerTopButton {

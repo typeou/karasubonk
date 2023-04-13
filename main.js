@@ -2,9 +2,11 @@ const { app, Menu, Tray, BrowserWindow, ipcMain, session } = require("electron")
 const { ApiClient } = require("@twurple/api");
 const { PubSubClient } = require("@twurple/pubsub");
 const { ChatClient } = require("@twurple/chat");
-const { ElectronAuthProvider } = require("@twurple/auth-electron");
+//const { ElectronAuthProvider } = require("@twurple/auth-electron");
+const { StaticAuthProvider  } = require("@twurple/auth");
 const { EventSubWsListener } = require("@twurple/eventsub-ws");
 const fs = require("fs");
+const http = require("http");
 
 // Previous versions of twurple had node_modules folders in some of the sub-packages.
 // These, for some reason, cause the event listeners to fail to create themselves.
@@ -130,15 +132,36 @@ ipcMain.on("getUserDataPath", () => {
 
 var authProvider, token, apiClient, pubSubClient, eventClient, chatClient, user, authenticated = false, authenticating = false, listenersActive = false;
 
+const clientId = "u4rwa52hwkkgyoyow0t3gywxyv54pg";
+const redirectUri = "http://localhost:28396";
+const scope = "chat%3Aread%20channel%3Aread%3Aredemptions%20channel%3Aread%3Asubscriptions%20bits%3Aread%20moderator%3Aread%3Afollowers";
+const authURI = "https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=" + scope;
+
+http.createServer(function (req, res) {
+  if (req.url.includes("access_token"))
+  {
+    setData("accessToken", req.url.substring(req.url.indexOf("=") + 1));
+    login();
+  }
+  else
+  {
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.write('<script>var access_token = document.location.hash.substring(1, document.location.hash.indexOf(\'&\'));var request = new XMLHttpRequest();request.open("GET", "http://localhost:28396?" + access_token, true);request.send();</script>');
+    res.write('You may now close this window and return to KBonk.');
+    res.end();
+  }
+}).listen(28396, "localhost");
 
 // Attempt authorization
-async function authenticate() {
-  const clientId = "u4rwa52hwkkgyoyow0t3gywxyv54pg";
-  const redirectUri = "https://twitchapps.com/tokengen/";
-
-  // Prevent retrying authentication while signing in
+function authenticate() {
   authenticating = true;
-  authProvider = new ElectronAuthProvider({ clientId, redirectUri });
+  require('electron').shell.openExternal(authURI);
+}
+
+async function login()
+{
+  // Prevent retrying authentication while signing in
+  authProvider = new StaticAuthProvider(clientId, data.accessToken);
 
   // Ensure token was successfully acquired
   token = await authProvider.getAnyAccessToken();
@@ -155,16 +178,11 @@ async function authenticate() {
   authenticating = false;
 }
 
-// Initial login attempt
-setTimeout(() => {
-  authenticate();
-}, 1000);
-
 // When the "Log out" or "Log in" button is clicked
 ipcMain.on("reauthenticate", async () => {
   if (authenticated)
     logOut();
-  else if (!authenticating)
+  else
     authenticate();
 });
 
@@ -243,6 +261,7 @@ function logOut()
 {
   // Clear cookies to allow reauthentication
   session.defaultSession.clearStorageData([], () => {});
+  setData("accessToken", null);
 
   // Remove all authentication and listener clients
   authProvider = null;
@@ -297,6 +316,8 @@ setInterval(() => {
       status = 10;
     else if (noResponse)
       status = 11;
+    else if (authenticating)
+      status = 12;
   
     if (!exiting)
       mainWindow.webContents.send("status", status);
@@ -317,9 +338,11 @@ if (!fs.existsSync(app.getPath("userData") + "/data.json"))
 }
 var data = JSON.parse(fs.readFileSync(app.getPath("userData") + "/data.json", "utf8"));
 
+if (data.accessToken != null)
+  login();
 
-ipcMain.on("help", () => require('electron').shell.openExternal("https://typeou.dev/#kbonkHelp"));
-ipcMain.on("link", () => require('electron').shell.openExternal("https://typeou.itch.io/karasubonk"));
+ipcMain.on("help", () => require('electron').shell.openExternal("https://typeou.dev/kbonk"));
+ipcMain.on("link", () => require('electron').shell.openExternal("https://typeou.itch.io/kbonk"));
 
 // ----------------
 // Websocket Server
@@ -535,6 +558,8 @@ ipcMain.on("barrage", () => barrage());
 ipcMain.on("sub", () => onSubHandler({ isGift: false }));
 ipcMain.on("subGift", () => onSubHandler({ isGift: true }));
 ipcMain.on("bits", () => onBitsHandler());
+ipcMain.on("follow", () => onFollowHandler());
+ipcMain.on("emote", () => onRaidHandler(null, null, null, true));
 ipcMain.on("raid", () => onRaidHandler());
 
 // Testing a specific item
@@ -887,6 +912,12 @@ function onMessageHandler(_, _, message)
           case "barrage":
             barrage();
             break;
+          case "emote":
+            onRaidHandler(null, null, null, true);
+            break;
+          case "emotes":
+            onRaidHandler();
+            break;
           default:
             custom(data.commands[i].bonkType);
             break;
@@ -927,6 +958,9 @@ async function onRedeemHandler(redemptionMessage)
           case "barrage":
             barrage();
             break;
+          case "emotes":
+            onRaidHandler();
+            break;
           default:
             custom(data.redeems[i].bonkType);
             break;
@@ -950,6 +984,12 @@ function onFollowHandler()
         break;
       case "barrage":
         barrage();
+        break;
+      case "emote":
+        onRaidHandler(null, null, null, true);
+        break;
+      case "emotes":
+        onRaidHandler();
         break;
       default:
         custom(data.followType);
@@ -977,6 +1017,12 @@ function onSubHandler(subMessage)
       case "barrage":
         barrage();
         break;
+      case "emote":
+        onRaidHandler(null, null, null, true);
+        break;
+      case "emotes":
+        onRaidHandler();
+        break;
       default:
         custom(data.subType);
         break;
@@ -998,6 +1044,12 @@ function onSubHandler(subMessage)
         break;
       case "barrage":
         barrage();
+        break;
+      case "emote":
+        onRaidHandler(null, null, null, true);
+        break;
+      case "emotes":
+        onRaidHandler();
         break;
       default:
         custom(data.subGiftType);
@@ -1123,7 +1175,7 @@ function onBitsHandler(bitsMessage)
 }
 
 var canRaid = true, numRaiders = 0;
-async function onRaidHandler(_, raider, raidInfo)
+async function onRaidHandler(_, raider, raidInfo, isSingleEmote)
 {
   if (data.raidEnabled && canRaid)
   {
@@ -1136,27 +1188,28 @@ async function onRaidHandler(_, raider, raidInfo)
     if (raider == null)
     {
       raider = user.id
-      numRaiders = data.raidMinBarrageCount + Math.floor(Math.random() * (data.raidMaxBarrageCount - data.raidMinBarrageCount));
+      numRaiders = isSingleEmote ? 1 : data.barrageCount;
+      mainWindow.webContents.send("raid", [ raider, token.accessToken ]);
     }
     else
     {
       numRaiders = raidInfo.viewerCount;
       raider = await apiClient.users.getUserByName(raider);
       raider = raider.id;
-    }
 
-    if (numRaiders >= data.raidMinRaiders)
-    {
-      if (numRaiders < data.raidMinBarrageCount)
-        numRaiders = data.raidMinBarrageCount;
-    
-      if (numRaiders > data.raidMaxBarrageCount)
-        numRaiders = data.raidMaxBarrageCount;
-    
-      if (data.raidEmotes)
-        mainWindow.webContents.send("raid", [ raider, token.accessToken ]);
-      else
-        barrage(numRaiders);
+      if (numRaiders >= data.raidMinRaiders)
+      {
+        if (numRaiders < data.raidMinBarrageCount)
+          numRaiders = data.raidMinBarrageCount;
+      
+        if (numRaiders > data.raidMaxBarrageCount)
+          numRaiders = data.raidMaxBarrageCount;
+      
+        if (data.raidEmotes)
+          mainWindow.webContents.send("raid", [ raider, token.accessToken ]);
+        else
+          barrage(numRaiders);
+      }
     }
   }
 }
