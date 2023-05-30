@@ -31,11 +31,11 @@ const statusDesc = [
     "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source in OBS.</p><p>The KBonk Browser Source should be active with <mark>karasubonk/resources/app/bonker.html</mark> as the source file.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Continue Calibration</mark> button below to continue to the next step.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Confirm Calibration</mark> button below to finish calibration.</p>",
-    [ "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p>" ],
+    ["<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p>"],
     "<p>Please use the Channel Point Reward you'd like to use.</p>",
     "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>",
     "<p>Several windows will briefly appear during this process.</p>",
-    [ "<p>The port <mark>", "</mark> is already in use. Another process may be using this port.</p><p>Try changing the Browser Source Port in Settings, under Advanced Settings.</p><p>It should be some number between 1024 and 65535.</p>" ],
+    ["<p>The port <mark>", "</mark> is already in use. Another process may be using this port.</p><p>Try changing the Browser Source Port in Settings, under Advanced Settings.</p><p>It should be some number between 1024 and 65535.</p>"],
     "<p>KBonk and the Browser Source are running on different versions.</p><p>Please ensure KBonk and the Browser Source are both running from the same folder.</p>",
     "<p>No version response from Browser Source.</p><p>KBonk and the Browser Source may be running on different versions.</p><p>Please ensure KBonk and the Browser Source are both running from the same folder.</p>",
     "<p>Awaiting authentication response from browser...</p>"
@@ -66,26 +66,22 @@ document.querySelector("#itchLink a").addEventListener("click", () => { ipcRende
 
 ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
 
-async function setStatus(_, message)
-{
+async function setStatus(_, message) {
     status = message;
     document.querySelector("#status").innerHTML = statusTitle[status];
     document.querySelector("#headerStatusInner").innerHTML = statusTitle[status] + (status != 0 ? " (Click)" : "");
 
-    if (status == 0)
-    {
+    if (status == 0) {
         document.querySelector("#headerStatus").classList.remove("errorText");
         document.querySelector("#headerStatus").classList.remove("workingText");
         document.querySelector("#headerStatus").classList.add("readyText");
     }
-    else if (status == 9 || status == 10 || status == 11)
-    {
+    else if (status == 9 || status == 10 || status == 11) {
         document.querySelector("#headerStatus").classList.add("errorText");
         document.querySelector("#headerStatus").classList.remove("workingText");
         document.querySelector("#headerStatus").classList.remove("readyText");
     }
-    else
-    {
+    else {
         document.querySelector("#headerStatus").classList.remove("errorText");
         document.querySelector("#headerStatus").classList.add("workingText");
         document.querySelector("#headerStatus").classList.remove("readyText");
@@ -98,8 +94,7 @@ async function setStatus(_, message)
     else
         document.querySelector("#statusDesc").innerHTML = statusDesc[status];
 
-    if (status == 3 || status == 4 || status == 7)
-    {
+    if (status == 3 || status == 4 || status == 7) {
         if (status == 7)
             document.querySelector("#nextCalibrate").querySelector(".innerTopButton").innerText = "Start Calibration";
         else if (status == 3)
@@ -120,18 +115,16 @@ async function setStatus(_, message)
 document.querySelector("#newImage").addEventListener("click", () => { document.querySelector("#loadImage").click(); });
 document.querySelector("#loadImage").addEventListener("change", loadImage);
 
-async function loadImage()
-{
+async function loadImage() {
     var throws = await getData("throws");
     var files = document.querySelector("#loadImage").files;
-    for (var i = 0; i < files.length; i++)
-    {
+    for (var i = 0; i < files.length; i++) {
         // Grab the image that was just loaded
         var imageFile = files[i];
         // If the folder for objects doesn't exist for some reason, make it
         if (!fs.existsSync(userDataPath + "/throws/"))
             fs.mkdirSync(userDataPath + "/throws/");
-    
+
         // Ensure that we're not overwriting any existing files with the same name
         // If a file already exists, add an interating number to the end until it"s a unique filename
         var append = "";
@@ -139,10 +132,10 @@ async function loadImage()
             while (fs.existsSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
-    
+
         // Make a copy of the file into the local folder
         fs.copyFileSync(imageFile.path, userDataPath + "/throws/" + filename);
-        
+
         // Add the new image, update the data, and refresh the images page
         throws.unshift({
             "enabled": true,
@@ -157,13 +150,13 @@ async function loadImage()
     setData("throws", throws);
     openImages();
     copyFilesToDirectory();
-    
+
     // Reset the image upload
     document.querySelector("#loadImage").value = null;
 }
 
 document.querySelector("#imageTable").querySelector(".selectAll input").addEventListener("change", async () => {
-    document.querySelector("#imageTable").querySelectorAll(".imageEnabled").forEach((element) => { 
+    document.querySelector("#imageTable").querySelectorAll(".imageEnabled").forEach((element) => {
         element.checked = document.querySelector("#imageTable").querySelector(".selectAll input").checked;
     });
     var throws = await getData("throws");
@@ -172,17 +165,14 @@ document.querySelector("#imageTable").querySelector(".selectAll input").addEvent
     setData("throws", throws);
 });
 
-async function openImages()
-{
+async function openImages() {
     var throws = await getData("throws");
 
     document.querySelector("#imageTable").querySelectorAll(".imageRow").forEach((element) => { element.remove(); });
-    
+
     var allEnabled = true;
-    for (var i = 0; i < throws.length; i++)
-    {
-        if (!throws[i].enabled)
-        {
+    for (var i = 0; i < throws.length; i++) {
+        if (!throws[i].enabled) {
             allEnabled = false;
             break;
         }
@@ -191,12 +181,9 @@ async function openImages()
 
     if (throws == null)
         setData("throws", []);
-    else
-    {
-        throws.forEach((_, index) =>
-        {
-            if (fs.existsSync(userDataPath + "/" + throws[index].location))
-            {
+    else {
+        throws.forEach((_, index) => {
+            if (fs.existsSync(userDataPath + "/" + throws[index].location)) {
                 var row = document.querySelector("#imageRow").cloneNode(true);
                 row.removeAttribute("id");
                 row.classList.add("imageRow");
@@ -204,7 +191,7 @@ async function openImages()
                 document.querySelector("#imageTable").appendChild(row);
 
                 row.querySelector(".imageLabel").innerText = throws[index].location.substr(throws[index].location.lastIndexOf('/') + 1);
-    
+
                 row.querySelector(".imageImage").src = userDataPath + "/" + throws[index].location;
 
                 row.querySelector(".imageEnabled").checked = throws[index].enabled;
@@ -213,10 +200,8 @@ async function openImages()
                     setData("throws", throws);
 
                     var allEnabled = true;
-                    for (var i = 0; i < throws.length; i++)
-                    {
-                        if (!throws[i].enabled)
-                        {
+                    for (var i = 0; i < throws.length; i++) {
+                        if (!throws[i].enabled) {
                             allEnabled = false;
                             break;
                         }
@@ -236,8 +221,7 @@ async function openImages()
                     openImages();
                 });
             }
-            else
-            {
+            else {
                 throws.splice(index, 1);
                 setData("throws", throws);
             }
@@ -245,18 +229,16 @@ async function openImages()
     }
 }
 
-async function loadImageCustom(customName)
-{
+async function loadImageCustom(customName) {
     var throws = await getData("throws");
     var files = document.querySelector("#loadImageCustom").files;
-    for (var i = 0; i < files.length; i++)
-    {
+    for (var i = 0; i < files.length; i++) {
         // Grab the image that was just loaded
         var imageFile = files[i];
         // If the folder for objects doesn't exist for some reason, make it
         if (!fs.existsSync(userDataPath + "/throws/"))
             fs.mkdirSync(userDataPath + "/throws/");
-    
+
         // Ensure that we're not overwriting any existing files with the same name
         // If a file already exists, add an interating number to the end until it"s a unique filename
         var append = "";
@@ -264,10 +246,10 @@ async function loadImageCustom(customName)
             while (fs.existsSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
-    
+
         // Make a copy of the file into the local folder
         fs.copyFileSync(imageFile.path, userDataPath + "/throws/" + filename);
-        
+
         // Add the new image, update the data, and refresh the images page
         throws.unshift({
             "enabled": false,
@@ -276,19 +258,18 @@ async function loadImageCustom(customName)
             "scale": 1.0,
             "sound": null,
             "volume": 1.0,
-            "customs": [ customName ]
+            "customs": [customName]
         });
     }
     setData("throws", throws);
     openImagesCustom(customName);
     copyFilesToDirectory();
-    
+
     // Reset the image upload
     document.querySelector("#loadImageCustom").value = null;
 }
 
-async function openImagesCustom(customName)
-{
+async function openImagesCustom(customName) {
     // Refresh table to remove old event listeners
     var oldTable = document.querySelector("#imageTableCustom");
     var newTable = oldTable.cloneNode(true);
@@ -297,14 +278,12 @@ async function openImagesCustom(customName)
 
     document.querySelector("#newImageCustom").addEventListener("click", () => { document.querySelector("#loadImageCustom").click(); });
     document.querySelector("#loadImageCustom").addEventListener("change", () => { loadImageCustom(customName); });
-    
+
     var throws = await getData("throws");
 
     var allEnabled = true;
-    for (var i = 0; i < throws.length; i++)
-    {
-        if (!throws[i].customs.includes(customName))
-        {
+    for (var i = 0; i < throws.length; i++) {
+        if (!throws[i].customs.includes(customName)) {
             allEnabled = false;
             break;
         }
@@ -312,11 +291,10 @@ async function openImagesCustom(customName)
     document.querySelector("#imageTableCustom").querySelector(".selectAll input").checked = allEnabled;
 
     document.querySelector("#imageTableCustom").querySelector(".selectAll input").addEventListener("change", () => {
-        document.querySelector("#imageTableCustom").querySelectorAll(".imageEnabled").forEach((element) => { 
+        document.querySelector("#imageTableCustom").querySelectorAll(".imageEnabled").forEach((element) => {
             element.checked = document.querySelector("#imageTableCustom").querySelector(".selectAll input").checked;
         });
-        for (var i = 0; i < throws.length; i++)
-        {
+        for (var i = 0; i < throws.length; i++) {
             if (document.querySelector("#imageTableCustom").querySelector(".selectAll input").checked && !throws[i].customs.includes(customName))
                 throws[i].customs.push(customName);
             else if (!document.querySelector("#imageTableCustom").querySelector(".selectAll input").checked && throws[i].customs.includes(customName))
@@ -329,12 +307,9 @@ async function openImagesCustom(customName)
 
     if (throws == null)
         setData("throws", []);
-    else
-    {
-        throws.forEach((_, index) =>
-        {
-            if (fs.existsSync(userDataPath + "/" + throws[index].location))
-            {
+    else {
+        throws.forEach((_, index) => {
+            if (fs.existsSync(userDataPath + "/" + throws[index].location)) {
                 var row = document.querySelector("#imageRowCustom").cloneNode(true);
                 row.removeAttribute("id");
                 row.classList.add("imageRow");
@@ -342,7 +317,7 @@ async function openImagesCustom(customName)
                 document.querySelector("#imageTableCustom").appendChild(row);
 
                 row.querySelector(".imageLabel").innerText = throws[index].location.substr(throws[index].location.lastIndexOf('/') + 1);
-    
+
                 row.querySelector(".imageImage").src = userDataPath + "/" + throws[index].location;
 
                 row.querySelector(".imageEnabled").checked = throws[index].customs.includes(customName);
@@ -354,10 +329,8 @@ async function openImagesCustom(customName)
                     setData("throws", throws);
 
                     var allEnabled = true;
-                    for (var i = 0; i < throws.length; i++)
-                    {
-                        if (!throws[i].customs.includes(customName))
-                        {
+                    for (var i = 0; i < throws.length; i++) {
+                        if (!throws[i].customs.includes(customName)) {
                             allEnabled = false;
                             break;
                         }
@@ -365,8 +338,7 @@ async function openImagesCustom(customName)
                     document.querySelector("#imageTableCustom").querySelector(".selectAll input").checked = allEnabled;
                 });
             }
-            else
-            {
+            else {
                 throws.splice(index, 1);
                 setData("throws", throws);
             }
@@ -374,19 +346,17 @@ async function openImagesCustom(customName)
     }
 }
 
-async function loadSoundCustom(customName)
-{
+async function loadSoundCustom(customName) {
     var impacts = await getData("impacts");
     var files = document.querySelector("#loadSoundCustom").files;
-    for (var i = 0; i < files.length; i++)
-    {
+    for (var i = 0; i < files.length; i++) {
         var soundFile = files[i];
         if (!fs.existsSync(userDataPath + "/impacts/"))
             fs.mkdirSync(userDataPath + "/impacts/");
 
         var append = "";
         if (soundFile.path != userDataPath + "\\impacts\\" + soundFile.name)
-            while (fs.existsSync( userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+            while (fs.existsSync(userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
@@ -396,18 +366,17 @@ async function loadSoundCustom(customName)
             "location": "impacts/" + filename,
             "volume": 1.0,
             "enabled": false,
-            "customs": [ customName ]
+            "customs": [customName]
         });
     }
     setData("impacts", impacts);
     openSoundsCustom(customName);
     copyFilesToDirectory();
-    
+
     document.querySelector("#loadSoundCustom").value = null;
 }
 
-async function openSoundsCustom(customName)
-{
+async function openSoundsCustom(customName) {
     // Refresh table to remove old event listeners
     var oldTable = document.querySelector("#soundTableCustom");
     var newTable = oldTable.cloneNode(true);
@@ -420,10 +389,8 @@ async function openSoundsCustom(customName)
     var impacts = await getData("impacts");
 
     var allEnabled = true;
-    for (var i = 0; i < impacts.length; i++)
-    {
-        if (!impacts[i].customs.includes(customName))
-        {
+    for (var i = 0; i < impacts.length; i++) {
+        if (!impacts[i].customs.includes(customName)) {
             allEnabled = false;
             break;
         }
@@ -431,11 +398,10 @@ async function openSoundsCustom(customName)
     document.querySelector("#soundTableCustom").querySelector(".selectAll input").checked = allEnabled;
 
     document.querySelector("#soundTableCustom").querySelector(".selectAll input").addEventListener("change", () => {
-        document.querySelector("#soundTableCustom").querySelectorAll(".imageEnabled").forEach((element) => { 
+        document.querySelector("#soundTableCustom").querySelectorAll(".imageEnabled").forEach((element) => {
             element.checked = document.querySelector("#soundTableCustom").querySelector(".selectAll input").checked;
         });
-        for (var i = 0; i < impacts.length; i++)
-        {
+        for (var i = 0; i < impacts.length; i++) {
             if (document.querySelector("#soundTableCustom").querySelector(".selectAll input").checked && !impacts[i].customs.includes(customName))
                 impacts[i].customs.push(customName);
             else if (!document.querySelector("#soundTableCustom").querySelector(".selectAll input").checked && impacts[i].customs.includes(customName))
@@ -443,17 +409,14 @@ async function openSoundsCustom(customName)
         }
         setData("impacts", impacts);
     });
-    
+
     document.querySelector("#soundTableCustom").querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
 
     if (impacts == null)
         setData("impacts", []);
-    else
-    {
-        impacts.forEach((_, index) =>
-        {
-            if (fs.existsSync(userDataPath + "/" + impacts[index].location))
-            {
+    else {
+        impacts.forEach((_, index) => {
+            if (fs.existsSync(userDataPath + "/" + impacts[index].location)) {
                 var row = document.querySelector("#soundRowCustom").cloneNode(true);
                 row.removeAttribute("id");
                 row.classList.add("soundRow");
@@ -469,10 +432,8 @@ async function openSoundsCustom(customName)
                         impacts[index].customs.push(customName);
                     setData("impacts", impacts);
 
-                    for (var i = 0; i < impacts.length; i++)
-                    {
-                        if (!impacts[i].customs.includes(customName))
-                        {
+                    for (var i = 0; i < impacts.length; i++) {
+                        if (!impacts[i].customs.includes(customName)) {
                             allEnabled = false;
                             break;
                         }
@@ -480,8 +441,7 @@ async function openSoundsCustom(customName)
                     document.querySelector("#soundTableCustom").querySelector(".selectAll input").checked = allEnabled;
                 });
             }
-            else
-            {
+            else {
                 impacts.splice(index, 1);
                 setData("impacts", impacts);
             }
@@ -489,12 +449,10 @@ async function openSoundsCustom(customName)
     }
 }
 
-async function loadImpactDecal(customName)
-{
+async function loadImpactDecal(customName) {
     var customBonks = await getData("customBonks");
     var files = document.querySelector("#loadImpactDecal").files;
-    for (var i = 0; i < files.length; i++)
-    {
+    for (var i = 0; i < files.length; i++) {
         var imageFile = files[i];
         if (!fs.existsSync(userDataPath + "/decals/"))
             fs.mkdirSync(userDataPath + "/decals/");
@@ -517,12 +475,11 @@ async function loadImpactDecal(customName)
     setData("customBonks", customBonks);
     openImpactDecals(customName);
     copyFilesToDirectory();
-    
+
     document.querySelector("#loadImpactDecal").value = null;
 }
 
-async function openImpactDecals(customName)
-{
+async function openImpactDecals(customName) {
     // Refresh table to remove old event listeners
     var oldTable = document.querySelector("#impactDecalsTable");
     var newTable = oldTable.cloneNode(true);
@@ -535,10 +492,8 @@ async function openImpactDecals(customName)
     var customBonks = await getData("customBonks");
 
     var allEnabled = true;
-    for (var i = 0; i < customBonks[customName].impactDecals.length; i++)
-    {
-        if (!customBonks[customName].impactDecals[i].enabled)
-        {
+    for (var i = 0; i < customBonks[customName].impactDecals.length; i++) {
+        if (!customBonks[customName].impactDecals[i].enabled) {
             allEnabled = false;
             break;
         }
@@ -546,20 +501,18 @@ async function openImpactDecals(customName)
     document.querySelector("#impactDecalsTable").querySelector(".selectAll input").checked = allEnabled;
 
     document.querySelector("#impactDecalsTable").querySelector(".selectAll input").addEventListener("change", async () => {
-        document.querySelector("#impactDecalsTable").querySelectorAll(".imageEnabled").forEach((element) => { 
+        document.querySelector("#impactDecalsTable").querySelectorAll(".imageEnabled").forEach((element) => {
             element.checked = document.querySelector("#impactDecalsTable").querySelector(".selectAll input").checked;
         });
         for (var i = 0; i < customBonks[customName].impactDecals.length; i++)
             customBonks[customName].impactDecals[i].enabled = document.querySelector("#impactDecalsTable").querySelector(".selectAll input").checked;
         setData("customBonks", customBonks);
     });
-    
+
     document.querySelector("#impactDecalsTable").querySelectorAll(".imageRow").forEach((element) => { element.remove(); });
 
-    customBonks[customName].impactDecals.forEach((_, index) =>
-    {
-        if (fs.existsSync(userDataPath + "/" + customBonks[customName].impactDecals[index].location))
-        {
+    customBonks[customName].impactDecals.forEach((_, index) => {
+        if (fs.existsSync(userDataPath + "/" + customBonks[customName].impactDecals[index].location)) {
             var row = document.querySelector("#impactDecalRow").cloneNode(true);
             row.removeAttribute("id");
             row.classList.add("imageRow");
@@ -581,10 +534,8 @@ async function openImpactDecals(customName)
                 setData("customBonks", customBonks);
 
                 var allEnabled = true;
-                for (var i = 0; i < customBonks[customName].impactDecals.length; i++)
-                {
-                    if (!customBonks[customName].impactDecals[i].enabled)
-                    {
+                for (var i = 0; i < customBonks[customName].impactDecals.length; i++) {
+                    if (!customBonks[customName].impactDecals[i].enabled) {
                         allEnabled = false;
                         break;
                     }
@@ -606,20 +557,17 @@ async function openImpactDecals(customName)
                 setData("customBonks", customBonks);
             });
         }
-        else
-        {
+        else {
             customBonks[customName].impactDecals.splice(index, 1);
             setData("customBonks", customBonks);
         }
     });
 }
 
-async function loadWindupSound(customName)
-{
+async function loadWindupSound(customName) {
     var customBonks = await getData("customBonks");
     var files = document.querySelector("#loadWindupSound").files;
-    for (var i = 0; i < files.length; i++)
-    {
+    for (var i = 0; i < files.length; i++) {
         var soundFile = files[i];
         if (!fs.existsSync(userDataPath + "/windups/"))
             fs.mkdirSync(userDataPath + "/windups/");
@@ -641,12 +589,11 @@ async function loadWindupSound(customName)
     setData("customBonks", customBonks);
     openWindupSounds(customName);
     copyFilesToDirectory();
-    
+
     document.querySelector("#loadWindupSound").value = null;
 }
 
-async function openWindupSounds(customName)
-{
+async function openWindupSounds(customName) {
     // Refresh table to remove old event listeners
     var oldTable = document.querySelector("#windupSoundTable");
     var newTable = oldTable.cloneNode(true);
@@ -659,10 +606,8 @@ async function openWindupSounds(customName)
     var customBonks = await getData("customBonks");
 
     var allEnabled = true;
-    for (var i = 0; i < customBonks[customName].windupSounds.length; i++)
-    {
-        if (!customBonks[customName].windupSounds[i].enabled)
-        {
+    for (var i = 0; i < customBonks[customName].windupSounds.length; i++) {
+        if (!customBonks[customName].windupSounds[i].enabled) {
             allEnabled = false;
             break;
         }
@@ -670,20 +615,18 @@ async function openWindupSounds(customName)
     document.querySelector("#windupSoundTable").querySelector(".selectAll input").checked = allEnabled;
 
     document.querySelector("#windupSoundTable").querySelector(".selectAll input").addEventListener("change", async () => {
-        document.querySelector("#windupSoundTable").querySelectorAll(".imageEnabled").forEach((element) => { 
+        document.querySelector("#windupSoundTable").querySelectorAll(".imageEnabled").forEach((element) => {
             element.checked = document.querySelector("#windupSoundTable").querySelector(".selectAll input").checked;
         });
         for (var i = 0; i < customBonks[customName].windupSounds.length; i++)
             customBonks[customName].windupSounds[i].enabled = document.querySelector("#windupSoundTable").querySelector(".selectAll input").checked;
         setData("customBonks", customBonks);
     });
-    
+
     document.querySelector("#windupSoundTable").querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
 
-    customBonks[customName].windupSounds.forEach((_, index) =>
-    {
-        if (fs.existsSync(userDataPath + "/" + customBonks[customName].windupSounds[index].location))
-        {
+    customBonks[customName].windupSounds.forEach((_, index) => {
+        if (fs.existsSync(userDataPath + "/" + customBonks[customName].windupSounds[index].location)) {
             var row = document.querySelector("#windupSoundRow").cloneNode(true);
             row.removeAttribute("id");
             row.classList.add("soundRow");
@@ -703,10 +646,8 @@ async function openWindupSounds(customName)
                 setData("customBonks", customBonks);
 
                 var allEnabled = true;
-                for (var i = 0; i < customBonks[customName].windupSounds.length; i++)
-                {
-                    if (!customBonks[customName].windupSounds[i].enabled)
-                    {
+                for (var i = 0; i < customBonks[customName].windupSounds.length; i++) {
+                    if (!customBonks[customName].windupSounds[i].enabled) {
                         allEnabled = false;
                         break;
                     }
@@ -721,8 +662,7 @@ async function openWindupSounds(customName)
                 setData("customBonks", customBonks);
             });
         }
-        else
-        {
+        else {
             customBonks[customName].windupSounds.splice(index, 1);
             setData("customBonks", customBonks);
         }
@@ -769,8 +709,7 @@ document.querySelector("#bit10000").querySelector(".bitImageScale").addEventList
 document.querySelector("#bitImageAdd10000").addEventListener("click", () => { document.querySelector("#loadBitImagetenThousand").click(); });
 document.querySelector("#loadBitImagetenThousand").addEventListener("change", () => { loadBitImage("tenThousand") });
 
-async function loadBitImage(key)
-{
+async function loadBitImage(key) {
     var bitThrows = await getData("bitThrows");
     var files = document.querySelector("#loadBitImage" + key).files;
     // Grab the image that was just loaded
@@ -789,23 +728,21 @@ async function loadBitImage(key)
 
     // Make a copy of the file into the local folder
     fs.copyFileSync(imageFile.path, userDataPath + "/throws/" + filename);
-    
+
     // Add the new image, update the data, and refresh the images page
     bitThrows[key].location = "throws/" + filename;
     setData("bitThrows", bitThrows);
     openBitImages();
     copyFilesToDirectory();
-    
+
     // Reset the image upload
     document.querySelector("#loadBitImage" + key).value = null;
 }
 
-async function openBitImages()
-{
+async function openBitImages() {
     var bitThrows = await getData("bitThrows");
 
-    if (bitThrows == null)
-    {
+    if (bitThrows == null) {
         bitThrows = defaultData.bitThrows;
         setData("bitThrows", bitThrows);
     }
@@ -828,8 +765,7 @@ async function openBitImages()
 
 document.querySelector("#loadImageSound").addEventListener("change", loadImageSound);
 
-async function loadImageSound()
-{
+async function loadImageSound() {
     // Grab the image that was just loaded
     var soundFile = document.querySelector("#loadImageSound").files[0];
     // If the folder for objects doesn"t exist for some reason, make it
@@ -840,18 +776,18 @@ async function loadImageSound()
     // If a file already exists, add an interating number to the end until it"s a unique filename
     var append = "";
     if (soundFile.path != userDataPath + "\\impacts\\" + soundFile.name)
-        while (fs.existsSync( userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+        while (fs.existsSync(userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
             append = append == "" ? 2 : (append + 1);
     var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
     // Make a copy of the file into the local folder
     fs.copyFileSync(soundFile.path, userDataPath + "/impacts/" + filename);
-    
+
     // Get the existing images, add the new image, update the data, and refresh the images page
     var throws = await getData("throws");
     throws[currentImageIndex].sound = "impacts/" + filename;
     setData("throws", throws);
-    
+
     // Reset the image upload
     document.querySelector("#loadImageSound").value = null;
     openImageDetails(currentImageIndex);
@@ -859,8 +795,7 @@ async function loadImageSound()
 }
 
 var currentImageIndex = -1;
-async function openImageDetails()
-{
+async function openImageDetails() {
     var throws = await getData("throws");
 
     // Refresh nodes to remove old listeners
@@ -884,13 +819,11 @@ async function openImageDetails()
     details.querySelector(".imageImage").style.transform = "scale(" + throws[currentImageIndex].scale + ")";
     details.querySelector(".imageWeight").value = throws[currentImageIndex].weight;
     details.querySelector(".imageScale").value = throws[currentImageIndex].scale;
-    if (throws[currentImageIndex].sound != null)
-    {
+    if (throws[currentImageIndex].sound != null) {
         details.querySelector(".imageSoundName").value = throws[currentImageIndex].sound.substr(8);
         details.querySelector(".imageSoundRemove").removeAttribute("disabled");
     }
-    else
-    {
+    else {
         details.querySelector(".imageSoundName").value = null;
         details.querySelector(".imageSoundRemove").disabled = "disabled";
     }
@@ -924,19 +857,17 @@ async function openImageDetails()
 document.querySelector("#newSound").addEventListener("click", () => { document.querySelector("#loadSound").click(); });
 document.querySelector("#loadSound").addEventListener("change", loadSound);
 
-async function loadSound()
-{
+async function loadSound() {
     var impacts = await getData("impacts");
     var files = document.querySelector("#loadSound").files;
-    for (var i = 0; i < files.length; i++)
-    {
+    for (var i = 0; i < files.length; i++) {
         var soundFile = files[i];
         if (!fs.existsSync(userDataPath + "/impacts/"))
             fs.mkdirSync(userDataPath + "/impacts/");
 
         var append = "";
         if (soundFile.path != userDataPath + "\\impacts\\" + soundFile.name)
-            while (fs.existsSync( userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+            while (fs.existsSync(userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
                 append = append == "" ? 2 : (append + 1);
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
@@ -953,12 +884,12 @@ async function loadSound()
     setData("impacts", impacts);
     openSounds();
     copyFilesToDirectory();
-    
+
     document.querySelector("#loadSound").value = null;
 }
 
 document.querySelector("#soundTable").querySelector(".selectAll input").addEventListener("change", async () => {
-    document.querySelector("#soundTable").querySelectorAll(".imageEnabled").forEach((element) => { 
+    document.querySelector("#soundTable").querySelectorAll(".imageEnabled").forEach((element) => {
         element.checked = document.querySelector("#soundTable").querySelector(".selectAll input").checked;
     });
     var impacts = await getData("impacts");
@@ -967,20 +898,16 @@ document.querySelector("#soundTable").querySelector(".selectAll input").addEvent
     setData("impacts", impacts);
 });
 
-async function openSounds()
-{
+async function openSounds() {
     var impacts = await getData("impacts");
-    
+
     document.querySelector("#soundTable").querySelectorAll(".soundRow").forEach((element) => { element.remove(); });
 
     if (impacts == null)
         setData("impacts", []);
-    else
-    {
-        impacts.forEach((_, index) =>
-        {
-            if (fs.existsSync(userDataPath + "/" + impacts[index].location))
-            {
+    else {
+        impacts.forEach((_, index) => {
+            if (fs.existsSync(userDataPath + "/" + impacts[index].location)) {
                 var row = document.querySelector("#soundRow").cloneNode(true);
                 row.removeAttribute("id");
                 row.classList.add("soundRow");
@@ -1000,10 +927,8 @@ async function openSounds()
                     setData("impacts", impacts);
 
                     var allEnabled = true;
-                    for (var i = 0; i < impacts.length; i++)
-                    {
-                        if (!impacts[i].enabled)
-                        {
+                    for (var i = 0; i < impacts.length; i++) {
+                        if (!impacts[i].enabled) {
                             allEnabled = false;
                             break;
                         }
@@ -1018,8 +943,7 @@ async function openSounds()
                     setData("impacts", impacts);
                 });
             }
-            else
-            {
+            else {
                 impacts.splice(index, 1);
                 setData("impacts", impacts);
             }
@@ -1030,12 +954,10 @@ async function openSounds()
 document.querySelector("#newBitSound").addEventListener("click", () => { document.querySelector("#loadBitSound").click(); });
 document.querySelector("#loadBitSound").addEventListener("change", loadBitSound);
 
-async function loadBitSound()
-{
+async function loadBitSound() {
     var impacts = await getData("impacts");
     var files = document.querySelector("#loadBitSound").files;
-    for (var i = 0; i < files.length; i++)
-    {
+    for (var i = 0; i < files.length; i++) {
         var soundFile = files[i];
         if (!fs.existsSync(userDataPath + "/impacts/"))
             fs.mkdirSync(userDataPath + "/impacts/");
@@ -1046,7 +968,7 @@ async function loadBitSound()
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
         fs.copyFileSync(soundFile.path, userDataPath + "/impacts/" + filename);
-        
+
         impacts.unshift({
             "location": "impacts/" + filename,
             "volume": 1.0,
@@ -1063,7 +985,7 @@ async function loadBitSound()
 }
 
 document.querySelector("#bitSoundTable").querySelector(".selectAll input").addEventListener("change", async () => {
-    document.querySelector("#bitSoundTable").querySelectorAll(".imageEnabled").forEach((element) => { 
+    document.querySelector("#bitSoundTable").querySelectorAll(".imageEnabled").forEach((element) => {
         element.checked = document.querySelector("#bitSoundTable").querySelector(".selectAll input").checked;
     });
     var impacts = await getData("impacts");
@@ -1072,20 +994,16 @@ document.querySelector("#bitSoundTable").querySelector(".selectAll input").addEv
     setData("impacts", impacts);
 });
 
-async function openBitSounds()
-{
+async function openBitSounds() {
     var impacts = await getData("impacts");
-    
+
     document.querySelectorAll(".bitSoundRow").forEach((element) => { element.remove(); });
 
     if (impacts == null)
         setData("impacts", []);
-    else
-    {
-        impacts.forEach((_, index) =>
-        {
-            if (fs.existsSync(userDataPath + "/" + impacts[index].location))
-            {
+    else {
+        impacts.forEach((_, index) => {
+            if (fs.existsSync(userDataPath + "/" + impacts[index].location)) {
                 var row = document.querySelector("#bitSoundRow").cloneNode(true);
                 row.removeAttribute("id");
                 row.classList.add("bitSoundRow");
@@ -1099,10 +1017,8 @@ async function openBitSounds()
                     setData("impacts", impacts);
 
                     var allEnabled = true;
-                    for (var i = 0; i < impacts.length; i++)
-                    {
-                        if (!impacts[i].bits)
-                        {
+                    for (var i = 0; i < impacts.length; i++) {
+                        if (!impacts[i].bits) {
                             allEnabled = false;
                             break;
                         }
@@ -1110,8 +1026,7 @@ async function openBitSounds()
                     document.querySelector("#bitSoundTable").querySelector(".selectAll input").checked = allEnabled;
                 });
             }
-            else
-            {
+            else {
                 impacts.splice(index, 1);
                 setData("impacts", impacts);
             }
@@ -1121,13 +1036,12 @@ async function openBitSounds()
 
 document.querySelector("#bonksAdd").addEventListener("click", addBonk);
 
-async function addBonk()
-{
+async function addBonk() {
     var newBonkNumber = 1;
     var customBonks = await getData("customBonks");
     if (customBonks == null)
         customBonks = {};
-    
+
     while (customBonks["Custom Bonk " + newBonkNumber] != null)
         newBonkNumber++;
 
@@ -1162,16 +1076,14 @@ async function addBonk()
         if (impacts[i].enabled)
             impacts[i].customs.push("Custom Bonk " + newBonkNumber);
     setData("impacts", impacts);
-    
+
     openBonks();
 }
 
-async function bonkDetails(customBonkName)
-{
+async function bonkDetails(customBonkName) {
     var customBonks = await getData("customBonks");
 
-    if (customBonks[customBonkName] != null)
-    {
+    if (customBonks[customBonkName] != null) {
         showPanel("bonkDetails", true);
 
         // Copy new elements to remove all old listeners
@@ -1186,16 +1098,13 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".bonkName").value = customBonkName;
         bonkDetailsTable.querySelector(".bonkName").addEventListener("change", async () => {
             customBonks = await getData("customBonks");
-            if (customBonks[bonkDetailsTable.querySelector(".bonkName").value] == null)
-            {
+            if (customBonks[bonkDetailsTable.querySelector(".bonkName").value] == null) {
                 customBonks[bonkDetailsTable.querySelector(".bonkName").value] = customBonks[customBonkName];
                 delete customBonks[customBonkName];
 
                 var throws = await getData("throws");
-                for (var i = 0; i < throws.length; i++)
-                {
-                    if (throws[i].customs.includes(customBonkName))
-                    {
+                for (var i = 0; i < throws.length; i++) {
+                    if (throws[i].customs.includes(customBonkName)) {
                         throws[i].customs.splice(throws[i].customs.indexOf(customBonkName), 1);
                         throws[i].customs.push(bonkDetailsTable.querySelector(".bonkName").value);
                     }
@@ -1203,10 +1112,8 @@ async function bonkDetails(customBonkName)
                 setData("throws", throws);
 
                 var impacts = await getData("impacts");
-                for (var i = 0; i < impacts.length; i++)
-                {
-                    if (impacts[i].customs.includes(customBonkName))
-                    {
+                for (var i = 0; i < impacts.length; i++) {
+                    if (impacts[i].customs.includes(customBonkName)) {
                         impacts[i].customs.splice(impacts[i].customs.indexOf(customBonkName), 1);
                         impacts[i].customs.push(bonkDetailsTable.querySelector(".bonkName").value);
                     }
@@ -1215,8 +1122,7 @@ async function bonkDetails(customBonkName)
 
                 customBonkName = bonkDetailsTable.querySelector(".bonkName").value;
             }
-            else
-            {
+            else {
                 // Error: Name exists
             }
             setData("customBonks", customBonks);
@@ -1328,8 +1234,7 @@ async function bonkDetails(customBonkName)
         });
 
         bonkDetailsTable.querySelector(".images").addEventListener("click", () => {
-            if (!bonkDetailsTable.querySelector(".images").disabled)
-            {
+            if (!bonkDetailsTable.querySelector(".images").disabled) {
                 openImagesCustom(customBonkName);
                 showPanel("bonkImagesCustom", true);
             }
@@ -1346,8 +1251,7 @@ async function bonkDetails(customBonkName)
         });
 
         bonkDetailsTable.querySelector(".sounds").addEventListener("click", () => {
-            if (!bonkDetailsTable.querySelector(".sounds").disabled)
-            {
+            if (!bonkDetailsTable.querySelector(".sounds").disabled) {
                 openSoundsCustom(customBonkName);
                 showPanel("bonkSoundsCustom", true);
             }
@@ -1375,18 +1279,15 @@ async function bonkDetails(customBonkName)
     }
 }
 
-async function openBonks()
-{
+async function openBonks() {
     var customBonks = await getData("customBonks");
 
     document.querySelectorAll(".customBonkRow").forEach(element => { element.remove(); });
 
     if (customBonks == null)
         setData("customBonks", {});
-    else
-    {
-        for (const key in customBonks)
-        {
+    else {
+        for (const key in customBonks) {
             const row = document.querySelector("#customBonkRow").cloneNode(true);
             row.removeAttribute("id");
             row.removeAttribute("hidden");
@@ -1404,16 +1305,14 @@ async function openBonks()
                 setData("customBonks", customBonks);
 
                 var throws = await getData("throws");
-                for (var i = 0; i < throws.length; i++)
-                {
+                for (var i = 0; i < throws.length; i++) {
                     if (throws[i].customs.includes(key))
                         throws[i].customs.splice(throws[i].customs.indexOf(key), 1);
                 }
                 setData("throws", throws);
 
                 var impacts = await getData("impacts");
-                for (var i = 0; i < impacts.length; i++)
-                {
+                for (var i = 0; i < impacts.length; i++) {
                     if (impacts[i].customs.includes(key))
                         impacts[i].customs.splice(impacts[i].customs.indexOf(key), 1);
                 }
@@ -1421,16 +1320,14 @@ async function openBonks()
                 setData("impacts", impacts);
 
                 var eventType = await getData("redeems");
-                for (var i = 0; i < eventType.length; i++)
-                {
+                for (var i = 0; i < eventType.length; i++) {
                     if (eventType[i].bonkType == key)
                         eventType[i].bonkType = "single";
                 }
                 setData("redeems", eventType);
 
                 eventType = await getData("commands");
-                for (var i = 0; i < eventType.length; i++)
-                {
+                for (var i = 0; i < eventType.length; i++) {
                     if (eventType[i].bonkType == key)
                         eventType[i].bonkType = "single";
                 }
@@ -1450,18 +1347,15 @@ async function openBonks()
     }
 }
 
-async function openTestBonks()
-{
+async function openTestBonks() {
     var customBonks = await getData("customBonks");
 
     document.querySelectorAll(".testCustom").forEach(element => { element.remove(); });
 
     if (customBonks == null)
         setData("customBonks", {});
-    else
-    {
-        for (const key in customBonks)
-        {
+    else {
+        for (const key in customBonks) {
             const row = document.querySelector("#testCustom").cloneNode(true);
             row.removeAttribute("id");
             row.removeAttribute("hidden");
@@ -1478,8 +1372,7 @@ async function openTestBonks()
 document.querySelector("#redeemAdd").addEventListener("click", newRedeem);
 
 // Create a new redeem event
-async function newRedeem()
-{
+async function newRedeem() {
     var redeems = await getData("redeems");
 
     redeems.push({
@@ -1497,8 +1390,7 @@ async function newRedeem()
 document.querySelector("#commandAdd").addEventListener("click", newCommand);
 
 // Create a new command event
-async function newCommand()
-{
+async function newCommand() {
     var commands = await getData("commands");
 
     commands.push({
@@ -1514,8 +1406,7 @@ async function newCommand()
 }
 
 var gettingRedeemData = false, redeemData, cancelledGetRedeemData = false;
-async function getRedeemData()
-{
+async function getRedeemData() {
     gettingRedeemData = true;
     cancelledGetRedeemData = false;
     ipcRenderer.send("listenRedeemStart");
@@ -1531,8 +1422,7 @@ ipcRenderer.on("redeemData", (event, message) => {
     gettingRedeemData = false;
 });
 
-async function openEvents()
-{
+async function openEvents() {
     const customBonks = await getData("customBonks");
 
     // Fill redeem rows
@@ -1540,8 +1430,7 @@ async function openEvents()
 
     document.querySelectorAll(".redeemsRow").forEach(element => { element.remove(); });
 
-    redeems.forEach((_, index) =>
-    {
+    redeems.forEach((_, index) => {
         var row = document.querySelector("#redeemsRow").cloneNode(true);
         row.removeAttribute("id");
         row.classList.add("redeemsRow");
@@ -1555,14 +1444,13 @@ async function openEvents()
         });
 
         row.querySelector(".redeemName").innerHTML = redeems[index].name == null ? "<b class=\"errorText\">Unassigned</b>" : redeems[index].name;
-        
+
         row.querySelector(".redeemID").addEventListener("click", async () => {
             row.querySelector(".redeemID").classList.add("hidden");
             row.querySelector(".redeemCancel").classList.remove("hidden");
             row.querySelector(".redeemName").innerText = "Listening...";
             var data = await getRedeemData();
-            if (!cancelledGetRedeemData)
-            {
+            if (!cancelledGetRedeemData) {
                 row.querySelector(".redeemID").classList.remove("hidden");
                 row.querySelector(".redeemCancel").classList.add("hidden");
                 redeems[index].id = data[0];
@@ -1571,11 +1459,11 @@ async function openEvents()
                 setData("redeems", redeems);
             }
         });
-        
+
         row.querySelector(".redeemCancel").addEventListener("click", async () => {
             row.querySelector(".redeemID").classList.remove("hidden");
             row.querySelector(".redeemCancel").classList.add("hidden");
-            
+
             row.querySelector(".redeemName").innerHTML = redeems[index].name == null ? "<b class=\"errorText\">Unassigned</b>" : redeems[index].name;
 
             cancelledGetRedeemData = true;
@@ -1583,8 +1471,7 @@ async function openEvents()
             ipcRenderer.send("listenRedeemCancel");
         });
 
-        for (var key in customBonks)
-        {
+        for (var key in customBonks) {
             var customBonk = document.createElement("option");
             customBonk.value = key;
             customBonk.innerText = key;
@@ -1608,9 +1495,8 @@ async function openEvents()
     var commands = await getData("commands");
 
     document.querySelectorAll(".commandsRow").forEach(element => { element.remove(); });
-    
-    commands.forEach((_, index) =>
-    {
+
+    commands.forEach((_, index) => {
         var row = document.querySelector("#commandsRow").cloneNode(true);
         row.removeAttribute("id");
         row.classList.add("commandsRow");
@@ -1635,8 +1521,7 @@ async function openEvents()
             setData("commands", commands);
         });
 
-        for (var key in customBonks)
-        {
+        for (var key in customBonks) {
             var customBonk = document.createElement("option");
             customBonk.value = key;
             customBonk.innerText = key;
@@ -1660,8 +1545,7 @@ async function openEvents()
     while (node.childElementCount > 4)
         node.removeChild(node.lastChild);
 
-    for (var key in customBonks)
-    {
+    for (var key in customBonks) {
         var customBonk = document.createElement("option");
         customBonk.value = key;
         customBonk.innerText = key;
@@ -1673,8 +1557,7 @@ async function openEvents()
     while (node.childElementCount > 4)
         node.removeChild(node.lastChild);
 
-    for (var key in customBonks)
-    {
+    for (var key in customBonks) {
         var customBonk = document.createElement("option");
         customBonk.value = key;
         customBonk.innerText = key;
@@ -1685,8 +1568,7 @@ async function openEvents()
     while (node.childElementCount > 4)
         node.removeChild(node.lastChild);
 
-    for (var key in customBonks)
-    {
+    for (var key in customBonks) {
         var customBonk = document.createElement("option");
         customBonk.value = key;
         customBonk.innerText = key;
@@ -1710,8 +1592,7 @@ ipcRenderer.on("doneWriting", () => {
 });
 
 // Get requested data, waiting for any current writes to finish first
-async function getData(field)
-{
+async function getData(field) {
     while (isWriting > 0)
         await new Promise(resolve => setTimeout(resolve, 10));
 
@@ -1721,69 +1602,59 @@ async function getData(field)
     var data;
     // An error should only be thrown if the other process is in the middle of writing to the file.
     // If so, it should finish shortly and this loop will exit.
-    while (data == null)
-    {
+    while (data == null) {
         try {
             data = JSON.parse(fs.readFileSync(userDataPath + "/data.json", "utf8"));
-        } catch {}
+        } catch { }
     }
     data = JSON.parse(fs.readFileSync(userDataPath + "/data.json", "utf8"));
     return data[field];
 }
 
 // Send new data to the main process to write to file
-function setData(field, value)
-{
+function setData(field, value) {
     isWriting++;
-    ipcRenderer.send("setData", [ field, value ]);
-    
+    ipcRenderer.send("setData", [field, value]);
+
     if (field == "portThrower" || field == "portVTubeStudio")
         setPorts();
 }
 
 // If ports change, write them to the file read by the Browser Source file
-async function setPorts()
-{
+async function setPorts() {
     fs.writeFileSync(__dirname + "/ports.js", "const ports = [ " + await getData("portThrower") + ", " + await getData("portVTubeStudio") + " ];");
 }
 
 // Load the requested data and apply it to the relevant settings field
-async function loadData(field)
-{
+async function loadData(field) {
     // Enable physics simulation for all users upon updating to 1.19
-    if (field == "physicsSim")
-    {
+    if (field == "physicsSim") {
         var didPhysicsUpdate = await getData("didPhysicsUpdate");
-        if (didPhysicsUpdate == null)
-        {
+        if (didPhysicsUpdate == null) {
             setData("physicsSim", true);
             setData("didPhysicsUpdate", true);
         }
     }
 
     const thisData = await getData(field);
-    if (thisData != null)
-    {
+    if (thisData != null) {
         if (document.querySelector("#" + field).type == "checkbox")
             document.querySelector("#" + field).checked = thisData;
-        else
-        {
+        else {
             document.querySelector("#" + field).value = thisData;
             if (field == "portThrower" || field == "portVTubeStudio")
                 setPorts();
         }
     }
-    else
-    {
+    else {
         const node = document.querySelector("#" + field);
         const val = node.type == "checkbox" ? node.checked : (node.type == "number" ? parseFloat(node.value) : node.value);
         setData(field, val);
     }
 }
 
-const folders = [ "throws", "impacts", "decals", "windups" ];
-function copyFilesToDirectory()
-{
+const folders = ["throws", "impacts", "decals", "windups"];
+function copyFilesToDirectory() {
     folders.forEach((folder) => {
         if (!fs.existsSync(__dirname + "/" + folder))
             fs.mkdirSync(__dirname + "/" + folder);
@@ -1795,18 +1666,23 @@ function copyFilesToDirectory()
 }
 
 // Place all settings from data into the proper location on load
-window.onload = async function()
-{
+window.onload = async function () {
     // UPDATE 1.19 (or new installation)
     if (!fs.existsSync(userDataPath))
         fs.mkdirSync(userDataPath);
 
     if (!fs.existsSync(userDataPath + "/data.json") && fs.existsSync(__dirname + "/data.json"))
         fs.copyFileSync(__dirname + "/data.json", userDataPath + "/data.json");
-    
+
     folders.forEach((folder) => {
         if (!fs.existsSync(userDataPath + "/" + folder))
             fs.mkdirSync(userDataPath + "/" + folder);
+
+        // Fix: fixed a dictionary not found crash.
+        // When directly launch kbonk after packaging without folders "decals" or "windups" would cause this crash.
+        // by adding this condition would fix (or just simply add those two folders)
+        if (!fs.existsSync(__dirname + "/" + folder))
+            fs.mkdirSync(__dirname + "/" + folder);
 
         fs.readdirSync(__dirname + "/" + folder).forEach(file => {
             if (!fs.existsSync(userDataPath + "/" + folder + "/" + file))
@@ -1816,10 +1692,8 @@ window.onload = async function()
 
     // UPDATING FROM 1.0.1 OR EARLIER
     var throws = await getData("throws");
-    for (var i = 0; i < throws.length; i++)
-    {
-        if (Array.isArray(throws[i]))
-        {
+    for (var i = 0; i < throws.length; i++) {
+        if (Array.isArray(throws[i])) {
             throws[i] = {
                 "location": throws[i][0],
                 "weight": throws[i][1],
@@ -1836,10 +1710,8 @@ window.onload = async function()
     var impacts = await getData("impacts");
     var bitImpacts = await getData("bitImpacts");
     var hasBitImpacts = bitImpacts != null && bitImpacts.length > 0;
-    for (var i = 0; i < impacts.length; i++)
-    {
-        if (Array.isArray(impacts[i]))
-        {
+    for (var i = 0; i < impacts.length; i++) {
+        if (Array.isArray(impacts[i])) {
             impacts[i] = {
                 "location": impacts[i][0],
                 "volume": impacts[i][1],
@@ -1851,11 +1723,9 @@ window.onload = async function()
     }
     setData("impacts", impacts);
 
-    if (bitImpacts != null)
-    {
+    if (bitImpacts != null) {
         var impacts = await getData("impacts");
-        for (var i = 0; i < bitImpacts.length; i++)
-        {
+        for (var i = 0; i < bitImpacts.length; i++) {
             impacts.push({
                 "location": bitImpacts[i][0],
                 "volume": bitImpacts[i][1],
@@ -1870,14 +1740,12 @@ window.onload = async function()
     }
 
     var redeems = await getData("redeems");
-    if (redeems == null)
-    {
+    if (redeems == null) {
         redeems = [];
 
         var oldId = await getData("singleRedeemID");
         var oldEnabled = await getData("singleRedeemEnabled");
-        if (oldId != null && oldId != "")
-        {
+        if (oldId != null && oldId != "") {
             redeems.push({
                 "enabled": oldEnabled == null || !oldEnabled ? false : true,
                 "id": oldId,
@@ -1888,8 +1756,7 @@ window.onload = async function()
 
         oldId = await getData("barrageRedeemID");
         oldEnabled = await getData("barrageRedeemEnabled");
-        if (oldId != null && oldId != "")
-        {
+        if (oldId != null && oldId != "") {
             redeems.push({
                 "enabled": oldEnabled == null || !oldEnabled ? false : true,
                 "id": oldId,
@@ -1902,14 +1769,12 @@ window.onload = async function()
     }
 
     var commands = await getData("commands");
-    if (commands == null)
-    {
+    if (commands == null) {
         commands = [];
 
         var oldCommand = await getData("singleCommandTitle");
         var oldEnabled = await getData("singleCommandEnabled");
-        if (oldCommand != null && oldCommand != "")
-        {
+        if (oldCommand != null && oldCommand != "") {
             commands.push({
                 "enabled": oldEnabled == null || !oldEnabled ? false : true,
                 "name": oldCommand,
@@ -1920,8 +1785,7 @@ window.onload = async function()
 
         oldCommand = await getData("barrageCommandTitle");
         oldEnabled = await getData("barrageCommandEnabled");
-        if (oldCommand != null && oldCommand != "")
-        {
+        if (oldCommand != null && oldCommand != "") {
             commands.push({
                 "enabled": oldEnabled == null || !oldEnabled ? false : true,
                 "name": oldCommand,
@@ -1935,10 +1799,8 @@ window.onload = async function()
 
     // UPDATE 1.12
     var customBonks = await getData("customBonks");
-    if (customBonks != null)
-    {
-        for (const key in customBonks)
-        {
+    if (customBonks != null) {
+        for (const key in customBonks) {
             if (customBonks[key].spinSpeedOverride == null)
                 customBonks[key].spinSpeedOverride = false;
             if (customBonks[key].spinSpeedMin == null)
@@ -2004,7 +1866,7 @@ window.onload = async function()
     loadData("portThrower");
     loadData("portVTubeStudio");
     loadData("minimizeToTray");
-    
+
     openImages();
     openBitImages();
     copyFilesToDirectory();
@@ -2060,8 +1922,7 @@ document.querySelector("#physicsVertical").addEventListener("change", () => { se
 document.querySelector("#closeEyes").addEventListener("change", () => {
     const val = document.querySelector("#closeEyes").checked;
     setData("closeEyes", val);
-    if (val)
-    {
+    if (val) {
         document.querySelector("#openEyes").checked = false;
         setData("openEyes", false);
     }
@@ -2070,8 +1931,7 @@ document.querySelector("#closeEyes").addEventListener("change", () => {
 document.querySelector("#openEyes").addEventListener("change", () => {
     const val = document.querySelector("#openEyes").checked;
     setData("openEyes", val);
-    if (val)
-    {
+    if (val) {
         document.querySelector("#closeEyes").checked = false;
         setData("closeEyes", false);
     }
@@ -2079,14 +1939,13 @@ document.querySelector("#openEyes").addEventListener("change", () => {
 
 document.querySelector("#itemScaleMin").addEventListener("change", () => { clampValue(document.querySelector("#itemScaleMin"), 0, parseFloat(document.querySelector("#itemScaleMax").value)); setData("itemScaleMin", parseFloat(document.querySelector("#itemScaleMin").value)) });
 document.querySelector("#itemScaleMax").addEventListener("change", () => { clampValue(document.querySelector("#itemScaleMax"), parseFloat(document.querySelector("#itemScaleMin").value), null); setData("itemScaleMax", parseFloat(document.querySelector("#itemScaleMax").value)) });
-document.querySelector("#delay").addEventListener("change", () => { clampValue(document.querySelector("#delay"), 0, null); setData("delay", parseInt(document.querySelector("#delay").value)) } );
+document.querySelector("#delay").addEventListener("change", () => { clampValue(document.querySelector("#delay"), 0, null); setData("delay", parseInt(document.querySelector("#delay").value)) });
 document.querySelector("#volume").addEventListener("change", () => { clampValue(document.querySelector("#volume"), 0, 1); setData("volume", parseFloat(document.querySelector("#volume").value)) });
 document.querySelector("#portThrower").addEventListener("change", () => setData("portThrower", parseInt(document.querySelector("#portThrower").value)));
 document.querySelector("#portVTubeStudio").addEventListener("change", () => setData("portVTubeStudio", parseInt(document.querySelector("#portVTubeStudio").value)));
 document.querySelector("#minimizeToTray").addEventListener("change", () => setData("minimizeToTray", document.querySelector("#minimizeToTray").checked));
 
-function clampValue(node, min, max)
-{
+function clampValue(node, min, max) {
     var val = node.value;
     if (min != null && val < min)
         val = min;
@@ -2114,16 +1973,15 @@ document.querySelector("#soundsButton").addEventListener("click", () => { showPa
 document.querySelector("#customButton").addEventListener("click", () => { showPanel("customBonks"); });
 document.querySelector("#eventsButton").addEventListener("click", () => { showPanel("events"); });
 
-document.querySelector("#imagesDefaultTab").addEventListener("click", () => { showTab("imageTable", [ "bitImageTable" ], "imagesDefaultTab", [ "imagesBitsTab" ]); });
-document.querySelector("#imagesBitsTab").addEventListener("click", () => { showTab("bitImageTable", [ "imageTable" ], "imagesBitsTab", [ "imagesDefaultTab" ]); });
+document.querySelector("#imagesDefaultTab").addEventListener("click", () => { showTab("imageTable", ["bitImageTable"], "imagesDefaultTab", ["imagesBitsTab"]); });
+document.querySelector("#imagesBitsTab").addEventListener("click", () => { showTab("bitImageTable", ["imageTable"], "imagesBitsTab", ["imagesDefaultTab"]); });
 
-document.querySelector("#soundsDefaultTab").addEventListener("click", () => { showTab("soundTable", [ "bitSoundTable" ], "soundsDefaultTab", [ "soundsBitsTab" ]); });
-document.querySelector("#soundsBitsTab").addEventListener("click", () => { showTab("bitSoundTable", [ "soundTable" ], "soundsBitsTab", [ "soundsDefaultTab" ]); });
+document.querySelector("#soundsDefaultTab").addEventListener("click", () => { showTab("soundTable", ["bitSoundTable"], "soundsDefaultTab", ["soundsBitsTab"]); });
+document.querySelector("#soundsBitsTab").addEventListener("click", () => { showTab("bitSoundTable", ["soundTable"], "soundsBitsTab", ["soundsDefaultTab"]); });
 
 document.querySelectorAll(".windowBack").forEach((element) => { element.addEventListener("click", () => { back(); }) });
 
-function showTab(show, hide, select, deselect)
-{
+function showTab(show, hide, select, deselect) {
     if (show == "soundTable")
         openSounds();
     else if (show == "bitSoundTable")
@@ -2140,8 +1998,7 @@ function showTab(show, hide, select, deselect)
     document.querySelector("#" + select).classList.add("selectedTab");
 }
 
-function removeAll(panel)
-{
+function removeAll(panel) {
     panel.classList.remove("leftIn");
     panel.classList.remove("rightIn");
     panel.classList.remove("upIn");
@@ -2155,15 +2012,12 @@ function removeAll(panel)
 
 var panelStack = [];
 
-function back()
-{
-    if (!playingLarge && openPanelLarge)
-    {
+function back() {
+    if (!playingLarge && openPanelLarge) {
         openPanelLarge = false;
 
         var anim = Math.floor(Math.random() * 4);
-        switch (anim)
-        {
+        switch (anim) {
             case 0:
                 anim = "left";
                 break;
@@ -2181,8 +2035,7 @@ function back()
         removeAll(document.querySelector("#wideWindow"));
         document.querySelector("#wideWindow").classList.add(anim + "Out");
 
-        if (currentPanelLarge.id == "statusWindow" && (status == 3 || status == 4 || status == 7))
-        {
+        if (currentPanelLarge.id == "statusWindow" && (status == 3 || status == 4 || status == 7)) {
             cancelCalibrate = true;
             ipcRenderer.send("cancelCalibrate");
         }
@@ -2200,17 +2053,13 @@ function back()
         showPanel(panelStack.pop(), false);
 }
 
-function showPanel(panel, stack)
-{
-    if (!playing)
-    {
-        if (document.querySelector("#" + panel) != currentPanel)
-        {
+function showPanel(panel, stack) {
+    if (!playing) {
+        if (document.querySelector("#" + panel) != currentPanel) {
             playing = true;
 
             var anim = Math.floor(Math.random() * 4);
-            switch (anim)
-            {
+            switch (anim) {
                 case 0:
                     anim = "left";
                     break;
@@ -2228,7 +2077,7 @@ function showPanel(panel, stack)
             var oldPanel = currentPanel;
             removeAll(oldPanel);
             oldPanel.classList.add(anim + "Out");
-            
+
             setTimeout(() => {
                 oldPanel.classList.add("hidden");
             }, 500);
@@ -2236,29 +2085,24 @@ function showPanel(panel, stack)
             if (stack == null)
                 panelStack = [];
 
-            if (stack == null || !stack)
-            {
+            if (stack == null || !stack) {
 
                 document.querySelector("#sideBar").querySelectorAll(".overlayButton").forEach((element) => { element.classList.remove("buttonSelected"); });
-    
-                if (panel == "bonkImages")
-                {
+
+                if (panel == "bonkImages") {
                     document.querySelector("#imagesButton").querySelector(".overlayButton").classList.add("buttonSelected");
                     openImages();
                 }
-                else if (panel == "bonkSounds")
-                {
+                else if (panel == "bonkSounds") {
                     document.querySelector("#soundsButton").querySelector(".overlayButton").classList.add("buttonSelected");
                     openSounds();
                     openBitSounds();
                 }
-                else if (panel == "customBonks")
-                {
+                else if (panel == "customBonks") {
                     document.querySelector("#customButton").querySelector(".overlayButton").classList.add("buttonSelected");
                     openBonks();
                 }
-                else if (panel == "events")
-                {
+                else if (panel == "events") {
                     document.querySelector("#eventsButton").querySelector(".overlayButton").classList.add("buttonSelected");
                     openEvents();
                 }
@@ -2280,15 +2124,11 @@ function showPanel(panel, stack)
 
 var currentPanelLarge, playingLarge = false, openPanelLarge = false, cancelCalibrate = false;
 
-function showPanelLarge(panel)
-{
-    if (!playingLarge)
-    {
-        if (document.querySelector("#" + panel) != currentPanelLarge)
-        {
+function showPanelLarge(panel) {
+    if (!playingLarge) {
+        if (document.querySelector("#" + panel) != currentPanelLarge) {
             var anim = Math.floor(Math.random() * 4);
-            switch (anim)
-            {
+            switch (anim) {
                 case 0:
                     anim = "left";
                     break;
@@ -2311,17 +2151,14 @@ function showPanelLarge(panel)
             removeAll(currentPanelLarge);
             currentPanelLarge.classList.remove("hidden");
 
-            if (!openPanelLarge)
-            {
+            if (!openPanelLarge) {
                 openPanelLarge = true;
                 removeAll(document.querySelector("#wideWindow"));
                 document.querySelector("#wideWindow").classList.remove("hidden");
                 document.querySelector("#wideWindow").classList.add(anim + "In");
             }
-            else
-            {
-                if (oldPanel != null)
-                {
+            else {
+                if (oldPanel != null) {
                     if (oldPanel.id == "statusWindow" && (status == 3 || status == 4 || status == 7))
                         ipcRenderer.send("cancelCalibrate");
 
@@ -2331,7 +2168,7 @@ function showPanelLarge(panel)
                         oldPanel.classList.add("hidden");
                     }, 500);
                 }
-    
+
                 currentPanelLarge.classList.add(anim + "In");
             }
 
@@ -2348,29 +2185,25 @@ function showPanelLarge(panel)
 // In response to raid event from main process.
 // Do the HTTP request here, since it"s already a browser of sorts, and send the response back.
 ipcRenderer.on("raid", (event, message) => { getRaidEmotes(event, message); });
-function getRaidEmotes(_, data)
-{
-  var channelEmotes = new XMLHttpRequest();
-  channelEmotes.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200)
-      {
-          const emotes = JSON.parse(this.responseText);
-          ipcRenderer.send("emotes", emotes);
-      }
-  };
-  // Open the request and send it.
-  channelEmotes.open("GET", "https://api.twitch.tv/helix/chat/emotes?broadcaster_id=" + data[0], true);
-  channelEmotes.setRequestHeader("Authorization", "Bearer " + data[1]);
-  channelEmotes.setRequestHeader("Client-Id", "u4rwa52hwkkgyoyow0t3gywxyv54pg");
-  channelEmotes.send();
+function getRaidEmotes(_, data) {
+    var channelEmotes = new XMLHttpRequest();
+    channelEmotes.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            const emotes = JSON.parse(this.responseText);
+            ipcRenderer.send("emotes", emotes);
+        }
+    };
+    // Open the request and send it.
+    channelEmotes.open("GET", "https://api.twitch.tv/helix/chat/emotes?broadcaster_id=" + data[0], true);
+    channelEmotes.setRequestHeader("Authorization", "Bearer " + data[1]);
+    channelEmotes.setRequestHeader("Client-Id", "u4rwa52hwkkgyoyow0t3gywxyv54pg");
+    channelEmotes.send();
 }
 
-function checkVersion()
-{
+function checkVersion() {
     var versionRequest = new XMLHttpRequest();
-    versionRequest.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200)
-        {
+    versionRequest.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
             const latestVersion = JSON.parse(this.responseText);
             if (latestVersion.latest > version)
                 document.querySelector("#newVersion").classList.remove("hidden");
@@ -2399,13 +2232,11 @@ document.querySelector("#nextCalibrate").addEventListener("click", () => { ipcRe
 document.querySelector("#cancelCalibrate").addEventListener("click", () => { ipcRenderer.send("cancelCalibrate"); back(); });
 
 // Test a specific item
-async function testItem(index)
-{
+async function testItem(index) {
     const throws = await getData("throws");
     ipcRenderer.send("testItem", throws[index]);
 }
 
-function testCustomBonk(customName)
-{
+function testCustomBonk(customName) {
     ipcRenderer.send("testCustomBonk", customName);
 }
