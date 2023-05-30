@@ -69,7 +69,9 @@ ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
 async function setStatus(_, message)
 {
     // Fix: reduce ui refresh related to status.
-    if (status === message) return;
+    // Fix: fixed last commit not working.
+    // For some reason, status becomes string(??? cant figure out how), so I changed '===' to '=='
+    if (status == message) return;
 
     status = message;
     document.querySelector("#status").innerHTML = statusTitle[status];
