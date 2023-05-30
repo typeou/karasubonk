@@ -57,10 +57,17 @@ const createWindow = () => {
       enableRemoteModule: true
     },
     autoHideMenuBar: true,
-    useContentSize: true
+    useContentSize: true,
+    fullscreenable: false,
   })
   
   mainWindow.loadFile("index.html")
+
+  // Feat: totally hide menubar
+  // Prevent user accidently triggers showing menubar by pressing 'alt'
+  // also prevent user turns up devtool by ketboard shortcut
+  let menu = new Menu();
+  Menu.setApplicationMenu(menu);
 
   // Minimizing to and restoring from tray
   mainWindow.on("minimize", () => {
