@@ -1808,6 +1808,12 @@ window.onload = async function()
         if (!fs.existsSync(userDataPath + "/" + folder))
             fs.mkdirSync(userDataPath + "/" + folder);
 
+        // Fix: fixed a dictionary not found crash.
+        // When directly launch kbonk after packaging without folders "decals" or "windups" would cause this crash.
+        // by adding this condition would fix (or just simply add those two folders)
+        if (!fs.existsSync(__dirname + "/" + folder))
+        fs.mkdirSync(__dirname + "/" + folder);
+
         fs.readdirSync(__dirname + "/" + folder).forEach(file => {
             if (!fs.existsSync(userDataPath + "/" + folder + "/" + file))
                 fs.copyFileSync(__dirname + "/" + folder + "/" + file, userDataPath + "/" + folder + "/" + file);
