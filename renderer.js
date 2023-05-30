@@ -68,6 +68,9 @@ ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
 
 async function setStatus(_, message)
 {
+    // Fix: reduce ui refresh related to status.
+    if (status === message) return;
+
     status = message;
     document.querySelector("#status").innerHTML = statusTitle[status];
     document.querySelector("#headerStatusInner").innerHTML = statusTitle[status] + (status != 0 ? " (Click)" : "");
