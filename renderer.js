@@ -68,6 +68,9 @@ ipcRenderer.on("status", (event, message) => { setStatus(event, message); });
 
 async function setStatus(_, message)
 {
+    // Fix: reduce ui refresh related to status.
+    if (status === message) return;
+
     status = message;
     document.querySelector("#status").innerHTML = statusTitle[status];
     document.querySelector("#headerStatusInner").innerHTML = statusTitle[status] + (status != 0 ? " (Click)" : "");
@@ -1807,6 +1810,12 @@ window.onload = async function()
     folders.forEach((folder) => {
         if (!fs.existsSync(userDataPath + "/" + folder))
             fs.mkdirSync(userDataPath + "/" + folder);
+
+        // Fix: fixed a dictionary not found crash.
+        // When directly launch kbonk after packaging without folders "decals" or "windups" would cause this crash.
+        // by adding this condition would fix (or just simply add those two folders)
+        if (!fs.existsSync(__dirname + "/" + folder))
+        fs.mkdirSync(__dirname + "/" + folder);
 
         fs.readdirSync(__dirname + "/" + folder).forEach(file => {
             if (!fs.existsSync(userDataPath + "/" + folder + "/" + file))
