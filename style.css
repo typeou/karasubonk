@@ -654,7 +654,13 @@ a {
     z-index: 1;
 }
 
-#imageDetailsInner > img {
+#imageDetailsImage {
+    position: absolute;
+    width: 100%;
+    height: calc(100% - 128px);
+}
+
+#imageDetailsImage > img {
     position: absolute;
     margin: auto;
     left: -9999px;
@@ -678,14 +684,14 @@ a {
 }
 
 .imageDetailsShadow {
-    height: 128px;
+    height: 160px;
     margin: 16px auto;
     box-shadow: -8px 8px 16px rgba(0, 0, 0, 0.5);
 }
 
 #imageSettings1 > .imageDetailsShadow
 {
-    width: 192px;
+    width: 224px;
 }
 
 #imageSettings2 > .imageDetailsShadow
@@ -716,7 +722,7 @@ a {
 }
 
 #imageSettings1 .settingsTable {
-    grid-template-columns: 64px 80px;
+    grid-template-columns: 96px 80px;
 }
 
 #imageSettings2 .settingsTable {
@@ -1241,4 +1247,8 @@ mark {
 
 .right {
     text-align: right;
+}
+
+.pixel {
+    image-rendering: pixelated;
 }

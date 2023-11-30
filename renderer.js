@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.21;
+const version = 1.22;
 
 // ------
 // Status
@@ -206,6 +206,9 @@ async function openImages()
                 row.querySelector(".imageLabel").innerText = throws[index].location.substr(throws[index].location.lastIndexOf('/') + 1);
     
                 row.querySelector(".imageImage").src = userDataPath + "/" + throws[index].location;
+
+                var pixel = throws[index].pixel != null ? throws[index].pixel : false;
+                row.querySelector(".imageImage").style.imageRendering = (pixel ? "pixelated" : "auto");
 
                 row.querySelector(".imageEnabled").checked = throws[index].enabled;
                 row.querySelector(".imageEnabled").addEventListener("change", () => {
@@ -884,6 +887,12 @@ async function openImageDetails()
     details.querySelector(".imageImage").style.transform = "scale(" + throws[currentImageIndex].scale + ")";
     details.querySelector(".imageWeight").value = throws[currentImageIndex].weight;
     details.querySelector(".imageScale").value = throws[currentImageIndex].scale;
+
+    if (throws[currentImageIndex].pixel == null)
+        throws[currentImageIndex].pixel = false;
+    details.querySelector(".imagePixel").checked = throws[currentImageIndex].pixel;
+    details.querySelector(".imageImage").style.imageRendering = (throws[currentImageIndex].pixel ? "pixelated" : "auto");
+
     if (throws[currentImageIndex].sound != null)
     {
         details.querySelector(".imageSoundName").value = throws[currentImageIndex].sound.substr(8);
@@ -903,6 +912,12 @@ async function openImageDetails()
     details.querySelector(".imageScale").addEventListener("change", () => {
         throws[currentImageIndex].scale = parseFloat(details.querySelector(".imageScale").value);
         details.querySelector(".imageImage").style.transform = "scale(" + throws[currentImageIndex].scale + ")";
+        setData("throws", throws);
+    });
+
+    details.querySelector(".imagePixel").addEventListener("change", () => {
+        throws[currentImageIndex].pixel = details.querySelector(".imagePixel").checked;
+        details.querySelector(".imageImage").style.imageRendering = (throws[currentImageIndex].pixel ? "pixelated" : "auto");
         setData("throws", throws);
     });
 
@@ -1954,6 +1969,11 @@ window.onload = async function()
     var tray = await getData("minimizeToTray");
     if (tray == null)
         setData("minimizeToTray", false);
+
+    // UPDATE 1.22
+    var prevVer = await getData("version");
+    if (prevVer != null && prevVer < 1.22)
+        setData("returnSpeed", 0.3);
 
     // END UPDATING
 

@@ -1,5 +1,5 @@
 // Karasubot Websocket Scripts
-const version = 1.21;
+const version = 1.22;
 
 var socketKarasu, karasuIsOpen = false;
 var isCalibrating = false;
@@ -336,7 +336,7 @@ function connectKarasu()
                 switch(data.type)
                 {
                     case "single":
-                        bonk(data.image, data.weight, data.scale, data.sound, data.volume, data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null);
+                        bonk(data.image, data.weight, data.scale, data.sound, data.volume, data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null, null, null, data.pixel);
                         break;
                     case "barrage":
                         var i = 0;
@@ -345,15 +345,21 @@ function connectKarasu()
                         const scales = data.scale;
                         const sounds = data.sound;
                         const volumes = data.volume;
+                        const pixels = data.pixel;
                         const max = Math.min(images.length, sounds.length, weights.length);
 
-                        bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null);
+                        var queueId = 0.0;
+                        while (bonkQueues[queueId] != null)
+                            queueId++;
+                        bonkQueues[queueId] = 0;
+                        bonkCounts[queueId] = max;
+                        bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null, data.data.barrageFrequency, queueId, pixels[i]);
                         i++;
                         if (i < max)
                         {
                             var bonker = setInterval(function()
                             {
-                                bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null);
+                                bonk(images[i], weights[i], scales[i], sounds[i], volumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, null, data.data.barrageFrequency, queueId, pixels[i]);
                                 if (++i >= max)
                                     clearInterval(bonker);
                             }, data.data.barrageFrequency * 1000);
@@ -384,6 +390,7 @@ function connectKarasu()
                         const cSounds = data.sound;
                         const cVolumes = data.volume;
                         const cImpactDecals = data.impactDecal;
+                        const cPixels = data.pixel;
                         var windupSound = data.windupSound[0];
                         const cMax = Math.min(cImages.length, cSounds.length, cWeights.length, cImpactDecals.length);
 
@@ -406,13 +413,18 @@ function connectKarasu()
                             windup.play();
                             
                         setTimeout(() => {
-                            bonk(cImages[i], cWeights[i], cScales[i], cSounds[i], cVolumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, cImpactDecals[i]);
+                            var queueId = 0;
+                            while (bonkQueues[queueId] != null)
+                                queueId++;
+                            bonkQueues[queueId] = 0.0;
+                            bonkCounts[queueId] = cMax;
+                            bonk(cImages[i], cWeights[i], cScales[i], cSounds[i], cVolumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, cImpactDecals[i], data.data.barrageFrequency, queueId, cPixels[i]);
                             i++;
                             if (i < cMax)
                             {
                                 var bonker = setInterval(function()
                                 {
-                                    bonk(cImages[i], cWeights[i], cScales[i], cSounds[i], cVolumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, cImpactDecals[i]);
+                                    bonk(cImages[i], cWeights[i], cScales[i], cSounds[i], cVolumes[i], data.data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, cImpactDecals[i], data.data.barrageFrequency, queueId, cPixels[i]);
                                     if (++i >= cMax)
                                         clearInterval(bonker);
                                 }, data.data.barrageFrequency * 1000);
@@ -541,7 +553,20 @@ setInterval(() => {
     }
 }, 1000);
 
-function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, impactDecal)
+var bonkQueues = [], bonkIntervals = [], bonkCounts = [];
+
+function bonkQueueTimeout(queueId)
+{
+    bonkQueues[queueId] -= 1.0 / 60.0;
+    if (bonkQueues[queueId] < 0)
+    {
+        bonkQueues[queueId] = 0.0;
+        clearInterval(bonkIntervals[queueId]);
+        bonkIntervals[queueId] = null;
+    }
+}
+
+function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidthMax, faceHeightMin, faceHeightMax, impactDecal, frequency, queueId, pixel)
 {
     if (vTubeIsOpen)
     {
@@ -594,12 +619,28 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     img.src = image;
                 else
                     img.src = "throws/" + encodeURIComponent(image.substr(7));
-
+                
                 img.onload = async function()
                 {
                     // Don't do anything until both image and audio are ready
-                    while (!canPlayAudio || !canShowImpact)
-                        await new Promise(resolve => setTimeout(resolve, 10));
+                    // Also wait for the queue timeout, to ensure objects that take time to load don't throw all at once
+                    while (!canPlayAudio || !canShowImpact && bonkQueues[queueId] > 0.0)
+                        await new Promise(resolve => setTimeout(resolve, 1000.0 / 60.0));
+
+                    bonkCounts[queueId]--;
+                    if (bonkCounts[queueId] <= 0)
+                    {
+                        // Free up the ID for this group
+                        bonkCounts[queueId] = null;
+                        bonkQueues[queueId] = null;
+                        bonkIntervals[queueId] = null;
+                    }
+                    else
+                    {
+                        // Set the delay before the next item in this queue can be thrown
+                        bonkQueues[queueId] = frequency;
+                        bonkIntervals[queueId] = setInterval(bonkQueueTimeout, 1000.0 / 60.0, queueId);
+                    }
 
                     var randScale = ((pos.size + 100) / 200);
                     var randH = (((Math.random() * 100) - 50) * randScale);
@@ -628,6 +669,7 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                     thrown.src = image;
                     thrown.style.width = img.width * scale * sizeScale + "px";
                     thrown.style.height = img.height * scale * sizeScale + "px";
+                    thrown.style.imageRendering = (pixel ? "pixelated" : "auto");
                     if (data.spinSpeedMax - data.spinSpeedMin == 0)
                         thrown.style.transform = "rotate(" + -angle + "deg)";
                     else
@@ -729,14 +771,15 @@ function simulatePhysics()
     }
 }
 
-var parametersH = [ "FaceAngleX", "FaceAngleZ", "FacePositionX"], parametersV = [ "FaceAngleY" ], parametersE = [ "EyeOpenLeft", "EyeOpenRight"];
+var parametersH = [ "FaceAngleX", "FaceAngleZ", "FacePositionX" ], parametersV = [ "FaceAngleY", "FacePositionY" ], parametersE = [ "EyeOpenLeft", "EyeOpenRight"];
+var flinchWeight = 0, flinchInterval;
 function flinch(multH, angle, mag, paramH, paramV, paramE, returnSpeed, eyeState)
 {
     var parameterValues = [];
     for (var i = 0; i < paramH.length; i++)
-        parameterValues.push({ "id": paramH[i][0], "value": /* paramH[i][1] + */ (multH < 0 ? paramH[i][2] : paramH[i][3]) * mag });
+        parameterValues.push({ "id": paramH[i][0], "value": (multH < 0 ? paramH[i][2] : paramH[i][3]) * mag });
     for (var i = 0; i < paramV.length; i++)
-        parameterValues.push({ "id": paramV[i][0], "value": /* paramV[i][1] + */ (angle > 0 ? paramV[i][2] : paramV[i][3]) * Math.abs(angle) / 45 * mag });
+        parameterValues.push({ "id": paramV[i][0], "value": (angle > 0 ? paramV[i][2] : paramV[i][3]) * Math.abs(angle) / 45 * mag });
 
     var request = {
         "apiName": "VTubeStudioPublicAPI",
@@ -750,46 +793,56 @@ function flinch(multH, angle, mag, paramH, paramV, paramE, returnSpeed, eyeState
         }
     }
 
-    var weight = 1, done;
-    socketVTube.onmessage = function()
-    {
-        weight -= returnSpeed;
-        done = weight <= 0;
-        if (done)
-            weight = 0;
+    // Stop the previous flincher, if it exists
+    if (flinchInterval)
+        clearInterval(flinchInterval);
 
-        parameterValues = [];
-        for (var i = 0; i < paramH.length; i++)
-            parameterValues.push({ "id": paramH[i][0], "value": /* paramH[i][1] + */ (multH < 0 ? paramH[i][2] : paramH[i][3]) * mag * weight });
-        for (var i = 0; i < paramV.length; i++)
-            parameterValues.push({ "id": paramV[i][0], "value": /* paramV[i][1] + */ (multH * angle > 0 ? paramV[i][2] : paramV[i][3]) * Math.abs(angle) / 45 * mag * weight });
-
-        if (eyeState == 1)
-        {
-            for (var i = 0; i < paramE.length; i++)
-                parameterValues.push({ "id": paramE[i][0], "value": -paramE[i][1] * weight });
-        }
-        else if (eyeState == 2)
-        {
-            for (var i = 0; i < paramE.length; i++)
-                parameterValues.push({ "id": paramE[i][0], "value": paramE[i][1] * weight });
-        }
-
-        request = {
-            "apiName": "VTubeStudioPublicAPI",
-            "apiVersion": "1.0",
-            "requestID": "6",
-            "messageType": "InjectParameterDataRequest",
-            "data": {
-                "faceFound": false,
-                "mode": "add",
-                "parameterValues": parameterValues
-            }
-        }
-
-        socketVTube.send(JSON.stringify(request));
-        if (done)
-            socketVTube.onmessage = null;
-    };
+    socketVTube.onmessage = null;
+    // Cause the initial flinch
     socketVTube.send(JSON.stringify(request));
+
+    flinchWeight = 1;
+    // Gradually return to default
+    flinchInterval = setInterval(flinchReturn, 1000.0 / 60.0, multH, angle, mag, paramH, paramV, paramE, returnSpeed, eyeState);
+}
+
+function flinchReturn(multH, angle, mag, paramH, paramV, paramE, returnSpeed, eyeState)
+{
+    flinchWeight -= (1 / returnSpeed) / 60.0;
+    if (flinchWeight <= 0)
+        flinchWeight = 0;
+
+    var parameterValues = [];
+    for (var i = 0; i < paramH.length; i++)
+        parameterValues.push({ "id": paramH[i][0], "value": (multH < 0 ? paramH[i][2] : paramH[i][3]) * mag * flinchWeight });
+    for (var i = 0; i < paramV.length; i++)
+        parameterValues.push({ "id": paramV[i][0], "value": (multH * angle > 0 ? paramV[i][2] : paramV[i][3]) * Math.abs(angle) / 45 * mag * flinchWeight });
+
+    if (eyeState == 1)
+    {
+        for (var i = 0; i < paramE.length; i++)
+            parameterValues.push({ "id": paramE[i][0], "value": -paramE[i][1] * flinchWeight });
+    }
+    else if (eyeState == 2)
+    {
+        for (var i = 0; i < paramE.length; i++)
+            parameterValues.push({ "id": paramE[i][0], "value": paramE[i][1] * flinchWeight });
+    }
+
+    var request = {
+        "apiName": "VTubeStudioPublicAPI",
+        "apiVersion": "1.0",
+        "requestID": "6",
+        "messageType": "InjectParameterDataRequest",
+        "data": {
+            "faceFound": false,
+            "mode": "add",
+            "parameterValues": parameterValues
+        }
+    }
+
+    socketVTube.send(JSON.stringify(request));
+
+    if (flinchWeight == 0 && flinchInterval)
+        clearInterval(flinchInterval);
 }

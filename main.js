@@ -199,24 +199,18 @@ async function pubSub() {
     console.log("Listening to Redemptions");
     pubSubListeners.push(await pubSubClient.onRedemption(user.id, onRedeemHandler));
   }
-  else
-    removeListeners();
 
   if (authenticated)
   {
     console.log("Listening to Subs");
     pubSubListeners.push(await pubSubClient.onSubscription(user.id, onSubHandler));
   }
-  else
-    removeListeners();
 
   if (authenticated)
   {
     console.log("Listening to Bits");
     pubSubListeners.push(await pubSubClient.onBits(user.id, onBitsHandler));
   }
-  else
-    removeListeners();
 
   // EventSub
   eventClient = new EventSubWsListener({ apiClient });
@@ -229,7 +223,6 @@ async function pubSub() {
     eventListeners.push(await eventClient.onChannelFollow(user.id, user.id, onFollowHandler));
   }
   else
-    removeListeners();
 
   // Chat
   chatClient = new ChatClient({ channels: [user.name] });
@@ -241,16 +234,12 @@ async function pubSub() {
     console.log("Listening to Messages");
     chatListeners.push(chatClient.onMessage(onMessageHandler));
   }
-  else
-    removeListeners();
   
   if (authenticated)
   {
     console.log("Listening to Raids");
     chatListeners.push(chatClient.onRaid(onRaidHandler));
   }
-  else
-    removeListeners();
 
   // Done enabling listeners
   if (pubSubListeners.length > 0 || eventListeners.length > 0 || chatListeners.length > 0)
@@ -536,7 +525,8 @@ function getImageWeightScaleSoundVolume()
     "weight": data.throws[index].weight,
     "scale": data.throws[index].scale,
     "sound": data.throws[index].sound != null ? data.throws[index].sound : soundIndex != -1 ? data.impacts[soundIndex].location : null,
-    "volume": data.throws[index].volume * (soundIndex != -1 ? data.impacts[soundIndex].volume : 1)
+    "volume": data.throws[index].volume * (soundIndex != -1 ? data.impacts[soundIndex].volume : 1),
+    "pixel": data.throws[index].pixel != null ? data.throws[index].pixel : false
   };
 }
 
@@ -586,6 +576,7 @@ function testItem(_, item)
       "scale": item.scale,
       "sound": item.sound == null && soundIndex != -1 ? data.impacts[soundIndex].location : item.sound,
       "volume": item.volume,
+      "pixel": item.pixel != null ? item.pixel : false,
       "data": data
     }
     socket.send(JSON.stringify(request));
@@ -607,6 +598,7 @@ function single()
       "scale": imageWeightScaleSoundVolume.scale,
       "sound": imageWeightScaleSoundVolume.sound,
       "volume": imageWeightScaleSoundVolume.volume,
+      "pixel": imageWeightScaleSoundVolume.pixel,
       "data": data
     }
     socket.send(JSON.stringify(request));
@@ -619,13 +611,14 @@ function barrage(customAmount)
   console.log("Sending Barrage");
   if (socket != null && hasActiveImage()) {
     const imagesWeightsScalesSoundsVolumes = getImagesWeightsScalesSoundsVolumes(customAmount);
-    var images = [], weights = [], scales = [], sounds = [], volumes = [];
+    var images = [], weights = [], scales = [], sounds = [], volumes = [], pixels = [];
     for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
       images[i] = imagesWeightsScalesSoundsVolumes[i].location;
       weights[i] = imagesWeightsScalesSoundsVolumes[i].weight;
       scales[i] = imagesWeightsScalesSoundsVolumes[i].scale;
       sounds[i] = imagesWeightsScalesSoundsVolumes[i].sound;
       volumes[i] = imagesWeightsScalesSoundsVolumes[i].volume;
+      pixels[i] = imagesWeightsScalesSoundsVolumes[i].pixel;
     }
 
     var request = {
@@ -635,6 +628,7 @@ function barrage(customAmount)
       "scale": scales,
       "sound": sounds,
       "volume": volumes,
+      "pixel": pixels,
       "data": data
     }
     socket.send(JSON.stringify(request));
@@ -695,7 +689,8 @@ function getCustomImageWeightScaleSoundVolume(customName)
     "sound": data.throws[index].sound != null ? data.throws[index].sound : (soundIndex != -1 ? data.impacts[soundIndex].location : null),
     "volume": data.throws[index].volume * (soundIndex != -1 ? data.impacts[soundIndex].volume : 1),
     "impactDecal": impactDecalIndex != -1 ? data.customBonks[customName].impactDecals[impactDecalIndex] : null,
-    "windupSound": windupSoundIndex != -1 ? data.customBonks[customName].windupSounds[windupSoundIndex] : null
+    "windupSound": windupSoundIndex != -1 ? data.customBonks[customName].windupSounds[windupSoundIndex] : null,
+    "pixel": data.throws[index].pixel != null ? data.throws[index].pixel : false
   };
 }
 
@@ -718,7 +713,7 @@ function custom(customName)
   console.log("Sending Custom");
   if (socket != null && hasActiveImageCustom(customName)) {
     const imagesWeightsScalesSoundsVolumes = getCustomImagesWeightsScalesSoundsVolumes(customName);
-    var images = [], weights = [], scales = [], sounds = [], volumes = [], impactDecals = [], windupSounds = [];
+    var images = [], weights = [], scales = [], sounds = [], volumes = [], impactDecals = [], windupSounds = [], pixels = [];
     for (var i = 0; i < imagesWeightsScalesSoundsVolumes.length; i++) {
       images[i] = imagesWeightsScalesSoundsVolumes[i].location;
       weights[i] = imagesWeightsScalesSoundsVolumes[i].weight;
@@ -727,6 +722,7 @@ function custom(customName)
       volumes[i] = imagesWeightsScalesSoundsVolumes[i].volume;
       impactDecals[i] = imagesWeightsScalesSoundsVolumes[i].impactDecal;
       windupSounds[i] = imagesWeightsScalesSoundsVolumes[i].windupSound;
+      pixels[i] = imagesWeightsScalesSoundsVolumes[i].pixel;
     }
 
     var request = {
@@ -738,6 +734,7 @@ function custom(customName)
       "volume": volumes,
       "impactDecal": impactDecals,
       "windupSound": windupSounds,
+      "pixel": pixels,
       "data": data
     }
     socket.send(JSON.stringify(request));
@@ -1111,7 +1108,7 @@ function onBitsHandler(bitsMessage)
       bitThrows.push(1);
     
     if (socket != null) {
-      var images = [], weights = [], scales = [], sounds = [], volumes = [];
+      var images = [], weights = [], scales = [], sounds = [], volumes = [], pixels = [];
       while (bitThrows.length > 0)
       {
         switch (bitThrows.splice(Math.floor(Math.random() * bitThrows.length), 1)[0])
@@ -1120,26 +1117,31 @@ function onBitsHandler(bitsMessage)
             images.push(data.bitThrows.one.location);
             weights.push(0.2);
             scales.push(data.bitThrows.one.scale);
+            pixels.push(false);
             break;
           case 100:
             images.push(data.bitThrows.oneHundred.location);
             weights.push(0.4);
             scales.push(data.bitThrows.oneHundred.scale);
+            pixels.push(false);
             break;
           case 1000:
             images.push(data.bitThrows.oneThousand.location);
             weights.push(0.6);
             scales.push(data.bitThrows.oneThousand.scale);
+            pixels.push(false);
             break;
           case 5000:
             images.push(data.bitThrows.fiveThousand.location);
             weights.push(0.8);
             scales.push(data.bitThrows.fiveThousand.scale);
+            pixels.push(false);
             break;
           case 10000:
             images.push(data.bitThrows.tenThousand.location);
             weights.push(1);
             scales.push(data.bitThrows.tenThousand.scale);
+            pixels.push(false);
             break;
         }
         
@@ -1167,6 +1169,7 @@ function onBitsHandler(bitsMessage)
         "scale": scales,
         "sound": sounds,
         "volume": volumes,
+        "pixel": pixels,
         "data": data
       }
       socket.send(JSON.stringify(request));
@@ -1222,13 +1225,14 @@ function handleRaidEmotes(_, emotes)
   {
     if (emotes.data.length > 0)
     {
-      var images = [], weights = [], scales = [], sounds = [], volumes = [];
+      var images = [], weights = [], scales = [], sounds = [], volumes = [], pixels = [];
       for (var i = 0; i < numRaiders; i++)
       {
         images.push("https://static-cdn.jtvnw.net/emoticons/v1/" + emotes.data[Math.floor(Math.random() * emotes.data.length)].id + "/3.0");
   
         weights.push(1);
         scales.push(1);
+        pixels.push(false);
   
         if (hasActiveSound())
         {
@@ -1254,6 +1258,7 @@ function handleRaidEmotes(_, emotes)
         "scale": scales,
         "sound": sounds,
         "volume": volumes,
+        "pixel": pixels,
         "data": data
       }
       socket.send(JSON.stringify(request));

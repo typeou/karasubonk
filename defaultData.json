@@ -270,7 +270,7 @@
     "bitsCooldown": 0,
     "barrageCount": 30,
     "barrageFrequency": 0.1,
-    "returnSpeed": 0.05,
+    "returnSpeed": 0.3,
     "openEyes": false,
     "closeEyes": false,
     "itemScaleMin": 0.25,
