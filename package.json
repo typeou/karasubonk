@@ -1,6 +1,6 @@
 {
   "name": "karasubonk",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Lightweight item thrower for Live2D models.",
   "repository": {
     "type": "git",
@@ -8,21 +8,20 @@
   },
   "main": "main.js",
   "dependencies": {
-    "@twurple/api": "^6.1.1",
-    "@twurple/auth-electron": "^6.1.1",
-    "@twurple/auth-ext": "^6.1.1",
-    "@twurple/chat": "^6.1.1",
-    "@twurple/eventsub-ws": "^6.1.1",
-    "@twurple/pubsub": "^6.1.1",
+    "@twurple/api": "^7.0.7",
+    "@twurple/auth": "^7.0.7",
+    "@twurple/chat": "^7.0.7",
+    "@twurple/eventsub-ws": "^7.0.7",
+    "@twurple/pubsub": "^7.0.7",
     "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^6.1.1",
-    "@electron-forge/maker-deb": "^6.1.1",
-    "@electron-forge/maker-rpm": "^6.1.1",
-    "@electron-forge/maker-squirrel": "^6.1.1",
-    "@electron-forge/maker-zip": "^6.1.1",
-    "electron": "^24.1.1"
+    "@electron-forge/cli": "^6.4.2",
+    "@electron-forge/maker-deb": "^6.4.2",
+    "@electron-forge/maker-rpm": "^6.4.2",
+    "@electron-forge/maker-squirrel": "^6.4.2",
+    "@electron-forge/maker-zip": "^6.4.2",
+    "electron": "^24.8.8"
   },
   "scripts": {
     "start": "electron-forge start",

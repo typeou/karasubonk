@@ -34,7 +34,7 @@ const statusDesc = [
     [ "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p>" ],
     "<p>Please use the Channel Point Reward you'd like to use.</p>",
     "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>",
-    "<p>Several windows will briefly appear during this process.</p>",
+    "<p>This should just take a moment.</p>",
     [ "<p>The port <mark>", "</mark> is already in use. Another process may be using this port.</p><p>Try changing the Browser Source Port in Settings, under Advanced Settings.</p><p>It should be some number between 1024 and 65535.</p>" ],
     "<p>KBonk and the Browser Source are running on different versions.</p><p>Please ensure KBonk and the Browser Source are both running from the same folder.</p>",
     "<p>No version response from Browser Source.</p><p>KBonk and the Browser Source may be running on different versions.</p><p>Please ensure KBonk and the Browser Source are both running from the same folder.</p>",
@@ -1523,6 +1523,7 @@ async function newCommand()
 
     commands.push({
         "enabled": true,
+        "modOnly": false,
         "name": "",
         "cooldown": 0,
         "bonkType": "single"
@@ -1640,6 +1641,12 @@ async function openEvents()
         row.querySelector(".commandEnabled").checked = commands[index].enabled;
         row.querySelector(".commandEnabled").addEventListener("change", () => {
             commands[index].enabled = row.querySelector(".commandEnabled").checked;
+            setData("commands", commands);
+        });
+
+        row.querySelector(".commandModOnly").checked = commands[index].modOnly;
+        row.querySelector(".commandModOnly").addEventListener("change", () => {
+            commands[index].modOnly = row.querySelector(".commandModOnly").checked;
             setData("commands", commands);
         });
 
@@ -1985,6 +1992,18 @@ window.onload = async function()
     var prevVer = await getData("version");
     if (prevVer != null && prevVer < 1.22)
         setData("returnSpeed", 0.3);
+    
+    var commands = await getData("commands");
+    if (commands != null)
+    {
+        for (const key in commands)
+        {
+            if (commands[key].modOnly == null)
+            commands[key].modOnly = false;
+        }
+
+        setData("commands", commands);
+    }
 
     // END UPDATING
 

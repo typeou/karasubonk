@@ -743,7 +743,7 @@ a {
     grid-template-columns: 64px auto auto;;
 }
 
-#bonkDetailsTable, #eventsTable {
+#bonkDetailsTable, #eventsTable, .subGrid {
     display: grid;
     line-height: 30px;
     gap: 8px;
@@ -765,8 +765,8 @@ a {
     width: 64px;
 }
 
-#eventsTable > input {
-    width: 96px;
+#eventsTable > input, .subGrid > input {
+    width: 137px;
 }
 
 #bonkDetailsTable > button {
@@ -1097,6 +1097,10 @@ mark {
 
 #eventsTable, .redeemsRow, .commandsRow {
     grid-template-columns: 70px 228px 104px 104px 32px;
+}
+
+.subGrid {
+    grid-template-columns: 75px 153px;
 }
 
 .redeemsRow p, .commandsRow p {

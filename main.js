@@ -2,7 +2,6 @@ const { app, Menu, Tray, BrowserWindow, ipcMain, session } = require("electron")
 const { ApiClient } = require("@twurple/api");
 const { PubSubClient } = require("@twurple/pubsub");
 const { ChatClient } = require("@twurple/chat");
-//const { ElectronAuthProvider } = require("@twurple/auth-electron");
 const { StaticAuthProvider  } = require("@twurple/auth");
 const { EventSubWsListener } = require("@twurple/eventsub-ws");
 const fs = require("fs");
@@ -197,19 +196,19 @@ async function pubSub() {
   if (authenticated)
   {
     console.log("Listening to Redemptions");
-    pubSubListeners.push(await pubSubClient.onRedemption(user.id, onRedeemHandler));
+    pubSubListeners.push(pubSubClient.onRedemption(user.id, onRedeemHandler));
   }
 
   if (authenticated)
   {
     console.log("Listening to Subs");
-    pubSubListeners.push(await pubSubClient.onSubscription(user.id, onSubHandler));
+    pubSubListeners.push(pubSubClient.onSubscription(user.id, onSubHandler));
   }
 
   if (authenticated)
   {
     console.log("Listening to Bits");
-    pubSubListeners.push(await pubSubClient.onBits(user.id, onBitsHandler));
+    pubSubListeners.push(pubSubClient.onBits(user.id, onBitsHandler));
   }
 
   // EventSub
@@ -220,9 +219,8 @@ async function pubSub() {
   if (authenticated)
   {
     console.log("Listening to Follows");
-    eventListeners.push(await eventClient.onChannelFollow(user.id, user.id, onFollowHandler));
+    eventListeners.push(eventClient.onChannelFollow(user.id, user.id, onFollowHandler));
   }
-  else
 
   // Chat
   chatClient = new ChatClient({ channels: [user.name] });
@@ -891,7 +889,7 @@ function hasActiveBitSound()
 // --------------
 
 var commandCooldowns = {};
-function onMessageHandler(_, _, message)
+function onMessageHandler(_, _, text, msg)
 {
   console.log("Received Message");
 
@@ -899,7 +897,7 @@ function onMessageHandler(_, _, message)
   {
     for (var i = 0; i < data.commands.length; i++)
     {
-      if (data.commands[i].name != "" && data.commands[i].name.toLowerCase() == message.toLowerCase() && commandCooldowns[data.commands[i].name.toLowerCase()] == null)
+      if (data.commands[i].name != "" && data.commands[i].name.toLowerCase() == text.toLowerCase() && (msg.userInfo.isBroadcaster || msg.userInfo.isMod || !data.commands[i].modOnly) && commandCooldowns[data.commands[i].name.toLowerCase()] == null)
       {
         switch (data.commands[i].bonkType)
         {
@@ -954,6 +952,9 @@ async function onRedeemHandler(redemptionMessage)
             break;
           case "barrage":
             barrage();
+            break;
+          case "emote":
+            onRaidHandler(null, null, null, true);
             break;
           case "emotes":
             onRaidHandler();

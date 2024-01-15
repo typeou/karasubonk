@@ -993,7 +993,10 @@
                   </div>
                 </div>
                 <b class="grid1">Enabled</b>
-                <b class="grid2">Command Name</b>
+                <span class="grid2 subGrid">
+                  <b class="grid1">Mod Only</b>
+                  <b class="grid2">Command Name</b>
+                </span>
                 <b class="grid3">Bonk Type</b>
                 <b class="grid4">Cooldown</b>
                 <div id="commandsRow" class="hidden">
@@ -1002,7 +1005,14 @@
                     <div class="checkHover"></div>
                     <img src="ui/checkmark.png" class="checkmark">
                   </label>
-                  <input type="text" class="commandName grid2">
+                  <span class="grid2 subGrid">
+                    <label class="checkbox grid1">
+                      <input type="checkbox" class="commandModOnly">
+                      <div class="checkHover"></div>
+                      <img src="ui/checkmark.png" class="checkmark">
+                    </label>
+                    <input type="text" class="commandName grid2">
+                  </span>
                   <select class="bonkType grid3">
                     <option value="single">Single</option>
                     <option value="barrage">Barrage</option>
