@@ -327,12 +327,14 @@
     "commands": [
         {
             "enabled": false,
+            "modOnly": false,
             "name": "!bonk",
             "cooldown": "10",
             "bonkType": "single"
         },
         {
             "enabled": false,
+            "modOnly": false,
             "name": "!manybonk",
             "cooldown": "60",
             "bonkType": "barrage"
