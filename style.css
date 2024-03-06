@@ -265,7 +265,7 @@ a {
 #sideBar {
     margin-left: 32px;
     width: 320px;
-    height: 512px;
+    height: 100%;
     box-shadow: -8px 8px 16px rgba(0, 0, 0, 0.5);
 }
 
@@ -273,7 +273,9 @@ a {
     background-color: #1F1F1F;
     border-top: 32px solid black;
     width: 100%;
-    height: 480px;
+    height: calc(100% - 32px);
+    overflow-x: clip;
+    overflow-y: scroll;
     position: relative;
     clip-path: polygon(0% 0%, calc(100% - 16px) 0%, 100% 16px, 100% 100%, 0% 100%);
 }
