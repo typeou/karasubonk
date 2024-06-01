@@ -154,6 +154,14 @@
               <p class="grid1">Throw Angle (Max)</p>
               <input type="number" id="throwAngleMax" class="grid2" max="90" value="45" step="1">
 
+              <p class="grid1">Throw Direction</p>
+              <select id="throwDirection" class="grid2">
+                <option value="weighted" selected>Weighted</option>
+                <option value="equal">Equal</option>
+                <option value="leftOnly">Left Only</option>
+                <option value="rightOnly">Right Only</option>
+              </select>
+
               <!-- EMPTY DIV FOR SPACING -->
               <div class="grid2"></div>
 
@@ -209,12 +217,18 @@
                 <img src="ui/checkmark.png" class="checkmark">
               </label>
 
+              <p class="grid1">Custom Browser Source IP</p>
+              <input type="text" id="ipThrower" class="grid2" value="">
+
               <p class="grid4">Rotate Gravity with Model</p>
               <label class="checkbox grid5">
                 <input type="checkbox" id="physicsRotate">
                 <div class="checkHover"></div>
                 <img src="ui/checkmark.png" class="checkmark">
               </label>
+
+              <p class="grid1">Custom VTube Studio IP</p>
+              <input type="text" id="ipVTubeStudio" class="grid2" value="">
 
               <p class="grid4">Horizontal Bounce Multiplier</p>
               <input type="number" id="physicsHorizontal" class="grid5" value="1">
@@ -697,6 +711,19 @@
 
                 <p class="grid2">Throw Angle (Max)</p>
                 <input type="number" min="90" value="45" step="1" class="throwAngleMax grid3">
+
+                <label class="checkbox grid1">
+                  <input type="checkbox" class="throwDirectionOverride" checked>
+                  <div class="checkHover"></div>
+                  <img src="ui/checkmark.png" class="checkmark">
+                </label>
+                <p class="grid2">Throw Direction</p>
+                <select class="throwDirection grid3">
+                  <option value="weighted" selected>Weighted</option>
+                  <option value="equal">Equal</option>
+                  <option value="leftOnly">Left Only</option>
+                  <option value="rightOnly">Right Only</option>
+                </select>
 
                 <p class="grid2">Windup Time (s)</p>
                 <input type="number" min="0" value="0" class="windupDelay grid3">

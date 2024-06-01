@@ -1,5 +1,5 @@
 // Karasubot Websocket Scripts
-const version = 1.22;
+const version = 1.23;
 
 var socketKarasu, karasuIsOpen = false;
 var isCalibrating = false;
@@ -58,7 +58,11 @@ function tryWarnVersion()
 
 function connectKarasu()
 {
-    socketKarasu = new WebSocket("ws://localhost:" + ports[0]);
+    var ip = ips[0];
+    if (ip == "")
+        ip = "localhost";
+
+    socketKarasu = new WebSocket("ws://" + ip + ":" + ports[0]);
     socketKarasu.onopen = function()
     {
         karasuIsOpen = true;
@@ -377,6 +381,8 @@ function connectKarasu()
                             data.data.throwAngleMin = data.data.customBonks[data.type].throwAngleMin;
                             data.data.throwAngleMax = data.data.customBonks[data.type].throwAngleMax;
                         }
+                        if (data.data.customBonks[data.type].throwDirectionOverride)
+                            data.data.throwDirection = data.data.customBonks[data.type].throwDirection;
                         if (data.data.customBonks[data.type].spinSpeedOverride)
                         {
                             data.data.spinSpeedMin = data.data.customBonks[data.type].spinSpeedMin;
@@ -455,7 +461,11 @@ var vTubeIsOpen = false;
 
 function connectVTube()
 {
-    socketVTube = new WebSocket("ws://localhost:" + ports[1]);
+    var ip = ips[1];
+    if (ip == "")
+        ip = "localhost";
+
+    socketVTube = new WebSocket("ws://" + ip + ":" + ports[1]);
     socketVTube.onopen = function()
     {
         console.log("Connected to VTube Studio!");
@@ -585,7 +595,25 @@ function bonk(image, weight, scale, sound, volume, data, faceWidthMin, faceWidth
                 const offsetY = faceHeightMin + (((pos.size + 100) / 200) * (faceHeightMax - faceHeightMin));
                 const xPos = (parseFloat(pos.positionX - offsetX) + 1) / 2;
                 const yPos = 1 - ((parseFloat(pos.positionY - offsetY) + 1) / 2);
-                const fromLeft = Math.random() * 1.5 - 0.25 < xPos;
+
+                var isLeft;
+                switch (data.throwDirection)
+                {
+                    case "weighted":
+                        isLeft = Math.random() * 1.5 - 0.25 < xPos;
+                        break;
+                    case "equal":
+                        isLeft = Math.random() < 0.5;
+                        break;
+                    case "leftOnly":
+                        isLeft = true;
+                        break;
+                    case "rightOnly":
+                        isLeft = false;
+                        break;
+                }
+
+                const fromLeft = isLeft;
                 const multH = fromLeft ? 1 : -1;
                 const angle = ((Math.random() * (data.throwAngleMax - data.throwAngleMin)) + data.throwAngleMin) * multH;
                 const sizeScale = data.itemScaleMin + (((pos.size + 100) / 200) * (data.itemScaleMax - data.itemScaleMin));

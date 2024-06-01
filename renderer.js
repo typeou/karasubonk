@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.22;
+const version = 1.23;
 
 // ------
 // Status
@@ -28,10 +28,10 @@ const statusTitle = [
 const statusDesc = [
     "",
     "<p>Click the \"Log in\" button below to open a Twitch authentication window in your browser.</p>",
-    "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source in OBS.</p><p>The KBonk Browser Source should be active with <mark>karasubonk/resources/app/bonker.html</mark> as the source file.</p>",
+    "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source in OBS.</p><p>The KBonk Browser Source should be active with <mark>karasubonk/resources/app/bonker.html</mark> as the source file.</p><p>If you have a Custom Browser Source IP set in the settings, please ensure it is correct.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Continue Calibration</mark> button below to continue to the next step.</p>",
     "<p>Please use VTube Studio to position your model's head under the guide being displayed in OBS.</p><p>Your VTube Studio Source and KBonk Browser Source should be overlapping.</p><p>Press the <mark>Confirm Calibration</mark> button below to finish calibration.</p>",
-    [ "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p>" ],
+    [ "<p>If this message doesn't disappear after a few seconds, please refresh the KBonk Browser Source.</p><p>If that doesn't work, please ensure the VTube Studio API is enabled on port <mark>", "</mark>.</p><p>If you have a Custom VTube Studio IP set in the settings, please ensure it is correct.</p>" ],
     "<p>Please use the Channel Point Reward you'd like to use.</p>",
     "<p>This short process will decide the impact location of thrown objects.</p><p>Please click \"Start Calibration\" to start the calibration process.</p>",
     "<p>This should just take a moment.</p>",
@@ -136,13 +136,25 @@ async function loadImage()
         // If the folder for objects doesn't exist for some reason, make it
         if (!fs.existsSync(userDataPath + "/throws/"))
             fs.mkdirSync(userDataPath + "/throws/");
+
+        var source = fs.readFileSync(imageFile.path);
     
         // Ensure that we're not overwriting any existing files with the same name
-        // If a file already exists, add an interating number to the end until it"s a unique filename
+        // If the files have the same contents, allows the overwrite
+        // If the files have different contents, add an interating number to the end until it's a unique filename or has the same contents
         var append = "";
         if (imageFile.path != userDataPath + "\\throws\\" + imageFile.name)
+        {
             while (fs.existsSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
-                append = append == "" ? 2 : (append + 1);
+            {
+                var target = fs.readFile(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".")));
+
+                if (target.equals(source))
+                    append = append == "" ? 2 : (append + 1);
+                else
+                    break;
+            }
+        }
         var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
     
         // Make a copy of the file into the local folder
@@ -264,13 +276,25 @@ async function loadImageCustom(customName)
         // If the folder for objects doesn't exist for some reason, make it
         if (!fs.existsSync(userDataPath + "/throws/"))
             fs.mkdirSync(userDataPath + "/throws/");
+
+        var source = fs.readFileSync(imageFile.path);
     
         // Ensure that we're not overwriting any existing files with the same name
-        // If a file already exists, add an interating number to the end until it"s a unique filename
+        // If the files have the same contents, allows the overwrite
+        // If the files have different contents, add an interating number to the end until it's a unique filename or has the same contents
         var append = "";
         if (imageFile.path != userDataPath + "\\throws\\" + imageFile.name)
+        {
             while (fs.existsSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
-                append = append == "" ? 2 : (append + 1);
+            {
+                var target = fs.readFile(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".")));
+
+                if (target.equals(source))
+                    append = append == "" ? 2 : (append + 1);
+                else
+                    break;
+            }
+        }
         var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
     
         // Make a copy of the file into the local folder
@@ -392,10 +416,24 @@ async function loadSoundCustom(customName)
         if (!fs.existsSync(userDataPath + "/impacts/"))
             fs.mkdirSync(userDataPath + "/impacts/");
 
+        var source = fs.readFileSync(soundFile.path);
+    
+        // Ensure that we're not overwriting any existing files with the same name
+        // If the files have the same contents, allows the overwrite
+        // If the files have different contents, add an interating number to the end until it's a unique filename or has the same contents
         var append = "";
         if (soundFile.path != userDataPath + "\\impacts\\" + soundFile.name)
-            while (fs.existsSync( userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
-                append = append == "" ? 2 : (append + 1);
+        {
+            while (fs.existsSync(userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
+            {
+                var target = fs.readFile(userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf(".")));
+
+                if (target.equals(source))
+                    append = append == "" ? 2 : (append + 1);
+                else
+                    break;
+            }
+        }
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
         fs.copyFileSync(soundFile.path, userDataPath + "/impacts/" + filename);
@@ -507,10 +545,24 @@ async function loadImpactDecal(customName)
         if (!fs.existsSync(userDataPath + "/decals/"))
             fs.mkdirSync(userDataPath + "/decals/");
 
+        var source = fs.readFileSync(imageFile.path);
+    
+        // Ensure that we're not overwriting any existing files with the same name
+        // If the files have the same contents, allows the overwrite
+        // If the files have different contents, add an interating number to the end until it's a unique filename or has the same contents
         var append = "";
         if (imageFile.path != userDataPath + "\\decals\\" + imageFile.name)
+        {
             while (fs.existsSync(userDataPath + "/decals/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
-                append = append == "" ? 2 : (append + 1);
+            {
+                var target = fs.readFile(userDataPath + "/decals/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".")));
+
+                if (target.equals(source))
+                    append = append == "" ? 2 : (append + 1);
+                else
+                    break;
+            }
+        }
         var filename = imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."));
 
         fs.copyFileSync(imageFile.path, userDataPath + "/decals/" + filename);
@@ -632,10 +684,24 @@ async function loadWindupSound(customName)
         if (!fs.existsSync(userDataPath + "/windups/"))
             fs.mkdirSync(userDataPath + "/windups/");
 
+        var source = fs.readFileSync(soundFile.path);
+    
+        // Ensure that we're not overwriting any existing files with the same name
+        // If the files have the same contents, allows the overwrite
+        // If the files have different contents, add an interating number to the end until it's a unique filename or has the same contents
         var append = "";
         if (soundFile.path != userDataPath + "\\windups\\" + soundFile.name)
+        {
             while (fs.existsSync(userDataPath + "/windups/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
-                append = append == "" ? 2 : (append + 1);
+            {
+                var target = fs.readFile(userDataPath + "/windups/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf(".")));
+
+                if (target.equals(source))
+                    append = append == "" ? 2 : (append + 1);
+                else
+                    break;
+            }
+        }
         var filename = soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."));
 
         fs.copyFileSync(soundFile.path, userDataPath + "/windups/" + filename);
@@ -1160,6 +1226,8 @@ async function addBonk()
         "throwAngleOverride": false,
         "throwAngleMin": await getData("throwAngleMin"),
         "throwAngleMax": await getData("throwAngleMax"),
+        "throwDirectionOverride": false,
+        "throwDirection": await getData("throwDirection"),
         "spinSpeedMin": await getData("spinSpeedMin"),
         "spinSpeedMax": await getData("spinSpeedMax"),
         "itemsOverride": false,
@@ -1334,6 +1402,23 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".throwAngleMax").addEventListener("change", async () => {
             customBonks = await getData("customBonks");
             customBonks[customBonkName].throwAngleMax = parseInt(bonkDetailsTable.querySelector(".throwAngleMax").value);
+            setData("customBonks", customBonks);
+        });
+
+        // Throw Direction
+        bonkDetailsTable.querySelector(".throwDirectionOverride").checked = customBonks[customBonkName].throwDirectionOverride;
+        bonkDetailsTable.querySelector(".throwDirection").disabled = !customBonks[customBonkName].throwDirectionOverride;
+        bonkDetailsTable.querySelector(".throwDirectionOverride").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
+            customBonks[customBonkName].throwDirectionOverride = bonkDetailsTable.querySelector(".throwDirectionOverride").checked;
+            bonkDetailsTable.querySelector(".throwDirection").disabled = !customBonks[customBonkName].throwDirectionOverride;
+            setData("customBonks", customBonks);
+        });
+
+        bonkDetailsTable.querySelector(".throwDirection").value = customBonks[customBonkName].throwDirection;
+        bonkDetailsTable.querySelector(".throwDirection").addEventListener("change", async () => {
+            customBonks = await getData("customBonks");
+            customBonks[customBonkName].throwDirection = bonkDetailsTable.querySelector(".throwDirection").value;
             setData("customBonks", customBonks);
         });
 
@@ -1764,14 +1849,14 @@ function setData(field, value)
     isWriting++;
     ipcRenderer.send("setData", [ field, value ]);
     
-    if (field == "portThrower" || field == "portVTubeStudio")
+    if (field == "portThrower" || field == "portVTubeStudio" || field == "ipThrower" || field == "ipVTubeStudio")
         setPorts();
 }
 
 // If ports change, write them to the file read by the Browser Source file
 async function setPorts()
 {
-    fs.writeFileSync(__dirname + "/ports.js", "const ports = [ " + await getData("portThrower") + ", " + await getData("portVTubeStudio") + " ];");
+    fs.writeFileSync(__dirname + "/ports.js", "const ports = [ " + await getData("portThrower") + ", " + await getData("portVTubeStudio") + " ]; const ips = [ \"" + await getData("ipThrower") + "\", \"" + await getData("ipVTubeStudio") + "\" ];");
 }
 
 // Load the requested data and apply it to the relevant settings field
@@ -1796,7 +1881,7 @@ async function loadData(field)
         else
         {
             document.querySelector("#" + field).value = thisData;
-            if (field == "portThrower" || field == "portVTubeStudio")
+            if (field == "portThrower" || field == "portVTubeStudio" || field == "ipThrower" || field == "ipVTubeStudio")
                 setPorts();
         }
     }
@@ -1967,6 +2052,7 @@ window.onload = async function()
     }
 
     // UPDATE 1.12
+    // Added Spin Speed settings
     var customBonks = await getData("customBonks");
     if (customBonks != null)
     {
@@ -1984,11 +2070,13 @@ window.onload = async function()
     }
 
     // UPDATE 1.13
+    // Added "Minimize to Tray" option
     var tray = await getData("minimizeToTray");
     if (tray == null)
         setData("minimizeToTray", false);
 
     // UPDATE 1.22
+    // Changed "Return Speed" to "Return Time"
     var prevVer = await getData("version");
     if (prevVer != null && prevVer < 1.22)
         setData("returnSpeed", 0.3);
@@ -2004,6 +2092,35 @@ window.onload = async function()
 
         setData("commands", commands);
     }
+
+    // UPDATE 1.23
+    // Added "Throw Direction" setting
+    // Added Custom IP setting for Browser Source
+    // Added Custom IP setting for VTube Studio
+    var prevVer = await getData("version");
+    if (prevVer == null || prevVer < 1.22)
+        setData("throwDirection", "weighted");
+    
+    if (customBonks != null)
+    {
+        for (const key in customBonks)
+        {
+            if (customBonks[key].throwDirectionOverride == null)
+                customBonks[key].throwDirectionOverride = false;
+            if (customBonks[key].throwDirection == null)
+                customBonks[key].throwDirection = "weighted";
+        }
+
+        setData("customBonks", customBonks);
+    }
+
+    var ipThrower = await getData("ipThrower");
+    if (ipThrower == null)
+        setData("ipThrower", "");
+
+    var ipVTubeStudio = await getData("ipVTubeStudio");
+    if (ipVTubeStudio == null)
+        setData("ipVTubeStudio", "");
 
     // END UPDATING
 
@@ -2036,6 +2153,7 @@ window.onload = async function()
     loadData("returnSpeed");
     loadData("throwAngleMin");
     loadData("throwAngleMax");
+    loadData("throwDirection");
     loadData("physicsSim");
     loadData("physicsFPS");
     loadData("physicsGravity");
@@ -2053,6 +2171,8 @@ window.onload = async function()
     loadData("volume");
     loadData("portThrower");
     loadData("portVTubeStudio");
+    loadData("ipThrower");
+    loadData("ipVTubeStudio");
     loadData("minimizeToTray");
     
     openImages();
@@ -2097,6 +2217,7 @@ document.querySelector("#throwDuration").addEventListener("change", () => { clam
 document.querySelector("#returnSpeed").addEventListener("change", () => { clampValue(document.querySelector("#returnSpeed"), 0, null); setData("returnSpeed", parseFloat(document.querySelector("#returnSpeed").value)) });
 document.querySelector("#throwAngleMin").addEventListener("change", () => { clampValue(document.querySelector("#throwAngleMin"), -90, parseFloat(document.querySelector("#throwAngleMax").value)); setData("throwAngleMin", parseFloat(document.querySelector("#throwAngleMin").value)) });
 document.querySelector("#throwAngleMax").addEventListener("change", () => { clampValue(document.querySelector("#throwAngleMax"), parseFloat(document.querySelector("#throwAngleMin").value), null); setData("throwAngleMax", parseFloat(document.querySelector("#throwAngleMax").value)) });
+document.querySelector("#throwDirection").addEventListener("change", () => { setData("throwDirection", document.querySelector("#throwDirection").value) });
 document.querySelector("#spinSpeedMin").addEventListener("change", () => { clampValue(document.querySelector("#spinSpeedMin"), 0, parseFloat(document.querySelector("#spinSpeedMax").value)); setData("spinSpeedMin", parseFloat(document.querySelector("#spinSpeedMin").value)) });
 document.querySelector("#spinSpeedMax").addEventListener("change", () => { clampValue(document.querySelector("#spinSpeedMax"), parseFloat(document.querySelector("#spinSpeedMin").value), null); setData("spinSpeedMax", parseFloat(document.querySelector("#spinSpeedMax").value)) });
 document.querySelector("#physicsSim").addEventListener("change", () => setData("physicsSim", document.querySelector("#physicsSim").checked));
@@ -2131,9 +2252,17 @@ document.querySelector("#itemScaleMin").addEventListener("change", () => { clamp
 document.querySelector("#itemScaleMax").addEventListener("change", () => { clampValue(document.querySelector("#itemScaleMax"), parseFloat(document.querySelector("#itemScaleMin").value), null); setData("itemScaleMax", parseFloat(document.querySelector("#itemScaleMax").value)) });
 document.querySelector("#delay").addEventListener("change", () => { clampValue(document.querySelector("#delay"), 0, null); setData("delay", parseInt(document.querySelector("#delay").value)) } );
 document.querySelector("#volume").addEventListener("change", () => { clampValue(document.querySelector("#volume"), 0, 1); setData("volume", parseFloat(document.querySelector("#volume").value)) });
-document.querySelector("#portThrower").addEventListener("change", () => setData("portThrower", parseInt(document.querySelector("#portThrower").value)));
-document.querySelector("#portVTubeStudio").addEventListener("change", () => setData("portVTubeStudio", parseInt(document.querySelector("#portVTubeStudio").value)));
+document.querySelector("#portThrower").addEventListener("change", () => { differentValue(document.querySelector("#portThrower"), document.querySelector("#portVTubeStudio")); clampValue(document.querySelector("#portThrower"), 1024, 65535); setData("portThrower", parseInt(document.querySelector("#portThrower").value)) });
+document.querySelector("#portVTubeStudio").addEventListener("change", () => { differentValue(document.querySelector("#portVTubeStudio"), document.querySelector("#portThrower")); clampValue(document.querySelector("#portVTubeStudio"), 1024, 65535); setData("portVTubeStudio", parseInt(document.querySelector("#portVTubeStudio").value)) });
+document.querySelector("#ipThrower").addEventListener("change", () => setData("ipThrower", document.querySelector("#ipThrower").value));
+document.querySelector("#ipVTubeStudio").addEventListener("change", () => setData("ipVTubeStudio", document.querySelector("#ipVTubeStudio").value));
 document.querySelector("#minimizeToTray").addEventListener("change", () => setData("minimizeToTray", document.querySelector("#minimizeToTray").checked));
+
+function differentValue(node, otherNode)
+{
+    if (node.value == otherNode.value)
+        node.value++;
+}
 
 function clampValue(node, min, max)
 {

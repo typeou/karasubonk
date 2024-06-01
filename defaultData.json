@@ -1,6 +1,8 @@
 {
     "portThrower": 8080,
     "portVTubeStudio": 8001,
+    "ipThrower": "",
+    "ipVTubeStudio": "",
     "throws": [
         {
             "enabled": true,
@@ -280,6 +282,7 @@
     "throwDuration": 1,
     "throwAngleMin": -45,
     "throwAngleMax": 45,
+    "throwDirection": "weighted",
     "raidEnabled": true,
     "raidMaxBarrageCount": 50,
     "raidCooldown": 0,
