@@ -147,7 +147,7 @@ async function loadImage()
         {
             while (fs.existsSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
             {
-                var target = fs.readFile(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".")));
+                var target = fs.readFileSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".")));
 
                 if (target.equals(source))
                     append = append == "" ? 2 : (append + 1);
@@ -287,7 +287,7 @@ async function loadImageCustom(customName)
         {
             while (fs.existsSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
             {
-                var target = fs.readFile(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".")));
+                var target = fs.readFileSync(userDataPath + "/throws/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".")));
 
                 if (target.equals(source))
                     append = append == "" ? 2 : (append + 1);
@@ -426,7 +426,7 @@ async function loadSoundCustom(customName)
         {
             while (fs.existsSync(userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
             {
-                var target = fs.readFile(userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf(".")));
+                var target = fs.readFileSync(userDataPath + "/impacts/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf(".")));
 
                 if (target.equals(source))
                     append = append == "" ? 2 : (append + 1);
@@ -555,7 +555,7 @@ async function loadImpactDecal(customName)
         {
             while (fs.existsSync(userDataPath + "/decals/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf("."))))
             {
-                var target = fs.readFile(userDataPath + "/decals/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".")));
+                var target = fs.readFileSync(userDataPath + "/decals/" + imageFile.name.substr(0, imageFile.name.lastIndexOf(".")) + append + imageFile.name.substr(imageFile.name.lastIndexOf(".")));
 
                 if (target.equals(source))
                     append = append == "" ? 2 : (append + 1);
@@ -694,7 +694,7 @@ async function loadWindupSound(customName)
         {
             while (fs.existsSync(userDataPath + "/windups/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf("."))))
             {
-                var target = fs.readFile(userDataPath + "/windups/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf(".")));
+                var target = fs.readFileSync(userDataPath + "/windups/" + soundFile.name.substr(0, soundFile.name.lastIndexOf(".")) + append + soundFile.name.substr(soundFile.name.lastIndexOf(".")));
 
                 if (target.equals(source))
                     append = append == "" ? 2 : (append + 1);
