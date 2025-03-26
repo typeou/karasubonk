@@ -1,6 +1,5 @@
 const { app, Menu, Tray, BrowserWindow, ipcMain, session } = require("electron");
 const { ApiClient } = require("@twurple/api");
-const { PubSubClient } = require("@twurple/pubsub");
 const { ChatClient } = require("@twurple/chat");
 const { StaticAuthProvider  } = require("@twurple/auth");
 const { EventSubWsListener } = require("@twurple/eventsub-ws");
@@ -129,7 +128,7 @@ ipcMain.on("getUserDataPath", () => {
 // Authentication
 // --------------
 
-var authProvider, token, apiClient, pubSubClient, eventClient, chatClient, user, authenticated = false, authenticating = false, listenersActive = false;
+var authProvider, token, apiClient, eventClient, chatClient, user, authenticated = false, authenticating = false, listenersActive = false;
 
 const clientId = "u4rwa52hwkkgyoyow0t3gywxyv54pg";
 const redirectUri = "http://localhost:28396";
@@ -185,32 +184,10 @@ ipcMain.on("reauthenticate", async () => {
     authenticate();
 });
 
-var pubSubListeners = [], eventListeners = [], chatListeners = [];
+var eventListeners = [], chatListeners = [];
 
 // Event listeners
 async function pubSub() {
-  // PubSub
-  pubSubClient = new PubSubClient({ authProvider });
-
-  // PubSub Event Listeners
-  if (authenticated)
-  {
-    console.log("Listening to Redemptions");
-    pubSubListeners.push(pubSubClient.onRedemption(user.id, onRedeemHandler));
-  }
-
-  if (authenticated)
-  {
-    console.log("Listening to Subs");
-    pubSubListeners.push(pubSubClient.onSubscription(user.id, onSubHandler));
-  }
-
-  if (authenticated)
-  {
-    console.log("Listening to Bits");
-    pubSubListeners.push(pubSubClient.onBits(user.id, onBitsHandler));
-  }
-
   // EventSub
   eventClient = new EventSubWsListener({ apiClient });
   eventClient.start();
@@ -220,6 +197,24 @@ async function pubSub() {
   {
     console.log("Listening to Follows");
     eventListeners.push(eventClient.onChannelFollow(user.id, user.id, onFollowHandler));
+  }
+
+  if (authenticated)
+  {
+    console.log("Listening to Redemptions");
+    eventListeners.push(eventClient.onChannelRedemptionAdd(user.id, onRedeemHandler));
+  }
+
+  if (authenticated)
+  {
+    console.log("Listening to Subs");
+    eventListeners.push(eventClient.onChannelSubscription(user.id, onSubHandler));
+  }
+
+  if (authenticated)
+  {
+    console.log("Listening to Bits");
+    eventListeners.push(eventClient.onChannelCheer(user.id, onBitsHandler));
   }
 
   // Chat
@@ -240,7 +235,7 @@ async function pubSub() {
   }
 
   // Done enabling listeners
-  if (pubSubListeners.length > 0 || eventListeners.length > 0 || chatListeners.length > 0)
+  if (eventListeners.length > 0 || chatListeners.length > 0)
     listenersActive = true;
 }
 
@@ -253,7 +248,6 @@ function logOut()
   // Remove all authentication and listener clients
   authProvider = null;
   apiClient = null;
-  pubSubClient = null;
   eventClient = null;
   chatClient = null;
 
@@ -262,9 +256,6 @@ function logOut()
   authenticating = false;
 
   // Delete all existing listeners
-  for (var i = 0; i < pubSubListeners.length; i++)
-    pubSubListeners[i].remove();
-  pubSubListeners = [];
   for (var i = 0; i < eventListeners.length; i++)
     eventListeners[i].stop();
   eventListeners = [];
@@ -932,7 +923,7 @@ ipcMain.on("listenRedeemCancel", () => { listening = false; });
 var listening = false;
 async function onRedeemHandler(redemptionMessage)
 {
-  const reward = await apiClient.channelPoints.getCustomRewardById(redemptionMessage.channelId, redemptionMessage.rewardId);
+  const reward = await apiClient.channelPoints.getCustomRewardById(redemptionMessage.broadcasterId, redemptionMessage.rewardId);
 
   if (listening)
   {
