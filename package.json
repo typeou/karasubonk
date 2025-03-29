@@ -1,6 +1,6 @@
 {
   "name": "karasubonk",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Lightweight item thrower for Live2D models.",
   "repository": {
     "type": "git",
@@ -12,7 +12,6 @@
     "@twurple/auth": "^7.0.7",
     "@twurple/chat": "^7.0.7",
     "@twurple/eventsub-ws": "^7.0.7",
-    "@twurple/pubsub": "^7.0.7",
     "electron-squirrel-startup": "^1.0.0"
   },
   "devDependencies": {

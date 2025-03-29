@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.23;
+const version = 1.24;
 
 // ------
 // Status
