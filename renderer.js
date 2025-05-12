@@ -1840,7 +1840,10 @@ async function getData(field)
         } catch {}
     }
     data = JSON.parse(fs.readFileSync(userDataPath + "/data.json", "utf8"));
-    return data[field];
+    var field = data[field];
+    if (typeof field === "string" || field instanceof String)
+        return field.trim();
+    return field;
 }
 
 // Send new data to the main process to write to file
