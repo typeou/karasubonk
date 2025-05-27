@@ -291,6 +291,14 @@
                 </div>
   
                 <div class="testContainer">
+                  <div id="testCharity" class="topButton">
+                    <div class="overlayButton"></div>
+                    <div class="innerTopButton">CHARITY DONATION</div>
+                    <div class="cornerTopButton"></div>
+                  </div>
+                </div>
+  
+                <div class="testContainer">
                   <div id="testBits" class="topButton">
                     <div class="overlayButton"></div>
                     <div class="innerTopButton">BITS</div>
@@ -1111,6 +1119,21 @@
                   <option value="emotes">Emote Barrage</option>
                 </select>
                 <input type="number" id="subGiftCooldown" class="grid4" min="0" value="0">
+
+                <!-- Charity Donation -->
+                <label class="checkbox grid1">
+                  <input type="checkbox" id="charityEnabled" checked>
+                  <div class="checkHover"></div>
+                  <img src="ui/checkmark.png" class="checkmark">
+                </label>
+                <p class="grid2">Charity Donation</p>
+                <select id="charityType" class="grid3">
+                  <option value="single">Single</option>
+                  <option value="barrage" selected>Barrage</option>
+                  <option value="emote">Emote</option>
+                  <option value="emotes">Emote Barrage</option>
+                </select>
+                <input type="number" id="charityCooldown" class="grid4" min="0" value="0">
 
                 <br/>
   

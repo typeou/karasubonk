@@ -1549,6 +1549,10 @@ async function openBonks()
                 if (eventType == key)
                     setData("subGiftType", "barrage");
 
+                eventType = await getData("charityType");
+                if (eventType == key)
+                    setData("charityType", "barrage");
+
                 openBonks();
             });
         };
@@ -1794,6 +1798,19 @@ async function openEvents()
     }
 
     node = document.querySelector("#subGiftType");
+    while (node.childElementCount > 4)
+        node.removeChild(node.lastChild);
+
+    for (var key in customBonks)
+    {
+        var customBonk = document.createElement("option");
+        customBonk.value = key;
+        customBonk.innerText = key;
+        node.appendChild(customBonk);
+    }
+
+    // Update Charity drop-down
+    node = document.querySelector("#charityType");
     while (node.childElementCount > 4)
         node.removeChild(node.lastChild);
 
@@ -2130,12 +2147,14 @@ window.onload = async function()
     loadData("followEnabled");
     loadData("subEnabled");
     loadData("subGiftEnabled");
+    loadData("charityEnabled");
     loadData("bitsEnabled");
     loadData("raidEnabled");
 
     loadData("followType");
     loadData("subType");
     loadData("subGiftType");
+    loadData("charityType");
     loadData("bitsMinDonation");
     loadData("bitsMaxBarrageCount");
     loadData("raidMinRaiders");
@@ -2145,6 +2164,7 @@ window.onload = async function()
     loadData("followCooldown");
     loadData("subCooldown");
     loadData("subGiftCooldown");
+    loadData("charityCooldown");
     loadData("bitsCooldown");
     loadData("raidCooldown");
     loadData("bitsOnlySingle");
@@ -2191,12 +2211,14 @@ window.onload = async function()
 document.querySelector("#followEnabled").addEventListener("change", () => setData("followEnabled", document.querySelector("#followEnabled").checked));
 document.querySelector("#subEnabled").addEventListener("change", () => setData("subEnabled", document.querySelector("#subEnabled").checked));
 document.querySelector("#subGiftEnabled").addEventListener("change", () => setData("subGiftEnabled", document.querySelector("#subGiftEnabled").checked));
+document.querySelector("#charityEnabled").addEventListener("change", () => setData("charityEnabled", document.querySelector("#charityEnabled").checked));
 document.querySelector("#bitsEnabled").addEventListener("change", () => setData("bitsEnabled", document.querySelector("#bitsEnabled").checked));
 document.querySelector("#raidEnabled").addEventListener("change", () => setData("raidEnabled", document.querySelector("#raidEnabled").checked));
 
 document.querySelector("#followType").addEventListener("change", () => setData("followType", document.querySelector("#followType").value));
 document.querySelector("#subType").addEventListener("change", () => setData("subType", document.querySelector("#subType").value));
 document.querySelector("#subGiftType").addEventListener("change", () => setData("subGiftType", document.querySelector("#subGiftType").value));
+document.querySelector("#charityType").addEventListener("change", () => setData("charityType", document.querySelector("#charityType").value));
 document.querySelector("#bitsMinDonation").addEventListener("change", () => { clampValue(document.querySelector("#bitsMinDonation"), 0, null); setData("bitsMinDonation", parseInt(document.querySelector("#bitsMinDonation").value)) });
 document.querySelector("#bitsMaxBarrageCount").addEventListener("change", () => { clampValue(document.querySelector("#bitsMaxBarrageCount"), 0, null); setData("bitsMaxBarrageCount", parseInt(document.querySelector("#bitsMaxBarrageCount").value)) });
 
@@ -2207,6 +2229,7 @@ document.querySelector("#raidMaxBarrageCount").addEventListener("change", () => 
 document.querySelector("#followCooldown").addEventListener("change", () => { clampValue(document.querySelector("#followCooldown"), 0, null); setData("followCooldown", parseFloat(document.querySelector("#followCooldown").value)) });
 document.querySelector("#subCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subCooldown"), 0, null); setData("subCooldown", parseFloat(document.querySelector("#subCooldown").value)) });
 document.querySelector("#subGiftCooldown").addEventListener("change", () => { clampValue(document.querySelector("#subGiftCooldown"), 0, null); setData("subGiftCooldown", parseFloat(document.querySelector("#subGiftCooldown").value)) });
+document.querySelector("#charityCooldown").addEventListener("change", () => { clampValue(document.querySelector("#charityCooldown"), 0, null); setData("charityCooldown", parseFloat(document.querySelector("#charityCooldown").value)) });
 document.querySelector("#bitsCooldown").addEventListener("change", () => { clampValue(document.querySelector("#bitsCooldown"), 0, null); setData("bitsCooldown", parseFloat(document.querySelector("#bitsCooldown").value)) });
 document.querySelector("#raidCooldown").addEventListener("change", () => { clampValue(document.querySelector("#raidCooldown"), 0, null); setData("raidCooldown", parseFloat(document.querySelector("#raidCooldown").value)) });
 document.querySelector("#raidEnabled").addEventListener("change", () => setData("raidEnabled", document.querySelector("#raidEnabled").checked));
@@ -2571,6 +2594,7 @@ document.querySelector("#testSingle").addEventListener("click", () => { ipcRende
 document.querySelector("#testBarrage").addEventListener("click", () => { ipcRenderer.send("barrage"); });
 document.querySelector("#testSub").addEventListener("click", () => { ipcRenderer.send("sub"); });
 document.querySelector("#testSubGift").addEventListener("click", () => { ipcRenderer.send("subGift"); });
+document.querySelector("#testCharity").addEventListener("click", () => { ipcRenderer.send("charity"); });
 document.querySelector("#testBits").addEventListener("click", () => { ipcRenderer.send("bits"); });
 document.querySelector("#testFollow").addEventListener("click", () => { ipcRenderer.send("follow"); });
 document.querySelector("#testEmote").addEventListener("click", () => { ipcRenderer.send("emote"); });

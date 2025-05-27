@@ -208,6 +208,12 @@ async function eventSub() {
 
   if (authenticated)
   {
+    console.log("Listening to Charity Donations");
+    eventListeners.push(eventClient.onChannelCharityDonation(user.id, onCharityHandler));
+  }
+
+  if (authenticated)
+  {
     console.log("Listening to Bits");
     eventListeners.push(eventClient.onChannelCheer(user.id, onBitsHandler));
   }
@@ -245,6 +251,14 @@ function logOut()
   session.defaultSession.clearStorageData([], () => {});
   setData("accessToken", null);
 
+  // Delete all existing listeners
+  for (var i = 0; i < eventListeners.length; i++)
+    eventListeners[i].stop();
+  eventListeners = [];
+  for (var i = 0; i < chatListeners.length; i++)
+    chatClient.removeListener(chatListeners[i]);
+  chatListeners = [];
+
   // Remove all authentication and listener clients
   authProvider = null;
   apiClient = null;
@@ -254,14 +268,6 @@ function logOut()
   // Reset window protection variables
   authenticated = false;
   authenticating = false;
-
-  // Delete all existing listeners
-  for (var i = 0; i < eventListeners.length; i++)
-    eventListeners[i].stop();
-  eventListeners = [];
-  for (var i = 0; i < chatListeners.length; i++)
-    chatClient.removeListener(chatListeners[i]);
-  chatListeners = [];
 
   listenersActive = false;
 }
@@ -536,6 +542,7 @@ ipcMain.on("single", () => single());
 ipcMain.on("barrage", () => barrage());
 ipcMain.on("sub", () => onSubHandler({ isGift: false }));
 ipcMain.on("subGift", () => onSubHandler({ isGift: true }));
+ipcMain.on("charity", () => onCharityHandler());
 ipcMain.on("bits", () => onBitsHandler());
 ipcMain.on("follow", () => onFollowHandler());
 ipcMain.on("emote", () => onRaidHandler(null, null, null, true));
@@ -1050,6 +1057,38 @@ function onSubHandler(subMessage)
     {
       canSubGift = false;
       setTimeout(() => { canSubGift = true; }, data.subGiftCooldown * 1000);
+    }
+  }
+}
+
+var canCharity = true;
+function onCharityHandler()
+{
+  if (canCharity && data.charityEnabled)
+  {
+    switch (data.charityType)
+    {
+      case "single":
+        single();
+        break;
+      case "barrage":
+        barrage();
+        break;
+      case "emote":
+        onRaidHandler(null, null, null, true);
+        break;
+      case "emotes":
+        onRaidHandler();
+        break;
+      default:
+        custom(data.charityType);
+        break;
+    }
+
+    if (data.charityCooldown > 0)
+    {
+      canCharity = false;
+      setTimeout(() => { canCharity = true; }, data.charityCooldown * 1000);
     }
   }
 }
