@@ -1,7 +1,7 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 
-const version = 1.24;
+const version = 1.25;
 
 // ------
 // Status
@@ -228,7 +228,8 @@ async function openImages()
                 row.querySelector(".imageImage").style.imageRendering = (pixel ? "pixelated" : "auto");
 
                 row.querySelector(".imageEnabled").checked = throws[index].enabled;
-                row.querySelector(".imageEnabled").addEventListener("change", () => {
+                row.querySelector(".imageEnabled").addEventListener("change", async () => {
+                    var throws = await getData("throws");
                     throws[index].enabled = row.querySelector(".imageEnabled").checked;
                     setData("throws", throws);
 
@@ -250,7 +251,8 @@ async function openImages()
                     showPanel("imageDetails", true);
                 });
 
-                row.querySelector(".imageRemove").addEventListener("click", () => {
+                row.querySelector(".imageRemove").addEventListener("click", async () => {
+                    var throws = await getData("throws");
                     throws.splice(index, 1);
                     setData("throws", throws);
                     openImages();
@@ -343,7 +345,8 @@ async function openImagesCustom(customName)
     }
     document.querySelector("#imageTableCustom").querySelector(".selectAll input").checked = allEnabled;
 
-    document.querySelector("#imageTableCustom").querySelector(".selectAll input").addEventListener("change", () => {
+    document.querySelector("#imageTableCustom").querySelector(".selectAll input").addEventListener("change", async () => {
+        var throws = await getData("throws");
         document.querySelector("#imageTableCustom").querySelectorAll(".imageEnabled").forEach((element) => { 
             element.checked = document.querySelector("#imageTableCustom").querySelector(".selectAll input").checked;
         });
@@ -378,7 +381,8 @@ async function openImagesCustom(customName)
                 row.querySelector(".imageImage").src = userDataPath + "/" + throws[index].location;
 
                 row.querySelector(".imageEnabled").checked = throws[index].customs.includes(customName);
-                row.querySelector(".imageEnabled").addEventListener("change", () => {
+                row.querySelector(".imageEnabled").addEventListener("change", async () => {
+                    var throws = await getData("throws");
                     if (!row.querySelector(".imageEnabled").checked && throws[index].customs.includes(customName))
                         throws[index].customs.splice(throws[index].customs.indexOf(customName), 1);
                     else if (row.querySelector(".imageEnabled").checked && !throws[index].customs.includes(customName))
@@ -476,7 +480,8 @@ async function openSoundsCustom(customName)
     }
     document.querySelector("#soundTableCustom").querySelector(".selectAll input").checked = allEnabled;
 
-    document.querySelector("#soundTableCustom").querySelector(".selectAll input").addEventListener("change", () => {
+    document.querySelector("#soundTableCustom").querySelector(".selectAll input").addEventListener("change", async () => {
+        var impacts = await getData("impacts");
         document.querySelector("#soundTableCustom").querySelectorAll(".imageEnabled").forEach((element) => { 
             element.checked = document.querySelector("#soundTableCustom").querySelector(".selectAll input").checked;
         });
@@ -508,7 +513,8 @@ async function openSoundsCustom(customName)
                 document.querySelector("#soundTableCustom").appendChild(row);
 
                 row.querySelector(".imageEnabled").checked = impacts[index].customs.includes(customName);
-                row.querySelector(".imageEnabled").addEventListener("change", () => {
+                row.querySelector(".imageEnabled").addEventListener("change", async () => {
+                    var impacts = await getData("impacts");
                     if (!row.querySelector(".imageEnabled").checked && impacts[index].customs.includes(customName))
                         impacts[index].customs.splice(impacts[index].customs.indexOf(customName), 1);
                     else if (row.querySelector(".imageEnabled").checked && !impacts[index].customs.includes(customName))
@@ -606,6 +612,7 @@ async function openImpactDecals(customName)
     document.querySelector("#impactDecalsTable").querySelector(".selectAll input").checked = allEnabled;
 
     document.querySelector("#impactDecalsTable").querySelector(".selectAll input").addEventListener("change", async () => {
+        var customBonks = await getData("customBonks");
         document.querySelector("#impactDecalsTable").querySelectorAll(".imageEnabled").forEach((element) => { 
             element.checked = document.querySelector("#impactDecalsTable").querySelector(".selectAll input").checked;
         });
@@ -629,14 +636,16 @@ async function openImpactDecals(customName)
 
             row.querySelector(".imageImage").src = userDataPath + "/" + customBonks[customName].impactDecals[index].location;
 
-            row.querySelector(".imageRemove").addEventListener("click", () => {
+            row.querySelector(".imageRemove").addEventListener("click", async () => {
+                var customBonks = await getData("customBonks");
                 customBonks[customName].impactDecals.splice(index, 1);
                 setData("customBonks", customBonks);
                 openImpactDecals(customName);
             });
 
             row.querySelector(".imageEnabled").checked = customBonks[customName].impactDecals[index].enabled;
-            row.querySelector(".imageEnabled").addEventListener("change", () => {
+            row.querySelector(".imageEnabled").addEventListener("change", async () => {
+                var customBonks = await getData("customBonks");
                 customBonks[customName].impactDecals[index].enabled = row.querySelector(".imageEnabled").checked;
                 setData("customBonks", customBonks);
 
@@ -653,14 +662,16 @@ async function openImpactDecals(customName)
             });
 
             row.querySelector(".decalDuration").value = customBonks[customName].impactDecals[index].duration;
-            row.querySelector(".decalDuration").addEventListener("change", () => {
+            row.querySelector(".decalDuration").addEventListener("change", async () => {
+                var customBonks = await getData("customBonks");
                 clampValue(row.querySelector(".decalDuration").value, 0, null);
                 customBonks[customName].impactDecals[index].duration = parseFloat(row.querySelector(".decalDuration").value);
                 setData("customBonks", customBonks);
             });
 
             row.querySelector(".decalScale").value = customBonks[customName].impactDecals[index].scale;
-            row.querySelector(".decalScale").addEventListener("change", () => {
+            row.querySelector(".decalScale").addEventListener("change", async () => {
+                var customBonks = await getData("customBonks");
                 clampValue(row.querySelector(".decalScale"), 0, null);
                 customBonks[customName].impactDecals[index].scale = parseFloat(row.querySelector(".decalScale").value);
                 setData("customBonks", customBonks);
@@ -744,6 +755,7 @@ async function openWindupSounds(customName)
     document.querySelector("#windupSoundTable").querySelector(".selectAll input").checked = allEnabled;
 
     document.querySelector("#windupSoundTable").querySelector(".selectAll input").addEventListener("change", async () => {
+        var customBonks = await getData("customBonks");
         document.querySelector("#windupSoundTable").querySelectorAll(".imageEnabled").forEach((element) => { 
             element.checked = document.querySelector("#windupSoundTable").querySelector(".selectAll input").checked;
         });
@@ -765,14 +777,16 @@ async function openWindupSounds(customName)
             row.querySelector(".imageLabel").innerText = customBonks[customName].windupSounds[index].location.substr(customBonks[customName].windupSounds[index].location.lastIndexOf('/') + 1);
             document.querySelector("#windupSoundTable").appendChild(row);
 
-            row.querySelector(".imageRemove").addEventListener("click", () => {
+            row.querySelector(".imageRemove").addEventListener("click", async () => {
+                var customBonks = await getData("customBonks");
                 customBonks[customName].windupSounds.splice(index, 1);
                 setData("customBonks", customBonks);
                 openWindupSounds(customName);
             });
 
             row.querySelector(".imageEnabled").checked = customBonks[customName].windupSounds[index].enabled;
-            row.querySelector(".imageEnabled").addEventListener("change", () => {
+            row.querySelector(".imageEnabled").addEventListener("change", async () => {
+                var customBonks = await getData("customBonks");
                 customBonks[customName].windupSounds[index].enabled = row.querySelector(".imageEnabled").checked;
                 setData("customBonks", customBonks);
 
@@ -789,7 +803,8 @@ async function openWindupSounds(customName)
             });
 
             row.querySelector(".soundVolume").value = customBonks[customName].windupSounds[index].volume;
-            row.querySelector(".soundVolume").addEventListener("change", () => {
+            row.querySelector(".soundVolume").addEventListener("change", async () => {
+                var customBonks = await getData("customBonks");
                 clampValue(row.querySelector(".soundVolume"), 0, 1);
                 customBonks[customName].windupSounds[index].volume = parseFloat(row.querySelector(".soundVolume").value);
                 setData("customBonks", customBonks);
@@ -975,30 +990,35 @@ async function openImageDetails()
         details.querySelector(".imageSoundRemove").disabled = "disabled";
     }
 
-    details.querySelector(".imageWeight").addEventListener("change", () => {
+    details.querySelector(".imageWeight").addEventListener("change", async () => {
+        var throws = await getData("throws");
         throws[currentImageIndex].weight = parseFloat(details.querySelector(".imageWeight").value);
         setData("throws", throws);
     });
 
-    details.querySelector(".imageScale").addEventListener("change", () => {
+    details.querySelector(".imageScale").addEventListener("change", async () => {
+        var throws = await getData("throws");
         throws[currentImageIndex].scale = parseFloat(details.querySelector(".imageScale").value);
         details.querySelector(".imageImage").style.transform = "scale(" + throws[currentImageIndex].scale + ")";
         setData("throws", throws);
     });
 
-    details.querySelector(".imagePixel").addEventListener("change", () => {
+    details.querySelector(".imagePixel").addEventListener("change", async () => {
+        var throws = await getData("throws");
         throws[currentImageIndex].pixel = details.querySelector(".imagePixel").checked;
         details.querySelector(".imageImage").style.imageRendering = (throws[currentImageIndex].pixel ? "pixelated" : "auto");
         setData("throws", throws);
     });
 
     details.querySelector(".imageSoundVolume").value = throws[currentImageIndex].volume;
-    details.querySelector(".imageSoundVolume").addEventListener("change", () => {
+    details.querySelector(".imageSoundVolume").addEventListener("change", async () => {
+        var throws = await getData("throws");
         throws[currentImageIndex].volume = parseFloat(details.querySelector(".imageSoundVolume").value);
         setData("throws", throws);
     });
 
-    details.querySelector(".imageSoundRemove").addEventListener("click", () => {
+    details.querySelector(".imageSoundRemove").addEventListener("click", async () => {
+        var throws = await getData("throws");
         throws[currentImageIndex].sound = null;
         setData("throws", throws);
         details.querySelector(".imageSoundName").value = null;
@@ -1074,14 +1094,16 @@ async function openSounds()
                 row.querySelector(".imageLabel").innerText = impacts[index].location.substr(impacts[index].location.lastIndexOf('/') + 1);
                 document.querySelector("#soundTable").appendChild(row);
 
-                row.querySelector(".imageRemove").addEventListener("click", () => {
+                row.querySelector(".imageRemove").addEventListener("click", async () => {
+                    var impacts = await getData("impacts");
                     impacts.splice(index, 1);
                     setData("impacts", impacts);
                     openSounds();
                 });
 
                 row.querySelector(".imageEnabled").checked = impacts[index].enabled;
-                row.querySelector(".imageEnabled").addEventListener("change", () => {
+                row.querySelector(".imageEnabled").addEventListener("change", async () => {
+                    var impacts = await getData("impacts");
                     impacts[index].enabled = row.querySelector(".imageEnabled").checked;
                     setData("impacts", impacts);
 
@@ -1098,7 +1120,8 @@ async function openSounds()
                 });
 
                 row.querySelector(".soundVolume").value = impacts[index].volume;
-                row.querySelector(".soundVolume").addEventListener("change", () => {
+                row.querySelector(".soundVolume").addEventListener("change", async () => {
+                    var impacts = await getData("impacts");
                     clampValue(row.querySelector(".soundVolume"), 0, 1);
                     impacts[index].volume = parseFloat(row.querySelector(".soundVolume").value);
                     setData("impacts", impacts);
@@ -1180,7 +1203,8 @@ async function openBitSounds()
                 document.querySelector("#bitSoundTable").appendChild(row);
 
                 row.querySelector(".imageEnabled").checked = impacts[index].bits;
-                row.querySelector(".imageEnabled").addEventListener("change", () => {
+                row.querySelector(".imageEnabled").addEventListener("change", async () => {
+                    var impacts = await getData("impacts");
                     impacts[index].bits = row.querySelector(".imageEnabled").checked;
                     setData("impacts", impacts);
 
@@ -1273,7 +1297,7 @@ async function bonkDetails(customBonkName)
         // Bonk Name
         bonkDetailsTable.querySelector(".bonkName").value = customBonkName;
         bonkDetailsTable.querySelector(".bonkName").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             if (customBonks[bonkDetailsTable.querySelector(".bonkName").value] == null)
             {
                 customBonks[bonkDetailsTable.querySelector(".bonkName").value] = customBonks[customBonkName];
@@ -1313,7 +1337,7 @@ async function bonkDetails(customBonkName)
         // Barrage Count
         bonkDetailsTable.querySelector(".barrageCount").value = customBonks[customBonkName].barrageCount;
         bonkDetailsTable.querySelector(".barrageCount").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].barrageCount = parseInt(bonkDetailsTable.querySelector(".barrageCount").value);
             setData("customBonks", customBonks);
         });
@@ -1322,7 +1346,7 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked = customBonks[customBonkName].barrageFrequencyOverride;
         bonkDetailsTable.querySelector(".barrageFrequency").disabled = !customBonks[customBonkName].barrageFrequencyOverride;
         bonkDetailsTable.querySelector(".barrageFrequencyOverride").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].barrageFrequencyOverride = bonkDetailsTable.querySelector(".barrageFrequencyOverride").checked;
             bonkDetailsTable.querySelector(".barrageFrequency").disabled = !customBonks[customBonkName].barrageFrequencyOverride;
             setData("customBonks", customBonks);
@@ -1330,7 +1354,7 @@ async function bonkDetails(customBonkName)
 
         bonkDetailsTable.querySelector(".barrageFrequency").value = customBonks[customBonkName].barrageFrequency;
         bonkDetailsTable.querySelector(".barrageFrequency").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].barrageFrequency = parseFloat(bonkDetailsTable.querySelector(".barrageFrequency").value);
             setData("customBonks", customBonks);
         });
@@ -1339,7 +1363,7 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".throwDurationOverride").checked = customBonks[customBonkName].throwDurationOverride;
         bonkDetailsTable.querySelector(".throwDuration").disabled = !customBonks[customBonkName].throwDurationOverride;
         bonkDetailsTable.querySelector(".throwDurationOverride").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].throwDurationOverride = bonkDetailsTable.querySelector(".throwDurationOverride").checked;
             bonkDetailsTable.querySelector(".throwDuration").disabled = !customBonks[customBonkName].throwDurationOverride;
             setData("customBonks", customBonks);
@@ -1347,7 +1371,7 @@ async function bonkDetails(customBonkName)
 
         bonkDetailsTable.querySelector(".throwDuration").value = customBonks[customBonkName].throwDuration;
         bonkDetailsTable.querySelector(".throwDuration").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].throwDuration = parseFloat(bonkDetailsTable.querySelector(".throwDuration").value);
             setData("customBonks", customBonks);
         });
@@ -1357,7 +1381,7 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".spinSpeedMin").disabled = !customBonks[customBonkName].spinSpeedOverride;
         bonkDetailsTable.querySelector(".spinSpeedMax").disabled = !customBonks[customBonkName].spinSpeedOverride;
         bonkDetailsTable.querySelector(".spinSpeedOverride").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].spinSpeedOverride = bonkDetailsTable.querySelector(".spinSpeedOverride").checked;
             bonkDetailsTable.querySelector(".spinSpeedMin").disabled = !customBonks[customBonkName].spinSpeedOverride;
             bonkDetailsTable.querySelector(".spinSpeedMax").disabled = !customBonks[customBonkName].spinSpeedOverride;
@@ -1366,7 +1390,7 @@ async function bonkDetails(customBonkName)
 
         bonkDetailsTable.querySelector(".spinSpeedMin").value = customBonks[customBonkName].spinSpeedMin;
         bonkDetailsTable.querySelector(".spinSpeedMin").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].spinSpeedMin = parseFloat(bonkDetailsTable.querySelector(".spinSpeedMin").value);
             setData("customBonks", customBonks);
         });
@@ -1374,7 +1398,7 @@ async function bonkDetails(customBonkName)
         // Throw Angle Max
         bonkDetailsTable.querySelector(".spinSpeedMax").value = customBonks[customBonkName].spinSpeedMax;
         bonkDetailsTable.querySelector(".spinSpeedMax").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].spinSpeedMax = parseFloat(bonkDetailsTable.querySelector(".spinSpeedMax").value);
             setData("customBonks", customBonks);
         });
@@ -1384,7 +1408,7 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".throwAngleMin").disabled = !customBonks[customBonkName].throwAngleOverride;
         bonkDetailsTable.querySelector(".throwAngleMax").disabled = !customBonks[customBonkName].throwAngleOverride;
         bonkDetailsTable.querySelector(".throwAngleOverride").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].throwAngleOverride = bonkDetailsTable.querySelector(".throwAngleOverride").checked;
             bonkDetailsTable.querySelector(".throwAngleMin").disabled = !customBonks[customBonkName].throwAngleOverride;
             bonkDetailsTable.querySelector(".throwAngleMax").disabled = !customBonks[customBonkName].throwAngleOverride;
@@ -1393,14 +1417,14 @@ async function bonkDetails(customBonkName)
 
         bonkDetailsTable.querySelector(".throwAngleMin").value = customBonks[customBonkName].throwAngleMin;
         bonkDetailsTable.querySelector(".throwAngleMin").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].throwAngleMin = parseInt(bonkDetailsTable.querySelector(".throwAngleMin").value);
             setData("customBonks", customBonks);
         });
 
         bonkDetailsTable.querySelector(".throwAngleMax").value = customBonks[customBonkName].throwAngleMax;
         bonkDetailsTable.querySelector(".throwAngleMax").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].throwAngleMax = parseInt(bonkDetailsTable.querySelector(".throwAngleMax").value);
             setData("customBonks", customBonks);
         });
@@ -1409,7 +1433,7 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".throwDirectionOverride").checked = customBonks[customBonkName].throwDirectionOverride;
         bonkDetailsTable.querySelector(".throwDirection").disabled = !customBonks[customBonkName].throwDirectionOverride;
         bonkDetailsTable.querySelector(".throwDirectionOverride").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].throwDirectionOverride = bonkDetailsTable.querySelector(".throwDirectionOverride").checked;
             bonkDetailsTable.querySelector(".throwDirection").disabled = !customBonks[customBonkName].throwDirectionOverride;
             setData("customBonks", customBonks);
@@ -1417,7 +1441,7 @@ async function bonkDetails(customBonkName)
 
         bonkDetailsTable.querySelector(".throwDirection").value = customBonks[customBonkName].throwDirection;
         bonkDetailsTable.querySelector(".throwDirection").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].throwDirection = bonkDetailsTable.querySelector(".throwDirection").value;
             setData("customBonks", customBonks);
         });
@@ -1426,7 +1450,7 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".imagesOverride").checked = customBonks[customBonkName].itemsOverride;
         bonkDetailsTable.querySelector(".images").disabled = !customBonks[customBonkName].itemsOverride;
         bonkDetailsTable.querySelector(".imagesOverride").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].itemsOverride = bonkDetailsTable.querySelector(".imagesOverride").checked;
             bonkDetailsTable.querySelector(".images").disabled = !customBonks[customBonkName].itemsOverride;
             setData("customBonks", customBonks);
@@ -1444,7 +1468,7 @@ async function bonkDetails(customBonkName)
         bonkDetailsTable.querySelector(".soundsOverride").checked = customBonks[customBonkName].soundsOverride;
         bonkDetailsTable.querySelector(".sounds").disabled = !customBonks[customBonkName].soundsOverride;
         bonkDetailsTable.querySelector(".soundsOverride").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].soundsOverride = bonkDetailsTable.querySelector(".soundsOverride").checked;
             bonkDetailsTable.querySelector(".sounds").disabled = !customBonks[customBonkName].soundsOverride;
             setData("customBonks", customBonks);
@@ -1473,7 +1497,7 @@ async function bonkDetails(customBonkName)
         // Windup Delay
         bonkDetailsTable.querySelector(".windupDelay").value = customBonks[customBonkName].windupDelay;
         bonkDetailsTable.querySelector(".windupDelay").addEventListener("change", async () => {
-            customBonks = await getData("customBonks");
+            var customBonks = await getData("customBonks");
             customBonks[customBonkName].windupDelay = parseFloat(bonkDetailsTable.querySelector(".windupDelay").value);
             setData("customBonks", customBonks);
         });
@@ -1659,7 +1683,8 @@ async function openEvents()
         document.querySelector("#redeemsRow").after(row);
 
         row.querySelector(".redeemEnabled").checked = redeems[index].enabled;
-        row.querySelector(".redeemEnabled").addEventListener("change", () => {
+        row.querySelector(".redeemEnabled").addEventListener("change", async () => {
+            var redeems = await getData("redeems");
             redeems[index].enabled = row.querySelector(".redeemEnabled").checked;
             setData("redeems", redeems);
         });
@@ -1667,6 +1692,7 @@ async function openEvents()
         row.querySelector(".redeemName").innerHTML = redeems[index].name == null ? "<b class=\"errorText\">Unassigned</b>" : redeems[index].name;
         
         row.querySelector(".redeemID").addEventListener("click", async () => {
+            var redeems = await getData("redeems");
             row.querySelector(".redeemID").classList.add("hidden");
             row.querySelector(".redeemCancel").classList.remove("hidden");
             row.querySelector(".redeemName").innerText = "Listening...";
@@ -1683,6 +1709,7 @@ async function openEvents()
         });
         
         row.querySelector(".redeemCancel").addEventListener("click", async () => {
+            var redeems = await getData("redeems");
             row.querySelector(".redeemID").classList.remove("hidden");
             row.querySelector(".redeemCancel").classList.add("hidden");
             
@@ -1702,12 +1729,14 @@ async function openEvents()
         }
 
         row.querySelector(".bonkType").value = redeems[index].bonkType;
-        row.querySelector(".bonkType").addEventListener("change", () => {
+        row.querySelector(".bonkType").addEventListener("change", async () => {
+            var redeems = await getData("redeems");
             redeems[index].bonkType = row.querySelector(".bonkType").value;
             setData("redeems", redeems);
         });
 
-        row.querySelector(".redeemRemove").addEventListener("click", () => {
+        row.querySelector(".redeemRemove").addEventListener("click", async () => {
+            var redeems = await getData("redeems");
             redeems.splice(index, 1);
             setData("redeems", redeems);
             openEvents();
@@ -1728,25 +1757,28 @@ async function openEvents()
         document.querySelector("#commandsRow").after(row);
 
         row.querySelector(".commandEnabled").checked = commands[index].enabled;
-        row.querySelector(".commandEnabled").addEventListener("change", () => {
+        row.querySelector(".commandEnabled").addEventListener("change", async () => {
+            var commands = await getData("commands");
             commands[index].enabled = row.querySelector(".commandEnabled").checked;
             setData("commands", commands);
         });
 
         row.querySelector(".commandModOnly").checked = commands[index].modOnly;
-        row.querySelector(".commandModOnly").addEventListener("change", () => {
+        row.querySelector(".commandModOnly").addEventListener("change", async () => {
             commands[index].modOnly = row.querySelector(".commandModOnly").checked;
             setData("commands", commands);
         });
 
         row.querySelector(".commandName").value = commands[index].name;
-        row.querySelector(".commandName").addEventListener("change", () => {
+        row.querySelector(".commandName").addEventListener("change", async () => {
+            var commands = await getData("commands");
             commands[index].name = row.querySelector(".commandName").value;
             setData("commands", commands);
         });
 
         row.querySelector(".commandCooldown").value = commands[index].cooldown;
-        row.querySelector(".commandCooldown").addEventListener("change", () => {
+        row.querySelector(".commandCooldown").addEventListener("change", async () => {
+            var commands = await getData("commands");
             commands[index].cooldown = row.querySelector(".commandCooldown").value;
             setData("commands", commands);
         });
@@ -1760,12 +1792,14 @@ async function openEvents()
         }
 
         row.querySelector(".bonkType").value = commands[index].bonkType;
-        row.querySelector(".bonkType").addEventListener("change", () => {
+        row.querySelector(".bonkType").addEventListener("change", async () => {
+            var commands = await getData("commands");
             commands[index].bonkType = row.querySelector(".bonkType").value;
             setData("commands", commands);
         });
 
-        row.querySelector(".commandRemove").addEventListener("click", () => {
+        row.querySelector(".commandRemove").addEventListener("click", async () => {
+            var commands = await getData("commands");
             commands.splice(index, 1);
             setData("commands", commands);
             openEvents();
