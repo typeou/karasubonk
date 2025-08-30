@@ -132,7 +132,7 @@ var authProvider, token, apiClient, eventClient, chatClient, user, authenticated
 
 const clientId = "u4rwa52hwkkgyoyow0t3gywxyv54pg";
 const redirectUri = "http://localhost:28396";
-const scope = "chat%3Aread%20channel%3Aread%3Aredemptions%20channel%3Aread%3Asubscriptions%20bits%3Aread%20moderator%3Aread%3Afollowers";
+const scope = "chat%3Aread%20channel%3Aread%3Aredemptions%20channel%3Aread%3Asubscriptions%20bits%3Aread%20moderator%3Aread%3Afollowers%20channel%3Aread%3Acharity";
 const authURI = "https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=" + scope;
 
 http.createServer(function (req, res) {
