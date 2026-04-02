@@ -148,6 +148,8 @@ function connectKarasu()
                         "data": {
                             "timeInSeconds": 0.5,
                             "valuesAreRelativeToModel": false,
+                            "positionX": 0,
+		                    "positionY": 0,
                             "rotation": 0,
                             "size": -100
                         }
@@ -189,6 +191,8 @@ function connectKarasu()
                         "data": {
                             "timeInSeconds": 0.5,
                             "valuesAreRelativeToModel": false,
+                            "positionX": 0,
+		                    "positionY": 0,
                             "rotation": 0,
                             "size": 100
                         }

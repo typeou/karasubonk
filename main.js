@@ -896,31 +896,42 @@ function onMessageHandler(_, _, text, msg)
   {
     for (var i = 0; i < data.commands.length; i++)
     {
-      if (data.commands[i].name != "" && data.commands[i].name.toLowerCase() == text.toLowerCase() && (msg.userInfo.isBroadcaster || msg.userInfo.isMod || !data.commands[i].modOnly) && commandCooldowns[data.commands[i].name.toLowerCase()] == null)
-      {
-        switch (data.commands[i].bonkType)
-        {
-          case "single":
-            single();
-            break;
-          case "barrage":
-            barrage();
-            break;
-          case "emote":
-            onRaidHandler(null, null, null, true);
-            break;
-          case "emotes":
-            onRaidHandler();
-            break;
-          default:
-            custom(data.commands[i].bonkType);
-            break;
-        }
+      const commandName = data.commands[i].name.toLowerCase();
 
-        commandCooldowns[data.commands[i].name.toLowerCase()] = true;
-        setTimeout(() => { delete commandCooldowns[data.commands[i].name.toLowerCase()]; }, data.commands[i].cooldown * 1000);
-        break;
+      if (commandName == "")
+        continue;
+
+      if (commandName != text.toLowerCase())
+        continue;
+
+      if (data.commands[i].modOnly && !msg.userInfo.isBroadcaster && !msg.userInfo.isMod)
+        continue;
+
+      if (commandCooldowns[commandName])
+        continue;
+
+      switch (data.commands[i].bonkType)
+      {
+        case "single":
+          single();
+          break;
+        case "barrage":
+          barrage();
+          break;
+        case "emote":
+          onRaidHandler(null, null, null, true);
+          break;
+        case "emotes":
+          onRaidHandler();
+          break;
+        default:
+          custom(data.commands[i].bonkType);
+          break;
       }
+
+      commandCooldowns[commandName] = true;
+      setTimeout(() => { commandCooldowns[commandName] = false; }, data.commands[i].cooldown * 1000);
+      break;
     }
   }
 }
